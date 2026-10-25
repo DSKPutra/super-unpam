@@ -15,7 +15,7 @@ export default defineConfig({
         name: 'Super UNPAM',
         short_name: 'Super UNPAM',
         description:
-          'Super App Universitas Pamulang — semua layanan kampus dalam satu aplikasi: MY UNPAM, MENTARI, SISPEMA, SISKERMA, MY LSP, MY LB, Tracer Study, EMS.',
+          'Super App Universitas Pamulang — semua layanan kampus dalam satu aplikasi: KTM digital, presensi online, jadwal, KRS, nilai, kuliah online, pembayaran UKT, event, sertifikasi, TOEFL.',
         lang: 'id',
         start_url: '/',
         scope: '/',
@@ -32,24 +32,18 @@ export default defineConfig({
           { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
         shortcuts: [
-          { name: 'KTM Digital', short_name: 'KTM', url: '/?view=profile', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'Jadwal Hari Ini', short_name: 'Jadwal', url: '/?view=dashboard', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'MY UNPAM', short_name: 'MY UNPAM', url: '/?open=my-unpam', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'MENTARI', short_name: 'MENTARI', url: '/?open=mentari', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'KTM Digital', short_name: 'KTM', url: '/#/ktm', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Presensi', short_name: 'Presensi', url: '/#/presensi', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Jadwal Kuliah', short_name: 'Jadwal', url: '/#/akademik/jadwal', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Pembayaran', short_name: 'Bayar', url: '/#/keuangan', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
         ],
       },
       workbox: {
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,json,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
         runtimeCaching: [
           {
-            // Module registry: tampil cepat dari cache, diperbarui di latar belakang
-            urlPattern: ({ url }) => url.pathname.endsWith('/module-config.json'),
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'module-registry' },
-          },
-          {
-            // TODO(LPTI): sesuaikan dengan base URL BFF resmi
+            // API BFF Super UNPAM (TODO: implementasi backend)
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkFirst',
             options: { cacheName: 'api', networkTimeoutSeconds: 5, expiration: { maxEntries: 100, maxAgeSeconds: 86400 } },
