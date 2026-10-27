@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { schedule } from '../data/demo'
 import type { User } from '../lib/types'
 import { useDynamicQr } from './Ktm'
+import { CheckCircle2, Hash, MapPin, ScanLine } from 'lucide-react'
+import { Icon3D } from '../components/Icon3D'
 import { Badge, DemoNote, PageHeader, Progress, Section, Tabs } from '../components/ui'
 
 // TODO(LPTI): koordinat & radius resmi tiap kampus
@@ -47,26 +49,26 @@ function PresensiMahasiswa({ back }: { back: () => void }) {
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Presensi Online" onBack={back} />
       <DemoNote />
-      <div className="card p-5">
+      <div className="glass p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs text-slate-500">Sesi berlangsung</div>
+            <div className="text-xs text-mid">Sesi berlangsung</div>
             <div className="text-lg font-semibold">{current.name}</div>
-            <div className="text-xs text-slate-500">{current.time} · {current.room} · {current.lecturer}</div>
+            <div className="text-xs text-mid">{current.time} · {current.room} · {current.lecturer}</div>
           </div>
           {done ? <Badge tone="green">Hadir {done.time}</Badge> : <Badge tone="amber">Belum presensi</Badge>}
         </div>
       </div>
 
       {done ? (
-        <div className="card mt-4 p-6 text-center">
-          <div className="text-5xl">✅</div>
+        <div className="glass mt-4 p-6 text-center">
+          <div className="flex justify-center"><Icon3D icon={CheckCircle2} from="#3DF5D5" to="#00A88C" size={72} label="Berhasil" /></div>
           <div className="mt-2 text-lg font-semibold">Presensi berhasil</div>
-          <div className="text-sm text-slate-500">{done.method} · pukul {done.time}</div>
+          <div className="text-sm text-mid">{done.method} · pukul {done.time}</div>
         </div>
       ) : (
         <div className="mt-4">
-          <Tabs value={mode} onChange={setMode} options={[['qr', '📷 Scan QR'], ['gps', '📍 Lokasi'], ['kode', '🔢 Kode']]} />
+          <Tabs value={mode} onChange={setMode} options={[['qr', <><ScanLine className="h-4 w-4" /> Scan QR</>], ['gps', <><MapPin className="h-4 w-4" /> Lokasi</>], ['kode', <><Hash className="h-4 w-4" /> Kode</>]]} />
           {mode === 'qr' && <QrScan onSuccess={() => checkIn('Scan QR dosen')} />}
           {mode === 'gps' && <GpsCheck onSuccess={(c) => checkIn(`Lokasi · ${c}`)} />}
           {mode === 'kode' && <CodeEntry onSuccess={() => checkIn('Kode sesi')} />}
@@ -74,21 +76,21 @@ function PresensiMahasiswa({ back }: { back: () => void }) {
       )}
 
       <Section title="Rekap kehadiran semester ini">
-        <div className="card divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="glass divide-y divide-line">
           {recap.map((r) => {
             const pct = Math.round((r.hadir / r.total) * 100)
             return (
               <div key={r.name} className="p-4">
                 <div className="mb-1.5 flex justify-between text-sm">
                   <span className="font-medium">{r.name}</span>
-                  <span className={pct < 75 ? 'font-semibold text-red-600' : 'text-slate-500'}>{r.hadir}/{r.total} · {pct}%</span>
+                  <span className={pct < 75 ? 'font-semibold text-rose' : 'text-mid'}>{r.hadir}/{r.total} · {pct}%</span>
                 </div>
-                <Progress value={pct} color={pct < 75 ? '#dc2626' : '#16a34a'} />
+                <Progress value={pct} color={pct < 75 ? 'var(--rose)' : 'var(--mint)'} />
               </div>
             )
           })}
         </div>
-        <p className="mt-2 text-xs text-slate-500">Minimal kehadiran 75% untuk dapat mengikuti UAS.</p>
+        <p className="mt-2 text-xs text-mid">Minimal kehadiran 75% untuk dapat mengikuti UAS.</p>
       </Section>
     </div>
   )
@@ -134,23 +136,23 @@ function QrScan({ onSuccess }: { onSuccess: () => void }) {
   }, [state])
 
   return (
-    <div className="card p-5 text-center">
+    <div className="glass p-5 text-center">
       {state === 'scanning' ? (
         <>
           <div className="relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-2xl bg-black">
             <video ref={video} className="h-full w-full object-cover" playsInline muted />
             <div className="absolute inset-8 rounded-xl border-4 border-white/80" />
           </div>
-          <p className="mt-3 text-sm text-slate-500">Arahkan kamera ke QR yang ditampilkan dosen.</p>
-          <button onClick={onSuccess} className="mt-2 text-xs text-slate-400 underline">Simulasikan scan berhasil (demo)</button>
+          <p className="mt-3 text-sm text-mid">Arahkan kamera ke QR yang ditampilkan dosen.</p>
+          <button onClick={onSuccess} className="mt-2 text-xs text-low underline">Simulasikan scan berhasil (demo)</button>
         </>
       ) : (
         <>
-          <div className="text-5xl">📷</div>
-          <p className="mt-2 text-sm text-slate-500">
+          <div className="flex justify-center"><Icon3D icon={ScanLine} from="#5CE1FF" to="#2D6BFF" size={72} /></div>
+          <p className="mt-2 text-sm text-mid">
             {state === 'denied' ? 'Izin kamera ditolak. Aktifkan izin kamera, atau gunakan presensi lokasi/kode.' : 'Scan QR sesi yang ditampilkan dosen di kelas.'}
           </p>
-          <button onClick={() => setState('scanning')} className="mt-4 w-full rounded-xl bg-unpam-600 py-3 font-semibold text-white">
+          <button onClick={() => setState('scanning')} className="mt-4 w-full rounded-xl btn-primary py-3 font-semibold text-white">
             Buka kamera
           </button>
         </>
@@ -186,20 +188,20 @@ function GpsCheck({ onSuccess }: { onSuccess: (campus: string) => void }) {
   }
 
   return (
-    <div className="card p-5 text-center">
-      <div className="text-5xl">📍</div>
-      <p className="mt-2 text-sm text-slate-500">Presensi otomatis bila Anda berada dalam radius area kampus.</p>
-      <ul className="mt-3 space-y-1 text-xs text-slate-500">
+    <div className="glass p-5 text-center">
+      <div className="flex justify-center"><Icon3D icon={MapPin} from="#FF7A93" to="#E0245E" size={72} /></div>
+      <p className="mt-2 text-sm text-mid">Presensi otomatis bila Anda berada dalam radius area kampus.</p>
+      <ul className="mt-3 space-y-1 text-xs text-mid">
         {CAMPUSES.map((c) => (
           <li key={c.name}>{c.name} · radius {c.radius} m</li>
         ))}
       </ul>
-      <button onClick={locate} disabled={busy} className="mt-4 w-full rounded-xl bg-unpam-600 py-3 font-semibold text-white disabled:opacity-60">
+      <button onClick={locate} disabled={busy} className="mt-4 w-full rounded-xl btn-primary py-3 font-semibold text-white disabled:opacity-60">
         {busy ? 'Mencari lokasi…' : 'Cek lokasi & presensi'}
       </button>
-      {msg && <p className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">{msg}</p>}
+      {msg && <p className="mt-3 rounded-xl bg-[color-mix(in_srgb,var(--amber)_14%,transparent)] p-3 text-sm text-amber">{msg}</p>}
       {near && near.d > 300 && (
-        <button onClick={() => onSuccess(CAMPUSES[0].name)} className="mt-2 text-xs text-slate-400 underline">Simulasikan berada di kampus (demo)</button>
+        <button onClick={() => onSuccess(CAMPUSES[0].name)} className="mt-2 text-xs text-low underline">Simulasikan berada di kampus (demo)</button>
       )}
     </div>
   )
@@ -210,7 +212,7 @@ function CodeEntry({ onSuccess }: { onSuccess: () => void }) {
   const [err, setErr] = useState('')
   return (
     <form
-      className="card p-5"
+      className="glass p-5"
       onSubmit={(e) => {
         e.preventDefault()
         // TODO(BFF): validasi kode sesi di server
@@ -230,10 +232,10 @@ function CodeEntry({ onSuccess }: { onSuccess: () => void }) {
         inputMode="text"
         autoComplete="off"
         placeholder="mis. 7K2QX9A"
-        className="mt-2 w-full rounded-xl border border-slate-300 bg-transparent p-3 text-center font-mono text-2xl tracking-[0.3em] uppercase dark:border-slate-700"
+        className="mt-2 w-full rounded-xl border border-line bg-transparent p-3 text-center font-mono text-2xl tracking-[0.3em] uppercase"
       />
-      {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
-      <button className="mt-4 w-full rounded-xl bg-unpam-600 py-3 font-semibold text-white">Kirim presensi</button>
+      {err && <p className="mt-2 text-sm text-rose">{err}</p>}
+      <button className="mt-4 w-full rounded-xl btn-primary py-3 font-semibold text-white">Kirim presensi</button>
     </form>
   )
 }
@@ -254,21 +256,21 @@ function PresensiDosen({ user, back }: { user: User; back: () => void }) {
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Presensi Kelas (Dosen)" onBack={back} />
       <DemoNote />
-      <div className="card p-5">
-        <div className="text-xs text-slate-500">Kelas</div>
+      <div className="glass p-5">
+        <div className="text-xs text-mid">Kelas</div>
         <div className="text-lg font-semibold">{current.name}</div>
-        <div className="text-xs text-slate-500">{current.time} · {current.room}</div>
+        <div className="text-xs text-mid">{current.time} · {current.room}</div>
         {!open ? (
-          <button onClick={() => setOpen(true)} className="mt-4 w-full rounded-xl bg-unpam-600 py-3 font-semibold text-white">
+          <button onClick={() => setOpen(true)} className="mt-4 w-full rounded-xl btn-primary py-3 font-semibold text-white">
             Buka sesi presensi
           </button>
         ) : (
           <div className="mt-4 flex flex-col items-center">
             {src && <img src={src} alt="QR sesi presensi" className="h-64 w-64 rounded-xl" />}
-            <div className="mt-2 font-mono text-2xl font-bold tracking-[0.3em] text-unpam-700 dark:text-unpam-100">{code}</div>
-            <p className="text-xs text-slate-500">QR & kode berganti dalam {left} dtk (anti titip absen)</p>
-            <div className="mt-4 text-3xl font-bold">{count} <span className="text-base font-normal text-slate-500">/ 34 hadir</span></div>
-            <button onClick={() => setOpen(false)} className="mt-4 rounded-xl bg-red-600 px-6 py-2.5 font-semibold text-white">Tutup sesi</button>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-[0.3em] text-cyan">{code}</div>
+            <p className="text-xs text-mid">QR & kode berganti dalam {left} dtk (anti titip absen)</p>
+            <div className="mt-4 text-3xl font-bold">{count} <span className="text-base font-normal text-mid">/ 34 hadir</span></div>
+            <button onClick={() => setOpen(false)} className="mt-4 rounded-xl bg-rose px-6 py-2.5 font-semibold text-white">Tutup sesi</button>
           </div>
         )}
       </div>

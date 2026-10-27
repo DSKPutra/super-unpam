@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Bell, GraduationCap, Home as HomeIcon, IdCard, Laptop, LifeBuoy, MapPin, Phone, ShieldAlert, Stethoscope, MessageCircleHeart, User as UserIcon, Wallet } from 'lucide-react'
 import { DEMO_USER, login } from './lib/auth'
 import { getDict, type Dict, type Lang } from './lib/i18n'
 import { usePref } from './lib/prefs'
@@ -34,7 +35,8 @@ function useRoute() {
 
 export default function App() {
   const [lang, setLang] = usePref<Lang>('lang', 'id')
-  const [theme, setTheme] = usePref<Theme>('theme', 'system')
+  const [theme, setTheme] = usePref<Theme>('theme', 'dark')
+  const [lite, setLite] = usePref<boolean>('lite', false)
   const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'presensi'])
   // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF.
   const [signedIn, setSignedIn] = usePref<boolean>('signedIn', false)
@@ -44,18 +46,27 @@ export default function App() {
   const t = getDict(lang)
 
   useEffect(() => {
+    const root = document.documentElement
+    const mq = matchMedia('(prefers-color-scheme: light)')
     const apply = () => {
-      const dark = theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
-      document.documentElement.classList.toggle('dark', dark)
+      const light = theme === 'light' || (theme === 'system' && mq.matches)
+      root.dataset.theme = light ? 'light' : 'dark'
+      document.querySelector('meta[name=theme-color]')?.setAttribute('content', light ? '#F4F7FE' : '#0A0E1A')
     }
     apply()
-    document.documentElement.lang = lang
-    const mq = matchMedia('(prefers-color-scheme: dark)')
+    root.classList.toggle('lite', lite)
+    root.lang = lang
     mq.addEventListener('change', apply)
     return () => mq.removeEventListener('change', apply)
-  }, [theme, lang])
+  }, [theme, lite, lang])
 
-  if (!signedIn) return <Login t={t} lang={lang} setLang={setLang} onSignedIn={() => setSignedIn(true)} />
+  if (!signedIn)
+    return (
+      <>
+        <Aurora />
+        <Login t={t} lang={lang} setLang={setLang} onSignedIn={() => setSignedIn(true)} />
+      </>
+    )
 
   const user: User = { ...DEMO_USER, role }
   const [section, sub = ''] = route.split('/')
@@ -96,6 +107,8 @@ export default function App() {
             setLang={setLang}
             theme={theme}
             setTheme={setTheme}
+            lite={lite}
+            setLite={setLite}
             role={role}
             setRole={setRole}
             favorites={favorites}
@@ -107,20 +120,33 @@ export default function App() {
           />
         )
       default:
-        return <Home t={t} user={user} go={go} favorites={favorites} hidden={[]} />
+        return <Home t={t} user={user} go={go} favorites={favorites} />
     }
   })()
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col md:flex-row">
-      <PwaBanners t={t} />
-      <SideNav t={t} section={section} go={go} />
-      <main className="min-w-0 flex-1 px-4 pb-28 pt-4 md:px-8 md:pb-10 md:pt-6">
-        <TopBar t={t} go={go} onSos={() => setSos(true)} />
-        {page}
-      </main>
-      <BottomNav t={t} section={section} go={go} />
-      {sos && <SosSheet t={t} onClose={() => setSos(false)} />}
+    <>
+      <Aurora />
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col md:flex-row">
+        <PwaBanners t={t} />
+        <SideRail t={t} section={section} go={go} />
+        <main className="min-w-0 flex-1 px-4 pb-32 pt-4 md:px-8 md:pb-12 md:pt-6">
+          <TopBar t={t} go={go} onSos={() => setSos(true)} />
+          <div key={route} className="page-enter">
+            {page}
+          </div>
+        </main>
+        <BottomNav t={t} section={section} go={go} />
+        {sos && <SosSheet t={t} onClose={() => setSos(false)} />}
+      </div>
+    </>
+  )
+}
+
+function Aurora() {
+  return (
+    <div className="aurora" aria-hidden>
+      <span />
     </div>
   )
 }
@@ -145,29 +171,32 @@ function Login({ t, lang, setLang, onSignedIn }: { t: Dict; lang: Lang; setLang:
       setBusy(false)
     }
   }
+  const input = 'mt-1.5 w-full min-h-12 rounded-2xl border border-line bg-glass px-4 outline-none transition focus:border-cyan focus:shadow-[var(--glow)]'
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-unpam-600 via-unpam-700 to-slate-900 p-4">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <PwaBanners t={t} />
-      <form onSubmit={submit} className="card w-full max-w-sm p-8">
-        <img src="/icons/icon-192.png" alt="" className="mx-auto h-20 w-20 rounded-2xl" />
-        <h1 className="mt-4 text-center text-2xl font-bold text-unpam-700 dark:text-unpam-100">Super UNPAM</h1>
-        <p className="mt-1 text-center text-sm text-slate-500">{t.tagline}</p>
-        <label className="mt-8 block text-sm font-medium">
+      <form onSubmit={submit} className="glass page-enter w-full max-w-sm !rounded-[28px] p-8">
+        <img src="/icons/icon-192.png" alt="" className="mx-auto h-20 w-20 rounded-3xl shadow-[var(--glow)]" />
+        <h1 className="mt-5 text-center text-3xl font-bold">
+          Super <span className="text-gradient">UNPAM</span>
+        </h1>
+        <p className="mt-1 text-center text-sm text-mid">{t.tagline}</p>
+        <label className="mt-8 block text-sm font-semibold">
           {t.username}
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required className="mt-1 w-full rounded-xl border border-slate-300 bg-transparent px-4 py-3 outline-none focus:border-unpam-500 dark:border-slate-700" />
+          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required className={input} />
         </label>
-        <label className="mt-4 block text-sm font-medium">
+        <label className="mt-4 block text-sm font-semibold">
           {t.password}
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required className="mt-1 w-full rounded-xl border border-slate-300 bg-transparent px-4 py-3 outline-none focus:border-unpam-500 dark:border-slate-700" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required className={input} />
         </label>
-        {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
-        <button disabled={busy} className="mt-6 w-full rounded-xl bg-unpam-600 py-3 font-semibold text-white hover:bg-unpam-700 disabled:opacity-60">
+        {err && <p className="mt-3 text-sm text-rose">{err}</p>}
+        <button disabled={busy} className="btn-primary mt-6 min-h-12 w-full rounded-2xl font-semibold">
           {busy ? t.signingIn : t.signIn}
         </button>
-        <p className="mt-4 text-center text-xs text-slate-500">{t.loginNote}</p>
+        <p className="mt-4 text-center text-xs text-mid">{t.loginNote}</p>
         <div className="mt-6 flex justify-center gap-2 text-xs">
           {(['id', 'en'] as Lang[]).map((l) => (
-            <button type="button" key={l} onClick={() => setLang(l)} className={`rounded-full px-3 py-1 ${lang === l ? 'bg-unpam-600 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}>
+            <button type="button" key={l} onClick={() => setLang(l)} aria-pressed={lang === l} className={`min-h-9 rounded-full px-4 font-semibold ${lang === l ? 'btn-primary' : 'bg-glass-strong text-mid'}`}>
               {l.toUpperCase()}
             </button>
           ))}
@@ -179,69 +208,73 @@ function Login({ t, lang, setLang, onSignedIn }: { t: Dict; lang: Lang; setLang:
 
 /* ---------------- Shell ---------------- */
 
-const NAV: { section: string; route: string; icon: string; key: keyof Dict }[] = [
-  { section: 'home', route: 'home', icon: '🏠', key: 'home' },
-  { section: 'akademik', route: 'akademik/jadwal', icon: '🎓', key: 'akademik' },
-  { section: 'kuliah', route: 'kuliah', icon: '💻', key: 'kuliah' },
-  { section: 'keuangan', route: 'keuangan', icon: '💳', key: 'keuangan' },
-  { section: 'profil', route: 'profil', icon: '👤', key: 'profile' },
+const NAV = [
+  { section: 'home', route: 'home', Icon: HomeIcon, key: 'home' as const },
+  { section: 'akademik', route: 'akademik/jadwal', Icon: GraduationCap, key: 'akademik' as const },
+  { section: 'kuliah', route: 'kuliah', Icon: Laptop, key: 'kuliah' as const },
+  { section: 'keuangan', route: 'keuangan', Icon: Wallet, key: 'keuangan' as const },
+  { section: 'profil', route: 'profil', Icon: UserIcon, key: 'profile' as const },
 ]
 
-function SideNav({ t, section, go }: { t: Dict; section: string; go: (r: string) => void }) {
+function SideRail({ t, section, go }: { t: Dict; section: string; go: (r: string) => void }) {
+  const item = (active: boolean) =>
+    `flex min-h-11 w-full items-center gap-3 rounded-2xl px-3.5 text-left text-sm font-semibold transition ${active ? 'btn-primary' : 'text-mid hover:bg-glass-strong hover:text-hi'}`
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-1 p-6 md:flex">
-      <button onClick={() => go('home')} className="mb-6 flex items-center gap-3 text-left">
-        <img src="/icons/icon-192.png" alt="" className="h-10 w-10 rounded-xl" />
-        <div>
-          <div className="font-bold text-unpam-700 dark:text-unpam-100">Super UNPAM</div>
-          <div className="text-xs text-slate-500">Universitas Pamulang</div>
-        </div>
-      </button>
-      {NAV.map((n) => (
-        <button
-          key={n.section}
-          onClick={() => go(n.route)}
-          aria-current={section === n.section ? 'page' : undefined}
-          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium ${
-            section === n.section ? 'bg-unpam-600 text-white' : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
-          }`}
-        >
-          <span aria-hidden>{n.icon}</span>
-          {t[n.key] as string}
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 p-4 md:block">
+      <div className="glass flex h-full flex-col gap-1 !rounded-[28px] p-4">
+        <button onClick={() => go('home')} className="mb-5 flex items-center gap-3 px-1 text-left">
+          <img src="/icons/icon-192.png" alt="" className="h-11 w-11 rounded-2xl shadow-[var(--glow)]" />
+          <div>
+            <div className="font-display text-lg font-bold">
+              Super <span className="text-gradient">UNPAM</span>
+            </div>
+            <div className="text-xs text-low">Universitas Pamulang</div>
+          </div>
         </button>
-      ))}
-      <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-        {[['ktm', '🪪', t.ktm], ['presensi', '📍', t.checkIn]].map(([r, i, l]) => (
-          <button key={r} onClick={() => go(r)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium ${section === r ? 'bg-unpam-600 text-white' : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'}`}>
-            <span aria-hidden>{i}</span>
-            {l}
+        {NAV.map((n) => (
+          <button key={n.section} onClick={() => go(n.route)} aria-current={section === n.section ? 'page' : undefined} className={item(section === n.section)}>
+            <n.Icon className="h-5 w-5" />
+            {t[n.key] as string}
           </button>
         ))}
+        <div className="my-3 h-px bg-line" />
+        <button onClick={() => go('ktm')} aria-current={section === 'ktm' ? 'page' : undefined} className={item(section === 'ktm')}>
+          <IdCard className="h-5 w-5" /> {t.ktm}
+        </button>
+        <button onClick={() => go('presensi')} aria-current={section === 'presensi' ? 'page' : undefined} className={item(section === 'presensi')}>
+          <MapPin className="h-5 w-5" /> {t.checkIn}
+        </button>
+        <div className="mt-auto rounded-2xl bg-glass-strong p-3 text-xs text-mid">
+          <span className="font-semibold text-hi">Super UNPAM</span> v0.3 · PWA
+        </div>
       </div>
     </aside>
   )
 }
 
 function BottomNav({ t, section, go }: { t: Dict; section: string; go: (r: string) => void }) {
-  const items = [NAV[0], NAV[1], { section: 'ktm', route: 'ktm', icon: '🪪', key: 'ktm' as keyof Dict }, NAV[2], NAV[4]]
+  const items = [NAV[0], NAV[1], null, NAV[2], NAV[4]]
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden dark:border-slate-800 dark:bg-slate-900/95">
-      <div className="grid grid-cols-5">
+    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 px-3 md:hidden">
+      <div className="glass mx-auto grid max-w-md grid-cols-5 items-end !rounded-[26px] !bg-[color-mix(in_srgb,var(--surface)_97%,transparent)] px-1 py-1.5">
         {items.map((n) =>
-          n.section === 'ktm' ? (
+          n === null ? (
             <button key="ktm" onClick={() => go('ktm')} aria-label={t.ktm} className="flex flex-col items-center">
-              <span className="-mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-unpam-600 text-2xl text-white shadow-lg ring-4 ring-white dark:ring-slate-900">🪪</span>
-              <span className="text-[11px] font-medium text-unpam-600 dark:text-unpam-100">KTM</span>
+              <span className="btn-primary -mt-8 flex h-16 w-16 items-center justify-center rounded-[22px] ring-4 ring-[var(--bg-800)]">
+                <IdCard className="h-7 w-7" />
+              </span>
+              <span className={`mt-1 text-[11px] font-semibold ${section === 'ktm' ? 'text-cyan' : 'text-mid'}`}>KTM</span>
             </button>
           ) : (
             <button
               key={n.section}
               onClick={() => go(n.route)}
               aria-current={section === n.section ? 'page' : undefined}
-              className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium ${section === n.section ? 'text-unpam-600 dark:text-unpam-100' : 'text-slate-500'}`}
+              className={`relative flex min-h-12 flex-col items-center justify-center gap-1 text-[11px] font-semibold ${section === n.section ? 'text-cyan' : 'text-mid'}`}
             >
-              <span className="text-lg" aria-hidden>{n.icon}</span>
+              <n.Icon className="h-[22px] w-[22px]" />
               {t[n.key] as string}
+              {section === n.section && <span className="absolute -bottom-1 h-1 w-5 rounded-full bg-cyan shadow-[0_0_10px_var(--cyan)]" />}
             </button>
           ),
         )}
@@ -252,49 +285,54 @@ function BottomNav({ t, section, go }: { t: Dict; section: string; go: (r: strin
 
 function TopBar({ t, go, onSos }: { t: Dict; go: (r: string) => void; onSos: () => void }) {
   return (
-    <header className="mb-4 flex items-center justify-end gap-2">
+    <header className="mb-5 flex items-center justify-end gap-2">
       <button onClick={() => go('home')} className="mr-auto flex items-center gap-2 md:hidden">
-        <img src="/icons/icon-192.png" alt="" className="h-8 w-8 rounded-lg" />
-        <span className="font-bold text-unpam-700 dark:text-unpam-100">Super UNPAM</span>
+        <img src="/icons/icon-192.png" alt="" className="h-9 w-9 rounded-xl shadow-[var(--glow)]" />
+        <span className="font-display text-lg font-bold">
+          Super <span className="text-gradient">UNPAM</span>
+        </span>
       </button>
-      <button onClick={() => go('notifikasi')} aria-label={t.notifications} className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-        🔔
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">3</span>
+      <button onClick={() => go('notifikasi')} aria-label={`${t.notifications} (3 baru)`} className="glass glass-hover relative flex h-11 w-11 items-center justify-center !rounded-2xl">
+        <Bell className="h-5 w-5" />
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-[10px] font-bold text-white shadow-[0_0_10px_var(--rose)]">3</span>
       </button>
-      <button onClick={onSos} className="rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-red-700">🆘 {t.sos}</button>
+      <button onClick={onSos} className="flex h-11 items-center gap-1.5 rounded-2xl bg-rose px-4 text-sm font-bold text-white shadow-[0_0_20px_color-mix(in_srgb,var(--rose)_50%,transparent)]">
+        <LifeBuoy className="h-4 w-4" /> {t.sos}
+      </button>
     </header>
   )
 }
 
 function SosSheet({ t, onClose }: { t: Dict; onClose: () => void }) {
-  // TODO(LPTI): nomor resmi keamanan, klinik & konseling UNPAM
+  // TODO: nomor resmi keamanan, klinik & konseling kampus
   const contacts = [
-    { label: 'Keamanan Kampus', icon: '🛡️', href: '' },
-    { label: 'Layanan Konseling', icon: '💬', href: '' },
-    { label: 'Klinik / Kesehatan', icon: '🏥', href: '' },
-    { label: 'Darurat Nasional 112', icon: '🚨', href: 'tel:112' },
+    { label: 'Keamanan Kampus', Icon: ShieldAlert, href: '' },
+    { label: 'Layanan Konseling', Icon: MessageCircleHeart, href: '' },
+    { label: 'Klinik / Kesehatan', Icon: Stethoscope, href: '' },
+    { label: 'Darurat Nasional 112', Icon: Phone, href: 'tel:112' },
   ]
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-label={t.sosTitle} onClick={onClose}>
-      <div className="card w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-red-600">🆘 {t.sosTitle}</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm md:items-center" role="dialog" aria-modal="true" aria-label={t.sosTitle} onClick={onClose}>
+      <div className="glass page-enter w-full max-w-sm !rounded-[28px] !bg-surface p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-rose">
+          <LifeBuoy className="h-6 w-6" /> {t.sosTitle}
+        </h2>
         <div className="mt-4 grid gap-2">
-          {contacts.map((c) =>
-            c.href ? (
-              <a key={c.label} href={c.href} className="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-3 font-medium text-red-700 dark:bg-red-950 dark:text-red-200">
-                <span aria-hidden>{c.icon}</span>
-                {c.label}
+          {contacts.map(({ label, Icon, href }) => {
+            const cls = 'flex min-h-12 items-center gap-3 rounded-2xl px-4 font-semibold bg-[color-mix(in_srgb,var(--rose)_14%,transparent)] text-rose'
+            return href ? (
+              <a key={label} href={href} className={cls}>
+                <Icon className="h-5 w-5" /> {label}
               </a>
             ) : (
-              <div key={c.label} className="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-3 font-medium text-red-700 opacity-60 dark:bg-red-950 dark:text-red-200">
-                <span aria-hidden>{c.icon}</span>
-                {c.label}
-                <span className="ml-auto text-[10px]">nomor menyusul</span>
+              <div key={label} className={`${cls} opacity-60`}>
+                <Icon className="h-5 w-5" /> {label}
+                <span className="ml-auto text-[10px] font-medium">nomor menyusul</span>
               </div>
-            ),
-          )}
+            )
+          })}
         </div>
-        <button className="mt-4 w-full rounded-xl bg-slate-100 py-2.5 font-semibold dark:bg-slate-800" onClick={onClose}>
+        <button className="mt-4 min-h-12 w-full rounded-2xl bg-glass-strong font-semibold" onClick={onClose}>
           Tutup
         </button>
       </div>

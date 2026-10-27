@@ -1,15 +1,90 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/plus-jakarta-sans';
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* ===== Design tokens — "Futuristic campus OS" (dark first) ===== */
+:root {
+  color-scheme: dark;
+  --bg-900: #070b14;
+  --bg-800: #0a0e1a;
+  --surface: #111726;
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-strong: rgba(255, 255, 255, 0.1);
+  --line: rgba(255, 255, 255, 0.08);
+  --primary: #2d6bff;
+  --primary-400: #4d86ff;
+  --cyan: #00d4ff;
+  --violet: #7a5cff;
+  --mint: #00e5c0;
+  --amber: #ffb020;
+  --rose: #ff4d6d;
+  --text-hi: #eaf0ff;
+  --text-mid: #9aa7c7;
+  --text-low: #7d8bab; /* dinaikkan dari #64728F agar lulus WCAG AA 4.5:1 */
+  --on-primary: #ffffff;
+  --glow: 0 0 24px rgba(45, 107, 255, 0.35);
+  --shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  --grad-primary: linear-gradient(135deg, #2d6bff 0%, #00d4ff 100%);
+  /* tombol berteks putih: ujung gradient digelapkan agar lulus AA (≥4.5:1) */
+  --grad-button: linear-gradient(135deg, #2d6bff 0%, #0a6fd6 100%);
+  --aurora-opacity: 0.55;
+  --blur: 20px;
+}
 
-@theme {
-  --color-unpam-50: #eef5ff;
-  --color-unpam-100: #d9e8ff;
-  --color-unpam-500: #1d6fd8;
-  --color-unpam-600: #0b4ea2;
-  --color-unpam-700: #0a3f83;
-  --color-unpam-gold: #f5b301;
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg-900: #eef2fc;
+  --bg-800: #f4f7fe;
+  --surface: #ffffff;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.9);
+  --line: rgba(11, 18, 34, 0.08);
+  --primary: #1b4be0;
+  --primary-400: #3a66ea;
+  --cyan: #0369a1; /* aksen #00A8E8 hanya untuk dekorasi; teks pakai versi gelap (5.9:1) */
+  --violet: #6246ea;
+  --mint: #047857;
+  --amber: #92400e;
+  --rose: #d6294b;
+  --text-hi: #0b1222;
+  --text-mid: #4a5775;
+  --text-low: #5f6b86;
+  --glow: 0 8px 24px rgba(27, 75, 224, 0.22);
+  --shadow: 0 10px 30px -14px rgba(16, 32, 80, 0.25);
+  --grad-primary: linear-gradient(135deg, #1b4be0 0%, #0284c7 100%);
+  --grad-button: linear-gradient(135deg, #1b4be0 0%, #0369a1 100%);
+  --aurora-opacity: 0.35;
+}
+
+/* Mode hemat efek: tanpa blur, tanpa aurora, tanpa glow — untuk HP kelas bawah */
+:root.lite {
+  --blur: 0px;
+  --aurora-opacity: 0;
+  --glow: none;
+  --glass: var(--surface);
+  --glass-strong: var(--surface);
+}
+
+@theme inline {
+  --color-bg: var(--bg-800);
+  --color-bg-deep: var(--bg-900);
+  --color-surface: var(--surface);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-400: var(--primary-400);
+  --color-cyan: var(--cyan);
+  --color-violet: var(--violet);
+  --color-mint: var(--mint);
+  --color-amber: var(--amber);
+  --color-rose: var(--rose);
+  --color-hi: var(--text-hi);
+  --color-mid: var(--text-mid);
+  --color-low: var(--text-low);
+  --color-on-primary: var(--on-primary);
+  --font-sans: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Plus Jakarta Sans Variable', system-ui, sans-serif;
 }
 
 html,
@@ -19,7 +94,176 @@ body,
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  background: var(--bg-800);
+  color: var(--text-hi);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Latar aurora: orb gradient mengambang sangat pelan */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: radial-gradient(1200px 600px at 50% -10%, color-mix(in srgb, var(--primary) 12%, transparent), transparent), var(--bg-900);
+  pointer-events: none;
+}
+.aurora::before,
+.aurora::after,
+.aurora > span {
+  content: '';
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: var(--aurora-opacity);
+  will-change: transform;
+}
+.aurora::before {
+  background: var(--primary);
+  top: -18vmax;
+  left: -12vmax;
+  animation: drift 26s ease-in-out infinite alternate;
+}
+.aurora::after {
+  background: var(--violet);
+  bottom: -22vmax;
+  right: -14vmax;
+  animation: drift 32s ease-in-out infinite alternate-reverse;
+}
+.aurora > span {
+  background: var(--cyan);
+  top: 35%;
+  left: 55%;
+  width: 26vmax;
+  height: 26vmax;
+  opacity: calc(var(--aurora-opacity) * 0.45);
+  animation: drift 38s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  to {
+    transform: translate3d(6vmax, 4vmax, 0) scale(1.08);
+  }
+}
+
+@layer components {
+/* Kartu kaca */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(var(--blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
+}
+.glass-hover {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s, border-color 0.25s;
+}
+.glass-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow), var(--glow);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+}
+.glass-hover:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--grad-button);
+  color: #fff;
+  box-shadow: var(--glow);
+  transition: transform 0.2s, filter 0.2s;
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.text-gradient {
+  background: var(--grad-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+}
+
+/* Skeleton shimmer */
+.shimmer {
+  background: linear-gradient(90deg, var(--glass) 0%, var(--glass-strong) 50%, var(--glass) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Transisi halaman */
+.page-enter {
+  animation: page-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* KTM hologram: kilau bergerak */
+.holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.28) 45%, rgba(0, 212, 255, 0.18) 52%, transparent 65%);
+  background-size: 250% 100%;
+  animation: holo 5s ease-in-out infinite;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+@keyframes holo {
+  0%,
+  100% {
+    background-position: 120% 0;
+  }
+  50% {
+    background-position: -20% 0;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.safe-bottom {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -27,14 +271,21 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
-
-.card {
-  @apply rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-900 dark:ring-slate-800;
+:root.lite *,
+:root.lite *::before,
+:root.lite *::after {
+  animation: none !important;
 }
 
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+@media print {
+  .aurora,
+  nav,
+  aside,
+  header {
+    display: none !important;
+  }
 }

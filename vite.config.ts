@@ -22,8 +22,8 @@ export default defineConfig({
         display: 'standalone',
         display_override: ['window-controls-overlay', 'standalone'],
         orientation: 'any',
-        theme_color: '#0b4ea2',
-        background_color: '#f4f7fb',
+        theme_color: '#0A0E1A',
+        background_color: '#070B14',
         categories: ['education', 'productivity'],
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

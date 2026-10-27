@@ -4,7 +4,9 @@
 
 PWA lintas platform (web, Windows, macOS, Android, iOS) yang menjadi launcher untuk seluruh layanan di portal SSO SATU UNPAM.
 
-## Fitur (v0.2): satu aplikasi, semua fitur di dalam
+## Fitur (v0.3): satu aplikasi, semua fitur di dalam
+
+Tampilan: tema futuristik dark-first (glassmorphism, aurora, ikon 3D, KTM hologram). Detail design system ada di [DESIGN.md](DESIGN.md).
 Tidak ada lagi kartu yang membuka situs lain. Semua layanan dirender di dalam Super UNPAM:
 
 - **KTM Digital**: kartu bisa dibalik, QR dinamis berganti tiap 30 detik (anti screenshot), kode verifikasi, simpan/bagikan, tersedia offline

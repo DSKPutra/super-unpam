@@ -15,24 +15,24 @@ export function Kuliah({ tab, go }: { tab: string; go: (r: string) => void }) {
       <div>
         <PageHeader title={cls.name} onBack={() => setOpenClass(null)} />
         <DemoNote />
-        <div className="card mb-4 p-4">
+        <div className="glass mb-4 p-4">
           <div className="mb-2 flex justify-between text-sm">
             <span>Progres belajar</span>
             <span className="font-semibold">{cls.progress}%</span>
           </div>
           <Progress value={cls.progress} color={cls.color} />
         </div>
-        <div className="card divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="glass divide-y divide-line">
           {Array.from({ length: cls.materials }, (_, i) => i + 1).map((n) => {
             const done = n <= Math.round((cls.progress / 100) * cls.materials)
             return (
               <div key={n} className="flex items-center gap-3 p-4">
-                <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
+                <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${done ? 'bg-[color-mix(in_srgb,var(--mint)_14%,transparent)] text-mint' : 'bg-glass-strong text-mid'}`}>
                   {done ? '✓' : n}
                 </span>
                 <div className="flex-1">
                   <div className="font-medium">Pertemuan {n}</div>
-                  <div className="text-xs text-slate-500">Materi · Video · Forum diskusi</div>
+                  <div className="text-xs text-mid">Materi · Video · Forum diskusi</div>
                 </div>
                 {!done && n === Math.round((cls.progress / 100) * cls.materials) + 1 && <Badge tone="blue">Berikutnya</Badge>}
               </div>
@@ -51,33 +51,33 @@ export function Kuliah({ tab, go }: { tab: string; go: (r: string) => void }) {
       {active === 'kelas' ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {classes.map((c) => (
-            <button key={c.code} onClick={() => setOpenClass(c.code)} className="card overflow-hidden text-left transition hover:shadow-md">
+            <button key={c.code} onClick={() => setOpenClass(c.code)} className="glass glass-hover overflow-hidden text-left">
               <div className="h-16" style={{ background: `linear-gradient(135deg, ${c.color}, ${c.color}aa)` }} />
               <div className="p-4">
-                <div className="text-xs text-slate-500">{c.code}</div>
+                <div className="text-xs text-mid">{c.code}</div>
                 <div className="font-semibold">{c.name}</div>
                 <div className="mt-3">
                   <Progress value={c.progress} color={c.color} />
                 </div>
-                <div className="mt-1 text-xs text-slate-500">{c.progress}% selesai · {c.materials} pertemuan</div>
+                <div className="mt-1 text-xs text-mid">{c.progress}% selesai · {c.materials} pertemuan</div>
               </div>
             </button>
           ))}
         </div>
       ) : (
-        <div className="card divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="glass divide-y divide-line">
           {tasks.map((x) => (
             <div key={x.id} className="flex items-center gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <div className={`font-medium ${x.status === 'done' ? 'text-slate-400 line-through' : ''}`}>{x.title}</div>
-                <div className="text-xs text-slate-500">{x.course} · Tenggat {x.due}</div>
+                <div className={`font-medium ${x.status === 'done' ? 'text-low line-through' : ''}`}>{x.title}</div>
+                <div className="text-xs text-mid">{x.course} · Tenggat {x.due}</div>
               </div>
               {x.status === 'done' ? (
                 <Badge tone="green">Terkumpul</Badge>
               ) : (
                 <button
                   onClick={() => setTasks((ts) => ts.map((y) => (y.id === x.id ? { ...y, status: 'done' } : y)))}
-                  className="shrink-0 rounded-lg bg-unpam-600 px-3 py-1.5 text-xs font-semibold text-white"
+                  className="shrink-0 rounded-lg btn-primary px-3 py-1.5 text-xs font-semibold text-white"
                 >
                   Kumpulkan
                 </button>

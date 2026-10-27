@@ -42,22 +42,22 @@ export function PwaBanners({ t }: { t: Dict }) {
   return (
     <div className="fixed inset-x-0 top-0 z-50 flex flex-col items-center gap-2 p-3 pointer-events-none">
       {!online && (
-        <div className="pointer-events-auto rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow">{t.offline}</div>
+        <div className="pointer-events-auto glass !rounded-2xl !bg-surface px-4 py-2.5 text-sm font-semibold text-amber">{t.offline}</div>
       )}
       {needRefresh && (
-        <div className="pointer-events-auto flex items-center gap-3 rounded-xl bg-slate-900 px-4 py-2 text-sm text-white shadow-lg">
+        <div className="pointer-events-auto flex items-center gap-3 glass !rounded-2xl !bg-surface px-4 py-2.5 text-sm">
           {t.updateAvail}
-          <button className="rounded-lg bg-unpam-500 px-3 py-1 font-semibold" onClick={() => updateServiceWorker(true)}>
+          <button className="btn-primary rounded-xl px-3 py-1.5 font-semibold" onClick={() => updateServiceWorker(true)}>
             {t.reload}
           </button>
           <button aria-label="Tutup" onClick={() => setNeedRefresh(false)}>✕</button>
         </div>
       )}
       {installEvt && (
-        <div className="pointer-events-auto flex items-center gap-3 rounded-xl bg-unpam-600 px-4 py-2 text-sm text-white shadow-lg">
+        <div className="pointer-events-auto flex items-center gap-3 glass !rounded-2xl !bg-surface px-4 py-2.5 text-sm">
           📲 Super UNPAM
           <button
-            className="rounded-lg bg-white px-3 py-1 font-semibold text-unpam-700"
+            className="btn-primary rounded-xl px-3 py-1.5 font-semibold"
             onClick={async () => {
               await installEvt.prompt()
               setInstallEvt(null)
@@ -69,7 +69,7 @@ export function PwaBanners({ t }: { t: Dict }) {
         </div>
       )}
       {showIos && (
-        <div className="pointer-events-auto flex max-w-md items-start gap-3 rounded-xl bg-unpam-600 px-4 py-2 text-sm text-white shadow-lg">
+        <div className="pointer-events-auto flex glass max-w-md items-start gap-3 !rounded-2xl !bg-surface px-4 py-2.5 text-sm">
           <span>📲 {t.installIos}</span>
           <button aria-label="Tutup" onClick={() => setShowIos(false)}>✕</button>
         </div>
