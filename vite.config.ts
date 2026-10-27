@@ -46,8 +46,9 @@ export default defineConfig({
         globIgnores: ['**/maskable-1024.png'],
         runtimeCaching: [
           {
-            // API BFF Super UNPAM (TODO: implementasi backend)
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            // Data baca BFF (lihat api/). Sesi, QR dinamis, dan presensi tidak boleh dilayani dari cache.
+            // Cache ini dihapus saat keluar akun (logout di src/lib/api.ts).
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/') && !/^\/api\/(auth|qr|presensi)\//.test(url.pathname),
             handler: 'NetworkFirst',
             options: { cacheName: 'api', networkTimeoutSeconds: 5, expiration: { maxEntries: 100, maxAgeSeconds: 86400 } },
           },

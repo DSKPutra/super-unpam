@@ -1,6 +1,33 @@
 // Data contoh. TODO(LPTI): ganti dengan panggilan BFF (/api/...) — struktur dibuat mirip respons API.
+// Halaman TIDAK mengimpor file ini langsung: aksesnya lewat src/lib/api.ts (mode demo) atau
+// konektor mock di /api/_connectors (mode BFF), sehingga UI tidak berubah saat sumber data diganti.
+import type {
+  AppNotification,
+  AttendanceRecap,
+  Bill,
+  CampusEvent,
+  Certification,
+  KrsClass,
+  NewsItem,
+  OnlineClass,
+  Ranking,
+  ScheduleItem,
+  SemesterGrades,
+  Task,
+  ToeflSummary,
+  User,
+} from '../lib/types'
 
-export const schedule = [
+export const DEMO_USER: User = {
+  name: 'DEA SAKA KURNIA PUTRA',
+  nim: '231011400001',
+  role: 'MAHASISWA',
+  prodi: 'Teknik Informatika',
+  fakultas: 'Fakultas Ilmu Komputer',
+  angkatan: '2023',
+}
+
+export const schedule: ScheduleItem[] = [
   { day: 'Senin', time: '08:00–10:30', code: 'TIF301', name: 'Pemrograman Web', room: 'Gedung A · 402', lecturer: 'Dr. Andi Wijaya, M.Kom' },
   { day: 'Senin', time: '13:00–15:30', code: 'TIF305', name: 'Kecerdasan Buatan', room: 'Lab Komputer 3', lecturer: 'Rina Kartika, M.T.' },
   { day: 'Selasa', time: '10:30–13:00', code: 'TIF303', name: 'Basis Data Lanjut', room: 'Gedung B · 305', lecturer: 'Budi Santoso, M.Kom' },
@@ -9,7 +36,7 @@ export const schedule = [
   { day: 'Jumat', time: '13:30–16:00', code: 'UNV201', name: 'Bahasa Inggris Akademik', room: 'Gedung C · 101', lecturer: 'Maya Lestari, M.Pd' },
 ]
 
-export const grades = [
+export const grades: SemesterGrades[] = [
   {
     semester: 'Semester 4 (Genap 2025/2026)',
     ips: 3.72,
@@ -33,7 +60,7 @@ export const grades = [
   },
 ]
 
-export const krsOffer = [
+export const krsOffer: KrsClass[] = [
   { code: 'TIF301', name: 'Pemrograman Web', sks: 3, class: '05TPLE001', quota: 40, filled: 34 },
   { code: 'TIF303', name: 'Basis Data Lanjut', sks: 3, class: '05TPLE001', quota: 40, filled: 40 },
   { code: 'TIF305', name: 'Kecerdasan Buatan', sks: 3, class: '05TPLE002', quota: 35, filled: 21 },
@@ -43,7 +70,7 @@ export const krsOffer = [
   { code: 'UNV201', name: 'Bahasa Inggris Akademik', sks: 2, class: '05TPLE004', quota: 45, filled: 30 },
 ]
 
-export const classes = [
+export const classes: OnlineClass[] = [
   { code: 'TIF301', name: 'Pemrograman Web', progress: 62, materials: 9, color: '#0b4ea2' },
   { code: 'TIF303', name: 'Basis Data Lanjut', progress: 55, materials: 8, color: '#7c3aed' },
   { code: 'TIF305', name: 'Kecerdasan Buatan', progress: 48, materials: 7, color: '#ea580c' },
@@ -51,7 +78,7 @@ export const classes = [
   { code: 'TIF309', name: 'Jaringan Komputer', progress: 40, materials: 6, color: '#0891b2' },
 ]
 
-export const tasks = [
+export const tasks: Task[] = [
   { id: 't1', course: 'Basis Data Lanjut', title: 'Laporan Praktikum Normalisasi', due: '27 Okt 2026, 23:59', status: 'todo' },
   { id: 't2', course: 'Pemrograman Web', title: 'Project: Landing Page Responsif', due: '30 Okt 2026, 23:59', status: 'todo' },
   { id: 't3', course: 'Kecerdasan Buatan', title: 'Kuis 5: Search Algorithm', due: '28 Okt 2026, 10:00', status: 'todo' },
@@ -59,27 +86,27 @@ export const tasks = [
   { id: 't5', course: 'Jaringan Komputer', title: 'Praktikum Subnetting', due: '20 Okt 2026', status: 'done' },
 ]
 
-export const bills = [
-  { id: 'b1', name: 'UKT / SPP Semester Ganjil 2026/2027 — Cicilan 2', amount: 1625000, due: '10 Nov 2026', status: 'unpaid' as const, va: '8808 2026 0001 0001' },
-  { id: 'b2', name: 'Biaya Ujian Akhir Semester', amount: 250000, due: '1 Des 2026', status: 'unpaid' as const, va: '8808 2026 0001 0002' },
-  { id: 'b3', name: 'UKT / SPP Semester Ganjil 2026/2027 — Cicilan 1', amount: 1625000, due: '10 Sep 2026', status: 'paid' as const, va: '8808 2026 0001 0000' },
-  { id: 'b4', name: 'Tes TOEFL Prediction', amount: 150000, due: '1 Sep 2026', status: 'paid' as const, va: '8808 2026 0001 0099' },
+export const bills: Bill[] = [
+  { id: 'b1', name: 'UKT / SPP Semester Ganjil 2026/2027 — Cicilan 2', amount: 1625000, due: '10 Nov 2026', status: 'unpaid', va: '8808 2026 0001 0001' },
+  { id: 'b2', name: 'Biaya Ujian Akhir Semester', amount: 250000, due: '1 Des 2026', status: 'unpaid', va: '8808 2026 0001 0002' },
+  { id: 'b3', name: 'UKT / SPP Semester Ganjil 2026/2027 — Cicilan 1', amount: 1625000, due: '10 Sep 2026', status: 'paid', va: '8808 2026 0001 0000' },
+  { id: 'b4', name: 'Tes TOEFL Prediction', amount: 150000, due: '1 Sep 2026', status: 'paid', va: '8808 2026 0001 0099' },
 ]
 
-export const events = [
+export const events: CampusEvent[] = [
   { id: 'e1', title: 'Seminar Nasional Teknologi & AI 2026', date: '2 Nov 2026', place: 'Auditorium Kampus Viktor', quota: 500, registered: 412, sertifikat: true },
   { id: 'e2', title: 'Workshop UI/UX untuk Mahasiswa', date: '9 Nov 2026', place: 'Online (Zoom)', quota: 200, registered: 88, sertifikat: true },
   { id: 'e3', title: 'Job Fair UNPAM 2026', date: '20 Nov 2026', place: 'Gedung Serbaguna', quota: 2000, registered: 1240, sertifikat: false },
   { id: 'e4', title: 'Lomba Inovasi Bisnis Mahasiswa', date: '28 Nov 2026', place: 'Kampus Pusat', quota: 100, registered: 61, sertifikat: true },
 ]
 
-export const certifications = [
+export const certifications: Certification[] = [
   { id: 'c1', scheme: 'Junior Web Developer', status: 'Terjadwal', date: 'Uji kompetensi: 15 Nov 2026', progress: 75 },
   { id: 'c2', scheme: 'Database Administrator (Junior)', status: 'Pendaftaran dibuka', date: 'Tutup: 30 Nov 2026', progress: 0 },
   { id: 'c3', scheme: 'Network Administrator Muda', status: 'Kompeten', date: 'Terbit: 12 Jun 2026', progress: 100 },
 ]
 
-export const toefl = {
+export const toefl: ToeflSummary = {
   best: 520,
   target: 500,
   history: [
@@ -89,7 +116,7 @@ export const toefl = {
   next: { date: '8 Nov 2026', place: 'Lab Bahasa · Gedung C', seats: 24 },
 }
 
-export const ranking = {
+export const ranking: Ranking = {
   prodiRank: 12,
   prodiTotal: 438,
   points: 860,
@@ -100,17 +127,30 @@ export const ranking = {
   ],
 }
 
-export const news = [
+export const news: NewsItem[] = [
   { id: 'n1', tag: 'Akademik', title: 'Jadwal UTS Ganjil 2026/2027 telah terbit', date: '24 Okt 2026' },
   { id: 'n2', tag: 'Beasiswa', title: 'Pendaftaran Beasiswa Prestasi UNPAM dibuka hingga 15 November', date: '22 Okt 2026' },
   { id: 'n3', tag: 'Kampus', title: 'Perpustakaan buka hingga pukul 21.00 selama masa UTS', date: '20 Okt 2026' },
 ]
 
-export const notifications = [
+export const notifications: AppNotification[] = [
   { id: 1, src: 'Keuangan', text: 'Cicilan 2 UKT jatuh tempo 10 November 2026.', time: '1 jam lalu', read: false },
   { id: 2, src: 'Kuliah', text: 'Tugas baru: Laporan Praktikum Normalisasi (Basis Data Lanjut).', time: '3 jam lalu', read: false },
   { id: 3, src: 'Prestasi', text: 'Poin prestasi Anda bertambah 400 (Gemastik XIX).', time: 'Kemarin', read: false },
   { id: 4, src: 'Event', text: 'Pendaftaran Seminar Nasional Teknologi & AI berhasil.', time: '2 hari lalu', read: true },
 ]
 
-export const rupiah = (n: number) => 'Rp ' + n.toLocaleString('id-ID')
+export const attendanceRecap: AttendanceRecap[] = [
+  { name: 'Pemrograman Web', hadir: 7, total: 8 },
+  { name: 'Basis Data Lanjut', hadir: 8, total: 8 },
+  { name: 'Kecerdasan Buatan', hadir: 6, total: 8 },
+  { name: 'Rekayasa Perangkat Lunak', hadir: 8, total: 8 },
+  { name: 'Jaringan Komputer', hadir: 5, total: 8 },
+]
+
+// TODO(LPTI): koordinat & radius resmi tiap kampus. Nilai ini PERKIRAAN untuk demo, bukan data resmi.
+// Di mode BFF koordinat hanya ada di server (api/_lib/config.ts) dan tidak pernah dikirim ke klien.
+export const demoGeofences = [
+  { name: 'Kampus Pusat Pamulang', lat: -6.3437, lng: 106.739, radius: 300 },
+  { name: 'Kampus Viktor', lat: -6.3478, lng: 106.6893, radius: 300 },
+]

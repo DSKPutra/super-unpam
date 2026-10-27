@@ -47,13 +47,43 @@ npm run dev     # http://localhost:5173
 npm run build   # output ke dist/
 ```
 
+## Lapisan data & BFF
+
+Halaman **tidak** mengimpor `src/data/demo.ts` langsung. Semua data lewat adapter `src/lib/api.ts` (hook `useResource` + komponen `Async` untuk skeleton, error, dan "Coba lagi").
+
+| `VITE_USE_DEMO` | Perilaku |
+|---|---|
+| tidak di-set / `true` (bawaan) | Data contoh di klien, sama seperti sebelumnya. Aman untuk Netlify/static hosting. |
+| `false` | Klien memanggil BFF `/api/...` (Vercel Functions). Sesi = cookie `HttpOnly; Secure; SameSite=Lax`. |
+
+BFF ada di folder `api/`:
+- `auth/[action].ts`: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` (validasi zod, rate limit dasar)
+- `academic`, `kuliah`, `finance`, `campus`: data baca per domain; setiap endpoint memverifikasi sesi dan peran
+- `qr/[action].ts`: QR KTM/presensi ditandatangani server (HMAC, berganti tiap 30 detik), plus `POST /api/qr/verify` untuk petugas
+- `presensi/[action].ts`: validasi QR/kode/geofence di server; koordinat kampus hanya di konfigurasi server
+- `_connectors/`: satu antarmuka per sistem sumber (SSO, MY UNPAM, MENTARI, SISKEMU, EMS, MY LSP, MY LB, SISPEMA, portal), masing-masing dengan implementasi `mock` dan `http`
+
+Environment variable server (lihat `.env.example`):
+
+| Nama | Wajib | Keterangan |
+|---|---|---|
+| `SESSION_SECRET` | ya | ≥ 32 karakter acak, untuk menandatangani cookie sesi |
+| `QR_SECRET` | ya | ≥ 32 karakter acak, berbeda dari `SESSION_SECRET` |
+| `CONNECTOR_MODE` | tidak | `mock` (bawaan) atau `http`; per sistem: `CONNECTOR_SSO`, `CONNECTOR_MY_UNPAM`, … |
+| `CAMPUS_GEOFENCES` | tidak | JSON `[{name,lat,lng,radius}]` koordinat resmi; tanpa ini dipakai perkiraan data contoh |
+| `ALLOW_MOCK_LOGIN_IN_PRODUCTION` | tidak | Login mock menolak di production kecuali di-set `true` |
+
+Uji lokal mode BFF: `vercel dev` (dengan `VITE_USE_DEMO=false`, `SESSION_SECRET`, dan `QR_SECRET` di environment). Akun mock: username berawalan `dosen`, `tendik`, atau `alumni` masuk sebagai peran tersebut; selainnya mahasiswa.
+
 ## TODO backend (BFF)
-Semua data saat ini adalah **data contoh** (`src/data/demo.ts`). Langkah berikutnya:
-- `POST /api/auth/login`: verifikasi akun kampus, sesi via cookie HttpOnly (`src/lib/auth.ts`)
-- Token QR KTM/presensi ditandatangani server (`src/pages/Ktm.tsx`)
-- Validasi presensi (QR/kode/geofence) di server; koordinat kampus resmi (`src/pages/Presensi.tsx`)
-- Endpoint jadwal, KRS, nilai, kelas, tugas, tagihan, event, sertifikasi, TOEFL, prestasi
-- Nomor kontak darurat resmi (`SosSheet` di `src/App.tsx`)
+Sudah: adapter data, BFF dengan konektor mock, sesi cookie HttpOnly, QR bertanda tangan server, validasi presensi di server.
+
+Belum:
+- Konektor `http` ke sistem kampus asli. Daftar pertanyaan untuk LPTI ada di [docs/KONEKTOR.md](docs/KONEKTOR.md).
+- Koordinat & radius kampus resmi (`CAMPUS_GEOFENCES`).
+- Penyimpanan sesi & rate limit bersama (Redis/KV), supaya "keluar dari semua perangkat" dan batas laju berlaku lintas instance.
+- Aksi tulis (kumpul tugas, ajukan KRS, daftar event, bayar) masih simulasi lokal di klien.
+- Nomor kontak darurat resmi (`SosSheet` di `src/App.tsx`).
 
 ## Instalasi per platform
 | Platform | Cara |

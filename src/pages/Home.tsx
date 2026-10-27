@@ -1,15 +1,24 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, BookOpen, CalendarDays, CreditCard, ListChecks, MapPin, Mic2, QrCode, Search, Sparkles } from 'lucide-react'
 import { FEATURES, featureById } from '../data/features'
-import { bills, events, news, rupiah, schedule, tasks } from '../data/demo'
+import { getBills, getEvents, getNews, getSchedule, getTasks } from '../lib/api'
+import { rupiah } from '../lib/format'
+import { useResource } from '../lib/useResource'
 import type { Dict } from '../lib/i18n'
 import type { User } from '../lib/types'
 import { Icon3D } from '../components/Icon3D'
 import { DownloadCTA } from '../components/DownloadCTA'
-import { Badge, LinkBtn, Section, Sparkline } from '../components/ui'
+import { Async, Badge, LinkBtn, Section, Skeleton, Sparkline } from '../components/ui'
 
 export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: string) => void; favorites: string[] }) {
   const [q, setQ] = useState('')
+  const scheduleRes = useResource(getSchedule)
+  const eventsRes = useResource(getEvents)
+  const newsRes = useResource(getNews)
+  const billsRes = useResource(getBills)
+  const tasksRes = useResource(getTasks)
+  const schedule = scheduleRes.data ?? []
+  const events = eventsRes.data ?? []
   const first = user.name.split(' ')[0]
   const nick = first.charAt(0) + first.slice(1).toLowerCase()
 
@@ -27,11 +36,12 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
       .map((s) => ({ key: s.code + s.day, label: s.name, sub: `${s.day} ${s.time}`, Icon: BookOpen, route: 'akademik/jadwal' }))
     const evs = events.filter((e) => e.title.toLowerCase().includes(n)).map((e) => ({ key: e.id, label: e.title, sub: e.date, Icon: Mic2, route: 'event' }))
     return [...feat, ...courses, ...evs].slice(0, 8)
-  }, [q, features])
+  }, [q, features, schedule, events])
 
   const today = schedule.slice(0, 2)
-  const unpaid = bills.filter((b) => b.status === 'unpaid')
-  const todo = tasks.filter((x) => x.status === 'todo')
+  // Ringkasan tetap tampil walau satu sumber gagal: angka diganti "—" tanpa memblokir Beranda.
+  const unpaid = billsRes.data?.filter((b) => b.status === 'unpaid')
+  const todo = tasksRes.data?.filter((x) => x.status === 'todo') ?? []
   const ktm = featureById('ktm')
   const presensi = featureById('presensi')
 
@@ -90,11 +100,18 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
         {/* Presensi */}
         <button onClick={() => go('presensi')} className="glass glass-hover group col-span-2 flex items-center gap-4 p-4 text-left md:col-span-2">
           <Icon3D icon={presensi.icon} from={presensi.from} to={presensi.to} size={52} />
-          <div className="min-w-0 flex-1">
-            <div className="text-xs text-mid">Kelas sekarang · {today[0].time}</div>
-            <div className="truncate font-display text-lg font-semibold">{today[0].name}</div>
-            <div className="flex items-center gap-1 text-xs text-low"><MapPin className="h-3 w-3" /> {today[0].room}</div>
-          </div>
+          {today[0] ? (
+            <div className="min-w-0 flex-1">
+              <div className="text-xs text-mid">Kelas sekarang · {today[0].time}</div>
+              <div className="truncate font-display text-lg font-semibold">{today[0].name}</div>
+              <div className="flex items-center gap-1 text-xs text-low"><MapPin className="h-3 w-3" /> {today[0].room}</div>
+            </div>
+          ) : (
+            <div className="min-w-0 flex-1" aria-busy={scheduleRes.loading}>
+              <div className="text-xs text-mid">Kelas sekarang</div>
+              {scheduleRes.loading ? <div className="shimmer mt-1 h-6 w-3/4 rounded-xl" /> : <div className="font-display text-lg font-semibold">Tidak ada kelas</div>}
+            </div>
+          )}
           <span className="btn-primary rounded-xl px-4 py-2.5 text-sm font-semibold">{t.checkIn}</span>
         </button>
 
@@ -109,8 +126,8 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
           <div className="flex items-center justify-between text-xs text-mid">
             {t.bills} <CreditCard className="h-4 w-4 text-rose" />
           </div>
-          <div className="font-display text-3xl font-bold">{unpaid.length}</div>
-          <div className="mt-2 truncate text-xs text-mid">{rupiah(unpaid.reduce((a, b) => a + b.amount, 0))}</div>
+          <div className="font-display text-3xl font-bold">{unpaid?.length ?? '—'}</div>
+          <div className="mt-2 truncate text-xs text-mid">{unpaid ? rupiah(unpaid.reduce((a, b) => a + b.amount, 0)) : '\u00a0'}</div>
           <div className="text-[11px] font-semibold text-rose">● jatuh tempo 10 Nov</div>
         </button>
       </div>
@@ -133,21 +150,25 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
 
       <div className="grid gap-x-4 lg:grid-cols-2">
         <Section title={t.today} action={<LinkBtn onClick={() => go('akademik/jadwal')}>{t.seeAll}</LinkBtn>}>
-          <div className="glass divide-y divide-line overflow-hidden">
-            {today.map((s, i) => (
-              <div key={s.code} className="flex items-center gap-4 p-4">
-                <div className="flex w-14 flex-col items-center rounded-xl bg-glass-strong py-1.5">
-                  <CalendarDays className={`h-4 w-4 ${i === 0 ? 'text-cyan' : 'text-mid'}`} />
-                  <span className="mt-0.5 font-mono text-[11px] font-semibold">{s.time.slice(0, 5)}</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-semibold">{s.name}</div>
-                  <div className="text-xs text-low">{s.room} · {s.lecturer}</div>
-                </div>
-                {i === 0 && <Badge tone="blue">Berlangsung</Badge>}
+          <Async res={scheduleRes} skeleton={<Skeleton rows={2} />}>
+            {() => (
+              <div className="glass divide-y divide-line overflow-hidden">
+                {today.map((s, i) => (
+                  <div key={s.code} className="flex items-center gap-4 p-4">
+                    <div className="flex w-14 flex-col items-center rounded-xl bg-glass-strong py-1.5">
+                      <CalendarDays className={`h-4 w-4 ${i === 0 ? 'text-cyan' : 'text-mid'}`} />
+                      <span className="mt-0.5 font-mono text-[11px] font-semibold">{s.time.slice(0, 5)}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold">{s.name}</div>
+                      <div className="text-xs text-low">{s.room} · {s.lecturer}</div>
+                    </div>
+                    {i === 0 && <Badge tone="blue">Berlangsung</Badge>}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </Async>
         </Section>
 
         <Section title={t.dueSoon} action={<LinkBtn onClick={() => go('kuliah/tugas')}>{t.seeAll}</LinkBtn>}>
@@ -161,7 +182,7 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
                 </div>
               </button>
             ))}
-            {unpaid.slice(0, 1).map((b) => (
+            {unpaid?.slice(0, 1).map((b) => (
               <button key={b.id} onClick={() => go('keuangan')} className="flex w-full items-center gap-3 p-4 text-left hover:bg-glass-strong">
                 <CreditCard className="h-5 w-5 shrink-0 text-rose" />
                 <div className="min-w-0 flex-1">
@@ -177,7 +198,8 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
 
       <Section title={t.news}>
         <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
-          {news.map((n) => (
+          {newsRes.loading && !newsRes.data && [0, 1, 2].map((i) => <div key={i} className="shimmer h-32 w-64 shrink-0 rounded-3xl" />)}
+          {newsRes.data?.map((n) => (
             <article key={n.id} className="glass glass-hover w-64 shrink-0 snap-start p-4">
               <Badge tone="blue">{n.tag}</Badge>
               <h3 className="mt-3 text-[15px] font-semibold leading-snug">{n.title}</h3>

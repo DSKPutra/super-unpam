@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType, type FormEvent } from 'react'
 import { Bell, GraduationCap, Home as HomeIcon, IdCard, Laptop, LifeBuoy, MapPin, Phone, ShieldAlert, Stethoscope, MessageCircleHeart, User as UserIcon, Wallet } from 'lucide-react'
-import { DEMO_USER, login } from './lib/auth'
+import { ApiError, currentUser, login, logout, UNAUTHORIZED_EVENT, USE_DEMO } from './lib/api'
 import { getDict, type Dict, type Lang } from './lib/i18n'
 import { usePref } from './lib/prefs'
 import type { Role, User } from './lib/types'
@@ -62,8 +62,11 @@ export default function App() {
   const [theme, setTheme] = usePref<Theme>('theme', 'dark')
   const [lite, setLite] = usePref<boolean>('lite', false)
   const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'presensi'])
-  // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF.
+  // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF dan dicek lewat /api/auth/me.
   const [signedIn, setSignedIn] = usePref<boolean>('signedIn', false)
+  const [me, setMe] = useState<User | null>(null)
+  const [meError, setMeError] = useState('')
+  const [meAttempt, setMeAttempt] = useState(0)
   const [role, setRole] = usePref<Role>('role', 'MAHASISWA')
   const [onboarded, setOnboarded] = usePref<boolean>('onboarded', false)
   const [sos, setSos] = useState(false)
@@ -85,15 +88,70 @@ export default function App() {
     return () => mq.removeEventListener('change', apply)
   }, [theme, lite, lang])
 
+  useEffect(() => {
+    if (!signedIn) return setMe(null)
+    if (me) return
+    let alive = true
+    setMeError('')
+    currentUser().then(
+      (u) => alive && setMe(u),
+      (e: Error) => {
+        if (!alive) return
+        if (e instanceof ApiError && e.status === 401) setSignedIn(false)
+        else setMeError(e.message)
+      },
+    )
+    return () => {
+      alive = false
+    }
+  }, [signedIn, me, meAttempt]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const expired = () => {
+      setMe(null)
+      setSignedIn(false)
+    }
+    window.addEventListener(UNAUTHORIZED_EVENT, expired)
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, expired)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!signedIn)
     return (
       <>
         <Aurora />
-        <Login t={t} lang={lang} setLang={setLang} onSignedIn={() => setSignedIn(true)} />
+        <Login
+          t={t}
+          lang={lang}
+          setLang={setLang}
+          onSignedIn={(u) => {
+            setMe(u)
+            setSignedIn(true)
+          }}
+        />
       </>
     )
 
-  const user: User = { ...DEMO_USER, role }
+  if (!me)
+    return (
+      <>
+        <Aurora />
+        <div className="mx-auto max-w-md p-4 pt-16">
+          {meError ? (
+            <div role="alert" className="glass p-6 text-center">
+              <p className="text-sm text-mid">{meError}</p>
+              <button onClick={() => setMeAttempt((n) => n + 1)} className="btn-primary mt-4 min-h-11 rounded-2xl px-5 font-semibold">
+                Coba lagi
+              </button>
+            </div>
+          ) : (
+            <PageSkeleton />
+          )}
+        </div>
+      </>
+    )
+
+  // Mode demo: peran bisa diganti dari Profil. Mode BFF: peran berasal dari sesi server.
+  const user: User = USE_DEMO ? { ...me, role } : me
   const [section, sub = ''] = route.split('/')
 
   const view = (() => {
@@ -161,6 +219,8 @@ export default function App() {
             favorites={favorites}
             setFavorites={setFavorites}
             onLogout={() => {
+              void logout()
+              setMe(null)
               setSignedIn(false)
               go('home')
             }}
@@ -218,7 +278,7 @@ function Aurora() {
 
 /* ---------------- Login (di dalam aplikasi) ---------------- */
 
-function Login({ t, lang, setLang, onSignedIn }: { t: Dict; lang: Lang; setLang: (l: Lang) => void; onSignedIn: () => void }) {
+function Login({ t, lang, setLang, onSignedIn }: { t: Dict; lang: Lang; setLang: (l: Lang) => void; onSignedIn: (user: User) => void }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -228,8 +288,7 @@ function Login({ t, lang, setLang, onSignedIn }: { t: Dict; lang: Lang; setLang:
     setBusy(true)
     setErr('')
     try {
-      await login(username, password)
-      onSignedIn()
+      onSignedIn(await login(username, password))
     } catch (x) {
       setErr((x as Error).message)
     } finally {

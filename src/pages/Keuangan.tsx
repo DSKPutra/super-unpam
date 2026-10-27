@@ -1,9 +1,24 @@
 import { useState } from 'react'
-import { bills as initialBills, rupiah } from '../data/demo'
-import { Badge, DemoNote, PageHeader, Section } from '../components/ui'
+import { getBills } from '../lib/api'
+import { rupiah } from '../lib/format'
+import { useResource } from '../lib/useResource'
+import type { Bill } from '../lib/types'
+import { Async, Badge, DemoNote, PageHeader, Section } from '../components/ui'
 
 export function Keuangan() {
-  const [bills, setBills] = useState(initialBills)
+  const res = useResource(getBills)
+  return (
+    <div>
+      <PageHeader title="Keuangan" />
+      <DemoNote />
+      <Async res={res}>{(bills) => <BillsView initial={bills} />}</Async>
+    </div>
+  )
+}
+
+// Status "sudah bayar" hanya simulasi lokal; status asli datang dari SISKEMU lewat BFF.
+function BillsView({ initial }: { initial: Bill[] }) {
+  const [bills, setBills] = useState(initial)
   const [payId, setPayId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const unpaid = bills.filter((b) => b.status === 'unpaid')
@@ -12,9 +27,7 @@ export function Keuangan() {
   const paying = bills.find((b) => b.id === payId)
 
   return (
-    <div>
-      <PageHeader title="Keuangan" />
-      <DemoNote />
+    <>
       <div className="rounded-2xl bg-gradient-to-br from-[#00A88C] to-[#00D4FF] p-5 text-white shadow">
         <div className="text-sm opacity-80">Total tagihan aktif</div>
         <div className="mt-1 text-3xl font-bold">{rupiah(total)}</div>
@@ -89,6 +102,6 @@ export function Keuangan() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

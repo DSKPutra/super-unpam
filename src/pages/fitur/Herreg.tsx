@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { CheckCircle2, PauseCircle, XCircle } from 'lucide-react'
-import { bills } from '../../data/demo'
-import { Badge, DemoNote, PageHeader, Section, Tabs } from '../../components/ui'
+import { getBills } from '../../lib/api'
+import { useResource } from '../../lib/useResource'
+import { Badge, DemoNote, PageHeader, Section, Skeleton, Tabs } from '../../components/ui'
 
 // #44 Registrasi ulang & cuti akademik — form + status, terkait status pembayaran.
 export function Herreg({ back, go }: { back: () => void; go: (r: string) => void }) {
   const [tab, setTab] = useState<'herreg' | 'cuti'>('herreg')
   const [registered, setRegistered] = useState(false)
   const [cuti, setCuti] = useState<'none' | 'diajukan'>('none')
-  const unpaid = bills.filter((b) => b.status === 'unpaid')
+  const bills = useResource(getBills)
+  const unpaid = bills.data?.filter((b) => b.status === 'unpaid') ?? []
   const lunas = unpaid.length === 0
   const checks = [
     { ok: true, label: 'Status mahasiswa aktif' },
-    { ok: lunas, label: lunas ? 'Tagihan semester lunas' : `${unpaid.length} tagihan belum dibayar` },
+    { ok: lunas && !bills.error, label: bills.error ? 'Status tagihan belum dapat dimuat' : lunas ? 'Tagihan semester lunas' : `${unpaid.length} tagihan belum dibayar` },
     { ok: true, label: 'Biodata terverifikasi' },
   ]
   return (
@@ -20,7 +22,9 @@ export function Herreg({ back, go }: { back: () => void; go: (r: string) => void
       <PageHeader title="Registrasi & Cuti" subtitle="Semester Genap 2026/2027" onBack={back} />
       <Tabs value={tab} onChange={setTab} options={[['herreg', 'Registrasi ulang'], ['cuti', 'Cuti akademik']]} />
       <DemoNote />
-      {tab === 'herreg' ? (
+      {tab === 'herreg' && bills.loading && !bills.data ? (
+        <Skeleton />
+      ) : tab === 'herreg' ? (
         <>
           <ul className="glass divide-y divide-line">
             {checks.map((c) => (

@@ -1,77 +1,102 @@
 import { useState } from 'react'
-import { certifications, events, ranking, toefl } from '../data/demo'
-import { Badge, DemoNote, PageHeader, Progress, Section } from '../components/ui'
+import { getCertifications, getEvents, getRanking, getToefl } from '../lib/api'
+import { useResource } from '../lib/useResource'
+import type { CampusEvent, Certification, Ranking, ToeflSummary } from '../lib/types'
+import { Async, Badge, DemoNote, PageHeader, Progress, Section } from '../components/ui'
 
 type Back = { back: () => void }
 
 export function Event({ back }: Back) {
-  const [joined, setJoined] = useState<string[]>(['e1'])
+  const res = useResource(getEvents)
   return (
     <div>
       <PageHeader title="Event Kampus" onBack={back} />
       <DemoNote />
-      <div className="grid gap-3 md:grid-cols-2">
-        {events.map((e) => {
-          const on = joined.includes(e.id)
-          return (
-            <article key={e.id} className="glass p-4">
-              <div className="flex flex-wrap gap-2">
-                <Badge tone="blue">📅 {e.date}</Badge>
-                {e.sertifikat && <Badge tone="green">Bersertifikat</Badge>}
-              </div>
-              <h3 className="mt-2 font-semibold">{e.title}</h3>
-              <p className="text-xs text-mid">📍 {e.place}</p>
-              <div className="mt-3">
-                <Progress value={(e.registered / e.quota) * 100} />
-                <div className="mt-1 text-xs text-mid">{e.registered} / {e.quota} peserta</div>
-              </div>
-              <button
-                onClick={() => setJoined((j) => (on ? j.filter((x) => x !== e.id) : [...j, e.id]))}
-                className={`mt-3 w-full rounded-xl py-2 text-sm font-semibold ${on ? 'bg-[color-mix(in_srgb,var(--mint)_14%,transparent)] text-mint' : 'btn-primary text-white'}`}
-              >
-                {on ? '✓ Terdaftar (ketuk untuk batal)' : 'Daftar'}
-              </button>
-            </article>
-          )
-        })}
-      </div>
+      <Async res={res}>{(events) => <EventList events={events} />}</Async>
+    </div>
+  )
+}
+
+function EventList({ events }: { events: CampusEvent[] }) {
+  const [joined, setJoined] = useState<string[]>(['e1'])
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {events.map((e) => {
+        const on = joined.includes(e.id)
+        return (
+          <article key={e.id} className="glass p-4">
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="blue">📅 {e.date}</Badge>
+              {e.sertifikat && <Badge tone="green">Bersertifikat</Badge>}
+            </div>
+            <h3 className="mt-2 font-semibold">{e.title}</h3>
+            <p className="text-xs text-mid">📍 {e.place}</p>
+            <div className="mt-3">
+              <Progress value={(e.registered / e.quota) * 100} />
+              <div className="mt-1 text-xs text-mid">{e.registered} / {e.quota} peserta</div>
+            </div>
+            <button
+              onClick={() => setJoined((j) => (on ? j.filter((x) => x !== e.id) : [...j, e.id]))}
+              className={`mt-3 w-full rounded-xl py-2 text-sm font-semibold ${on ? 'bg-[color-mix(in_srgb,var(--mint)_14%,transparent)] text-mint' : 'btn-primary text-white'}`}
+            >
+              {on ? '✓ Terdaftar (ketuk untuk batal)' : 'Daftar'}
+            </button>
+          </article>
+        )
+      })}
     </div>
   )
 }
 
 export function Sertifikasi({ back }: Back) {
+  const res = useResource(getCertifications)
   return (
     <div>
       <PageHeader title="Sertifikasi Profesi" onBack={back} />
       <DemoNote />
-      <div className="space-y-3">
-        {certifications.map((c) => (
-          <div key={c.id} className="glass p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-semibold">{c.scheme}</h3>
-                <p className="text-xs text-mid">{c.date}</p>
-              </div>
-              <Badge tone={c.progress === 100 ? 'green' : c.progress > 0 ? 'blue' : 'amber'}>{c.status}</Badge>
+      <Async res={res}>{(certifications) => <CertificationList certifications={certifications} />}</Async>
+    </div>
+  )
+}
+
+function CertificationList({ certifications }: { certifications: Certification[] }) {
+  return (
+    <div className="space-y-3">
+      {certifications.map((c) => (
+        <div key={c.id} className="glass p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="font-semibold">{c.scheme}</h3>
+              <p className="text-xs text-mid">{c.date}</p>
             </div>
-            <div className="mt-3">
-              <Progress value={c.progress} color={c.progress === 100 ? 'var(--mint)' : 'var(--primary)'} />
-            </div>
-            {c.progress === 0 && <button className="mt-3 rounded-lg btn-primary px-4 py-2 text-sm font-semibold text-white">Daftar skema</button>}
-            {c.progress === 100 && <button className="mt-3 rounded-lg border border-mint px-4 py-2 text-sm font-semibold text-mint">⬇️ Unduh sertifikat</button>}
+            <Badge tone={c.progress === 100 ? 'green' : c.progress > 0 ? 'blue' : 'amber'}>{c.status}</Badge>
           </div>
-        ))}
-      </div>
+          <div className="mt-3">
+            <Progress value={c.progress} color={c.progress === 100 ? 'var(--mint)' : 'var(--primary)'} />
+          </div>
+          {c.progress === 0 && <button className="mt-3 rounded-lg btn-primary px-4 py-2 text-sm font-semibold text-white">Daftar skema</button>}
+          {c.progress === 100 && <button className="mt-3 rounded-lg border border-mint px-4 py-2 text-sm font-semibold text-mint">⬇️ Unduh sertifikat</button>}
+        </div>
+      ))}
     </div>
   )
 }
 
 export function Toefl({ back }: Back) {
-  const [booked, setBooked] = useState(false)
+  const res = useResource(getToefl)
   return (
     <div>
       <PageHeader title="TOEFL & Lembaga Bahasa" onBack={back} />
       <DemoNote />
+      <Async res={res}>{(toefl) => <ToeflView toefl={toefl} />}</Async>
+    </div>
+  )
+}
+
+function ToeflView({ toefl }: { toefl: ToeflSummary }) {
+  const [booked, setBooked] = useState(false)
+  return (
+    <>
       <div className="grid grid-cols-2 gap-3">
         <div className="glass p-4 text-center">
           <div className="text-3xl font-bold text-cyan">{toefl.best}</div>
@@ -107,15 +132,24 @@ export function Toefl({ back }: Back) {
           ))}
         </div>
       </Section>
-    </div>
+    </>
   )
 }
 
 export function Prestasi({ back }: Back) {
+  const res = useResource(getRanking)
   return (
     <div>
       <PageHeader title="Prestasi & Peringkat" onBack={back} />
       <DemoNote />
+      <Async res={res}>{(ranking) => <RankingView ranking={ranking} />}</Async>
+    </div>
+  )
+}
+
+function RankingView({ ranking }: { ranking: Ranking }) {
+  return (
+    <>
       <div className="rounded-2xl bg-gradient-to-br from-[#FFB020] to-[#FF4D6D] p-5 text-white shadow">
         <div className="text-sm opacity-90">Peringkat di program studi</div>
         <div className="mt-1 text-4xl font-bold">
@@ -140,7 +174,7 @@ export function Prestasi({ back }: Back) {
           + Ajukan prestasi baru
         </button>
       </Section>
-    </div>
+    </>
   )
 }
 

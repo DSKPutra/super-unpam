@@ -3,3 +3,7 @@ dist
 dev-dist
 .vercel
 *.local
+
+# Local Netlify folder
+.netlify
+.env
