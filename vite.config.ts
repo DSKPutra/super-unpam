@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['icons/favicon.svg', 'icons/apple-touch-icon.png'],
+      includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png', 'brand/unpam-logo-256.webp'],
       manifest: {
         id: '/',
         name: 'Super UNPAM',
@@ -30,6 +30,7 @@ export default defineConfig({
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
           { src: '/icons/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/icons/maskable-1024.png', sizes: '1024x1024', type: 'image/png', purpose: 'maskable' },
         ],
         shortcuts: [
           { name: 'KTM Digital', short_name: 'KTM', url: '/#/ktm', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
@@ -40,7 +41,9 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,webmanifest}'],
+        // ikon 1024 hanya untuk toko aplikasi — tidak perlu di-cache offline
+        globIgnores: ['**/maskable-1024.png'],
         runtimeCaching: [
           {
             // API BFF Super UNPAM (TODO: implementasi backend)

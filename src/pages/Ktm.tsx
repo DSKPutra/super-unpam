@@ -66,7 +66,7 @@ export function KtmPage({ user, back }: { user: User; back: () => void }) {
               <rect width="100%" height="100%" fill="url(#grid)" />
             </svg>
             <div className="relative flex items-center gap-2">
-              <img src="/icons/icon-192.png" alt="" className="h-8 w-8 rounded-lg" />
+              <img src="/brand/unpam-logo-256.webp" alt="Logo UNPAM" width="36" height="36" className="h-9 w-9 rounded-full ring-2 ring-white/40" />
               <div className="leading-tight">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75">Kartu Tanda Mahasiswa</div>
                 <div className="font-display text-xs font-bold text-[#FFD65C]">UNIVERSITAS PAMULANG</div>

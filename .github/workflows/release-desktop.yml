@@ -1,0 +1,63 @@
+name: Rilis Desktop (Windows & macOS)
+
+# Membangun installer desktop Super UNPAM dengan Tauri (WebView2/WebKit bawaan OS → ukuran kecil)
+# lalu mengunggahnya ke GitHub Releases. Halaman /download menautkan ke rilis terbaru.
+#   - Push tag "v*" (mis. v0.4.0) → rilis baru
+#   - Tombol "Run workflow" → rilis dengan versi dari src-tauri/tauri.conf.json
+# Tanda tangan kode (opsional): isi secret APPLE_* (notarization macOS) & WINDOWS_* sesuai DISTRIBUSI.md.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ''
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
+          releaseName: 'Super UNPAM v__VERSION__'
+          releaseBody: |
+            Installer desktop Super UNPAM.
+            - **Windows**: unduh `.exe` (atau `.msi`), lalu jalankan.
+            - **macOS**: unduh `.dmg` (universal Intel + Apple Silicon). Bila build belum ter-notarize, buka lewat klik kanan → Open.
+            Versi web & mobile: pasang langsung dari situs (PWA).
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

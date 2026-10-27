@@ -1,0 +1,25 @@
+{
+  "packageId": "id.ac.unpam.superunpam",
+  "host": "super-unpam.vercel.app",
+  "name": "Super UNPAM",
+  "launcherName": "Super UNPAM",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#0A0E1A",
+  "navigationColor": "#0A0E1A",
+  "backgroundColor": "#070B14",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://super-unpam.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://super-unpam.vercel.app/icons/maskable-512.png",
+  "webManifestUrl": "https://super-unpam.vercel.app/manifest.webmanifest",
+  "appVersionName": "0.4.0",
+  "appVersionCode": 4,
+  "minSdkVersion": 21,
+  "signingKey": { "path": "./android.keystore", "alias": "superunpam" },
+  "shortcuts": [
+    { "name": "KTM Digital", "shortName": "KTM", "url": "/#/ktm", "chosenIconUrl": "https://super-unpam.vercel.app/icons/icon-192.png" },
+    { "name": "Presensi", "shortName": "Presensi", "url": "/#/presensi", "chosenIconUrl": "https://super-unpam.vercel.app/icons/icon-192.png" }
+  ],
+  "generatorApp": "bubblewrap-cli"
+}

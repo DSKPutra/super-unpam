@@ -4,19 +4,26 @@
 
 PWA lintas platform (web, Windows, macOS, Android, iOS) yang menjadi launcher untuk seluruh layanan di portal SSO SATU UNPAM.
 
-## Fitur (v0.3): satu aplikasi, semua fitur di dalam
+## Fitur (v0.4): satu aplikasi, semua fitur di dalam
 
-Tampilan: tema futuristik dark-first (glassmorphism, aurora, ikon 3D, KTM hologram). Detail design system ada di [DESIGN.md](DESIGN.md).
-Tidak ada lagi kartu yang membuka situs lain. Semua layanan dirender di dalam Super UNPAM:
+Tampilan memakai tema futuristik dark-first dengan **logo resmi UNPAM**. Detail desainnya ada di [DESIGN.md](DESIGN.md).
 
-- **KTM Digital**: kartu bisa dibalik, QR dinamis berganti tiap 30 detik (anti screenshot), kode verifikasi, simpan/bagikan, tersedia offline
-- **Presensi Online**: scan QR dosen pakai kamera (BarcodeDetector), presensi lokasi dengan geofence kampus, input kode sesi, rekap kehadiran dengan peringatan < 75%. Mode dosen: buka sesi dengan QR + kode berganti dan hitung peserta live
-- **Akademik**: jadwal mingguan, KRS (kuota real-time, batas SKS, pengajuan), nilai & KHS per semester
-- **Kuliah Online**: kelas, progres, pertemuan, tugas & kuis
-- **Keuangan**: tagihan UKT, virtual account, riwayat pembayaran
-- **Layanan**: event (daftar/batal), sertifikasi profesi, TOEFL, prestasi & peringkat, tracer study, kerjasama
-- Login di dalam aplikasi, pencarian global (fitur, mata kuliah, event), notifikasi, favorit, tema gelap/terang, ID/EN, sesi perangkat, tombol SOS
-- PWA: installable, offline, shortcuts (KTM, Presensi, Jadwal, Bayar), update prompt
+- **Inti**: KTM digital (hologram, QR dinamis), presensi online (QR/GPS/kode), akademik (jadwal, KRS, nilai), kuliah online, keuangan, event, sertifikasi, TOEFL, prestasi, tracer study, kerjasama, notifikasi, SOS
+- **Layanan tambahan**:
+  - #41 Surat & administrasi
+  - #42 EDOM & survei
+  - #43 Exam center (kartu ujian ber-QR)
+  - #44 Registrasi ulang & cuti
+  - #45 Booking fasilitas
+  - #46 Aspirasi & pengaduan (bisa anonim)
+  - #47 Dompet sertifikat
+  - #48 Layanan Islami (jadwal sholat dihitung lokal, kompas kiblat)
+  - #49 Alumni & mentorship
+  - #50 Onboarding + ajak teman
+  - #51 E-voting Pemira (dimuat on-demand)
+- **Ringan**: setiap halaman adalah chunk terpisah yang dimuat saat dibuka. JS awal ±67 KB gzip, jauh di bawah anggaran 200 KB.
+- **Download cerdas**: tombol install menyesuaikan Android, iOS, Windows, atau macOS. Halaman `/#/download` dan QR untuk HP juga tersedia.
+- **Distribusi**: installer desktop `.exe`/`.msi`/`.dmg` dibangun otomatis (Tauri). Config Android TWA dan iOS Capacitor juga sudah ada. Lihat [DISTRIBUSI.md](DISTRIBUSI.md).
 
 ## Deploy otomatis ke Vercel
 

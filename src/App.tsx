@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useState, type ComponentType, type FormEvent } from 'react'
 import { Bell, GraduationCap, Home as HomeIcon, IdCard, Laptop, LifeBuoy, MapPin, Phone, ShieldAlert, Stethoscope, MessageCircleHeart, User as UserIcon, Wallet } from 'lucide-react'
 import { DEMO_USER, login } from './lib/auth'
 import { getDict, type Dict, type Lang } from './lib/i18n'
@@ -6,13 +6,37 @@ import { usePref } from './lib/prefs'
 import type { Role, User } from './lib/types'
 import { PwaBanners } from './components/PwaBanners'
 import { Home } from './pages/Home'
-import { Akademik } from './pages/Akademik'
-import { Kuliah } from './pages/Kuliah'
-import { Keuangan } from './pages/Keuangan'
-import { KtmPage } from './pages/Ktm'
-import { Presensi } from './pages/Presensi'
-import { Event, Kerjasama, Prestasi, Sertifikasi, Toefl, Tracer } from './pages/Layanan'
-import { Notifikasi, Profil, type Theme } from './pages/Profil'
+import type { Theme } from './pages/Profil'
+
+// Anggaran performa (Section 7): Beranda dimuat langsung; semua halaman lain = chunk terpisah
+// yang baru diunduh saat dibuka, sehingga menambah fitur tidak menaikkan bundel awal.
+const page = <K extends string>(load: () => Promise<Record<K, ComponentType<any>>>, name: K) => // eslint-disable-line @typescript-eslint/no-explicit-any
+  lazy(() => load().then((m) => ({ default: m[name] })))
+const Akademik = page(() => import('./pages/Akademik'), 'Akademik')
+const Kuliah = page(() => import('./pages/Kuliah'), 'Kuliah')
+const Keuangan = page(() => import('./pages/Keuangan'), 'Keuangan')
+const KtmPage = page(() => import('./pages/Ktm'), 'KtmPage')
+const Presensi = page(() => import('./pages/Presensi'), 'Presensi')
+const Event = page(() => import('./pages/Layanan'), 'Event')
+const Kerjasama = page(() => import('./pages/Layanan'), 'Kerjasama')
+const Prestasi = page(() => import('./pages/Layanan'), 'Prestasi')
+const Sertifikasi = page(() => import('./pages/Layanan'), 'Sertifikasi')
+const Toefl = page(() => import('./pages/Layanan'), 'Toefl')
+const Tracer = page(() => import('./pages/Layanan'), 'Tracer')
+const Notifikasi = page(() => import('./pages/Profil'), 'Notifikasi')
+const Profil = page(() => import('./pages/Profil'), 'Profil')
+const DownloadPage = page(() => import('./pages/Download'), 'DownloadPage')
+const Surat = page(() => import('./pages/fitur/Surat'), 'Surat')
+const Edom = page(() => import('./pages/fitur/Edom'), 'Edom')
+const Ujian = page(() => import('./pages/fitur/Ujian'), 'Ujian')
+const Herreg = page(() => import('./pages/fitur/Herreg'), 'Herreg')
+const Booking = page(() => import('./pages/fitur/Booking'), 'Booking')
+const Aspirasi = page(() => import('./pages/fitur/Aspirasi'), 'Aspirasi')
+const DompetSertifikat = page(() => import('./pages/fitur/DompetSertifikat'), 'DompetSertifikat')
+const Islami = page(() => import('./pages/fitur/Islami'), 'Islami')
+const Alumni = page(() => import('./pages/fitur/Alumni'), 'Alumni')
+const Pemira = page(() => import('./pages/fitur/Pemira'), 'Pemira')
+const Onboarding = page(() => import('./components/Onboarding'), 'Onboarding')
 
 // Router berbasis hash: semua halaman ada di dalam satu aplikasi (#/akademik/krs, #/ktm, ...)
 function useRoute() {
@@ -41,6 +65,7 @@ export default function App() {
   // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF.
   const [signedIn, setSignedIn] = usePref<boolean>('signedIn', false)
   const [role, setRole] = usePref<Role>('role', 'MAHASISWA')
+  const [onboarded, setOnboarded] = usePref<boolean>('onboarded', false)
   const [sos, setSos] = useState(false)
   const { route, go, back } = useRoute()
   const t = getDict(lang)
@@ -71,7 +96,7 @@ export default function App() {
   const user: User = { ...DEMO_USER, role }
   const [section, sub = ''] = route.split('/')
 
-  const page = (() => {
+  const view = (() => {
     switch (section) {
       case 'akademik':
         return <Akademik tab={sub} go={go} />
@@ -95,6 +120,28 @@ export default function App() {
         return <Tracer back={back} />
       case 'kerjasama':
         return <Kerjasama back={back} />
+      case 'download':
+        return <DownloadPage go={go} back={back} />
+      case 'surat':
+        return <Surat back={back} />
+      case 'edom':
+        return <Edom back={back} />
+      case 'ujian':
+        return <Ujian user={user} back={back} />
+      case 'herreg':
+        return <Herreg back={back} go={go} />
+      case 'booking':
+        return <Booking back={back} />
+      case 'aspirasi':
+        return <Aspirasi back={back} />
+      case 'sertifikat':
+        return <DompetSertifikat back={back} />
+      case 'islami':
+        return <Islami back={back} />
+      case 'alumni':
+        return <Alumni back={back} />
+      case 'pemira':
+        return <Pemira back={back} />
       case 'notifikasi':
         return <Notifikasi t={t} back={back} go={go} />
       case 'profil':
@@ -133,13 +180,31 @@ export default function App() {
         <main className="min-w-0 flex-1 px-4 pb-32 pt-4 md:px-8 md:pb-12 md:pt-6">
           <TopBar t={t} go={go} onSos={() => setSos(true)} />
           <div key={route} className="page-enter">
-            {page}
+            <Suspense fallback={<PageSkeleton />}>{view}</Suspense>
           </div>
         </main>
         <BottomNav t={t} section={section} go={go} />
         {sos && <SosSheet t={t} onClose={() => setSos(false)} />}
+        {!onboarded && (
+          <Suspense fallback={null}>
+            <Onboarding onDone={() => setOnboarded(true)} />
+          </Suspense>
+        )}
       </div>
     </>
+  )
+}
+
+function PageSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Memuat" className="space-y-4">
+      <div className="shimmer h-10 w-1/2 rounded-2xl" />
+      <div className="shimmer h-40 rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="shimmer h-28 rounded-3xl" />
+        <div className="shimmer h-28 rounded-3xl" />
+      </div>
+    </div>
   )
 }
 
@@ -176,7 +241,7 @@ function Login({ t, lang, setLang, onSignedIn }: { t: Dict; lang: Lang; setLang:
     <div className="flex min-h-screen items-center justify-center p-4">
       <PwaBanners t={t} />
       <form onSubmit={submit} className="glass page-enter w-full max-w-sm !rounded-[28px] p-8">
-        <img src="/icons/icon-192.png" alt="" className="mx-auto h-20 w-20 rounded-3xl shadow-[var(--glow)]" />
+        <img src="/brand/unpam-logo-256.webp" alt="Logo Universitas Pamulang" width="96" height="96" className="mx-auto h-24 w-24 rounded-full shadow-[var(--glow)]" />
         <h1 className="mt-5 text-center text-3xl font-bold">
           Super <span className="text-gradient">UNPAM</span>
         </h1>
@@ -223,7 +288,7 @@ function SideRail({ t, section, go }: { t: Dict; section: string; go: (r: string
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 p-4 md:block">
       <div className="glass flex h-full flex-col gap-1 !rounded-[28px] p-4">
         <button onClick={() => go('home')} className="mb-5 flex items-center gap-3 px-1 text-left">
-          <img src="/icons/icon-192.png" alt="" className="h-11 w-11 rounded-2xl shadow-[var(--glow)]" />
+          <img src="/brand/unpam-logo-256.webp" alt="Logo UNPAM" width="44" height="44" className="h-11 w-11 rounded-full shadow-[var(--glow)]" />
           <div>
             <div className="font-display text-lg font-bold">
               Super <span className="text-gradient">UNPAM</span>
@@ -287,7 +352,7 @@ function TopBar({ t, go, onSos }: { t: Dict; go: (r: string) => void; onSos: () 
   return (
     <header className="mb-5 flex items-center justify-end gap-2">
       <button onClick={() => go('home')} className="mr-auto flex items-center gap-2 md:hidden">
-        <img src="/icons/icon-192.png" alt="" className="h-9 w-9 rounded-xl shadow-[var(--glow)]" />
+        <img src="/brand/unpam-logo-256.webp" alt="Logo UNPAM" width="36" height="36" className="h-9 w-9 rounded-full shadow-[var(--glow)]" />
         <span className="font-display text-lg font-bold">
           Super <span className="text-gradient">UNPAM</span>
         </span>

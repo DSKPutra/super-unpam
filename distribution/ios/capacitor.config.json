@@ -1,0 +1,10 @@
+{
+  "appId": "id.ac.unpam.superunpam",
+  "appName": "Super UNPAM",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#070B14",
+    "limitsNavigationsToAppBoundDomains": true
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Super UNPAM",
+  "version": "0.4.0",
+  "identifier": "id.ac.unpam.superunpam",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Super UNPAM",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 380,
+        "minHeight": 640,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' tauri: asset:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: asset:; connect-src 'self' ipc: http://ipc.localhost; font-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "publisher": "Universitas Pamulang",
+    "category": "Education",
+    "shortDescription": "Semua layanan kampus dalam satu aplikasi.",
+    "longDescription": "Super UNPAM — Super App Universitas Pamulang: KTM digital, presensi online, jadwal, KRS, nilai, kuliah online, pembayaran UKT, dan layanan kampus lainnya.",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  }
+}

@@ -35,22 +35,28 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Cek VERCEL_TOKEN
+        id: token
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo "::error title=VERCEL_TOKEN belum diatur::Buat token di https://vercel.com/account/tokens lalu simpan sebagai secret repo bernama VERCEL_TOKEN (Settings → Secrets and variables → Actions)."
-            exit 1
+            echo "::warning title=Deploy Vercel dilewati::Secret VERCEL_TOKEN belum diatur. Buat token di https://vercel.com/account/tokens lalu simpan sebagai secret repo VERCEL_TOKEN (Settings → Secrets and variables → Actions)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/checkout@v4
+        if: steps.token.outputs.ok == 'true'
 
       - uses: actions/setup-node@v4
+        if: steps.token.outputs.ok == 'true'
         with:
           node-version: 22
           cache: npm
 
       - name: Tentukan target
+        if: steps.token.outputs.ok == 'true'
         id: target
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -60,6 +66,7 @@ jobs:
           fi
 
       - name: Buat project Vercel bila belum ada
+        if: steps.token.outputs.ok == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
@@ -74,21 +81,25 @@ jobs:
           esac
 
       - name: Hubungkan ke project Vercel
+        if: steps.token.outputs.ok == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: npx --yes "$VERCEL_CLI" link --yes --project "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
 
       - name: Ambil pengaturan project
+        if: steps.token.outputs.ok == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: npx --yes "$VERCEL_CLI" pull --yes --environment=${{ steps.target.outputs.env }} --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
 
       - name: Build
+        if: steps.token.outputs.ok == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: npx --yes "$VERCEL_CLI" build ${{ steps.target.outputs.flag }} --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
 
       - name: Deploy
+        if: steps.token.outputs.ok == 'true'
         id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -102,7 +113,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Komentari PR dengan link preview
-        if: github.event_name == 'pull_request'
+        if: steps.token.outputs.ok == 'true' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         env:
           DEPLOY_URL: ${{ steps.deploy.outputs.url }}

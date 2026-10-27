@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "id.ac.unpam.superunpam",
+      "sha256_cert_fingerprints": ["GANTI_DENGAN_SHA256_DARI_KEYSTORE_ATAU_PLAY_APP_SIGNING"]
+    }
+  }
+]

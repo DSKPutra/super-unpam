@@ -5,6 +5,7 @@ import { bills, events, news, rupiah, schedule, tasks } from '../data/demo'
 import type { Dict } from '../lib/i18n'
 import type { User } from '../lib/types'
 import { Icon3D } from '../components/Icon3D'
+import { DownloadCTA } from '../components/DownloadCTA'
 import { Badge, LinkBtn, Section, Sparkline } from '../components/ui'
 
 export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: string) => void; favorites: string[] }) {
@@ -124,6 +125,10 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
             </button>
           ))}
         </div>
+      </Section>
+
+      <Section title="Aplikasi">
+        <DownloadCTA go={go} />
       </Section>
 
       <div className="grid gap-x-4 lg:grid-cols-2">
