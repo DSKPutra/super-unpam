@@ -18,6 +18,21 @@ Tidak ada lagi kartu yang membuka situs lain. Semua layanan dirender di dalam Su
 - Login di dalam aplikasi, pencarian global (fitur, mata kuliah, event), notifikasi, favorit, tema gelap/terang, ID/EN, sesi perangkat, tombol SOS
 - PWA: installable, offline, shortcuts (KTM, Presensi, Jadwal, Bayar), update prompt
 
+## Deploy otomatis ke Vercel
+
+Setiap **push ke `main`** otomatis ter-deploy ke production, dan setiap **pull request** mendapat link preview. Prosesnya berjalan lewat GitHub Actions (`.github/workflows/deploy-vercel.yml`). Project Vercel dibuat otomatis saat deploy pertama.
+
+Pengaturan satu kali (±1 menit):
+1. Buat token di https://vercel.com/account/tokens. Isi **Scope** dengan tim **Putra Talks**, lalu salin token-nya.
+2. Di GitHub, buka repo ini → **Settings → Secrets and variables → Actions → New repository secret**. Isi Name `VERCEL_TOKEN` dan Secret dengan token tadi.
+3. Buka tab **Actions → Deploy ke Vercel → Run workflow** (atau push apa saja ke `main`). Link production muncul di ringkasan job.
+
+Opsional, lewat tab **Variables** di halaman yang sama:
+- `VERCEL_SCOPE`: slug tim, default `putratalks`.
+- `VERCEL_PROJECT`: nama project, default `super-unpam`.
+
+> Jangan hubungkan repo ini juga lewat integrasi Git di dashboard Vercel, karena setiap push akan ter-deploy dua kali.
+
 ## Pengembangan
 ```bash
 npm install

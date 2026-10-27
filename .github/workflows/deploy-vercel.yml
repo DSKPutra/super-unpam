@@ -1,0 +1,116 @@
+name: Deploy ke Vercel
+
+# Otomatis:
+#   - push ke main            → deploy PRODUCTION
+#   - pull request ke main    → deploy PREVIEW (link muncul di ringkasan job & komentar PR)
+#   - tombol "Run workflow"   → deploy manual
+# Syarat satu kali: tambahkan secret repo VERCEL_TOKEN (lihat README → "Deploy otomatis").
+# Project Vercel dibuat otomatis saat deploy pertama bila belum ada.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: vercel-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VERCEL_CLI: vercel@63.1.2
+  # Bisa diganti lewat Settings → Secrets and variables → Actions → Variables
+  VERCEL_SCOPE: ${{ vars.VERCEL_SCOPE || 'putratalks' }}
+  VERCEL_PROJECT: ${{ vars.VERCEL_PROJECT || 'super-unpam' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Secret tidak tersedia untuk PR dari fork; lewati agar tidak gagal.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Cek VERCEL_TOKEN
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error title=VERCEL_TOKEN belum diatur::Buat token di https://vercel.com/account/tokens lalu simpan sebagai secret repo bernama VERCEL_TOKEN (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Tentukan target
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "env=preview" >> "$GITHUB_OUTPUT"; echo "flag=" >> "$GITHUB_OUTPUT"
+          else
+            echo "env=production" >> "$GITHUB_OUTPUT"; echo "flag=--prod" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Buat project Vercel bila belum ada
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          code=$(curl -sS -o /tmp/resp.json -w '%{http_code}' -X POST \
+            "https://api.vercel.com/v11/projects?slug=$VERCEL_SCOPE" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' \
+            -d "{\"name\":\"$VERCEL_PROJECT\",\"framework\":\"vite\",\"buildCommand\":\"npm run build\",\"outputDirectory\":\"dist\"}")
+          case "$code" in
+            200|201) echo "Project $VERCEL_PROJECT dibuat di $VERCEL_SCOPE." ;;
+            409) echo "Project $VERCEL_PROJECT sudah ada — lanjut." ;;
+            *) echo "::error::Gagal membuat project (HTTP $code)"; cat /tmp/resp.json; exit 1 ;;
+          esac
+
+      - name: Hubungkan ke project Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes "$VERCEL_CLI" link --yes --project "$VERCEL_PROJECT" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+
+      - name: Ambil pengaturan project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes "$VERCEL_CLI" pull --yes --environment=${{ steps.target.outputs.env }} --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+
+      - name: Build
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes "$VERCEL_CLI" build ${{ steps.target.outputs.flag }} --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+
+      - name: Deploy
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt ${{ steps.target.outputs.flag }} --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          {
+            echo "### 🚀 Super UNPAM ter-deploy (${{ steps.target.outputs.env }})"
+            echo ""
+            echo "$url"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Komentari PR dengan link preview
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🚀 Preview Super UNPAM: ${process.env.DEPLOY_URL}`,
+            })
