@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType, type FormEvent } from 'react'
 import { Bell, GraduationCap, Home as HomeIcon, IdCard, Laptop, LifeBuoy, MapPin, Phone, ShieldAlert, Stethoscope, MessageCircleHeart, User as UserIcon, Wallet } from 'lucide-react'
-import { ApiError, currentUser, login, logout, UNAUTHORIZED_EVENT, USE_DEMO } from './lib/api'
+import { ApiError, currentUser, getNotifications, login, logout, UNAUTHORIZED_EVENT, USE_DEMO } from './lib/api'
+import { jumlahBelumDibaca } from './lib/pengingat'
+import { useResource } from './lib/useResource'
 import { getDict, type Dict, type Lang } from './lib/i18n'
 import { usePref } from './lib/prefs'
 import type { Role, User } from './lib/types'
@@ -39,6 +41,7 @@ const Alumni = page(() => import('./pages/fitur/Alumni'), 'Alumni')
 const Pemira = page(() => import('./pages/fitur/Pemira'), 'Pemira')
 const AturBeranda = page(() => import('./pages/AturBeranda'), 'AturBeranda')
 const KenaliKampus = page(() => import('./pages/KenaliKampus'), 'KenaliKampus')
+const Pengingat = page(() => import('./pages/Pengingat'), 'Pengingat')
 const Onboarding = page(() => import('./components/Onboarding'), 'Onboarding')
 
 // Default "Mode hemat efek" untuk pengguna baru: aktif di HP RAM ≤ 4 GB / ≤ 4 core / Data Saver.
@@ -74,6 +77,8 @@ export default function App() {
   const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'presensi'])
   // Bentuk dirapikan saat dibaca (normalizeLayout), jadi nilai rusak/usang di penyimpanan aman.
   const [homeLayout, setHomeLayout] = usePref<unknown>('home.widgets', DEFAULT_LAYOUT)
+  // Id notifikasi yang ditandai dibaca di perangkat ini. TODO(BFF): simpan status baca di server.
+  const [dibaca, setDibaca] = usePref<number[]>('notif.dibaca', [])
   // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF dan dicek lewat /api/auth/me.
   const [signedIn, setSignedIn] = usePref<boolean>('signedIn', false)
   const [me, setMe] = useState<User | null>(null)
@@ -214,10 +219,12 @@ export default function App() {
         return <Pemira back={back} />
       case 'kenali-kampus':
         return <KenaliKampus t={t} back={back} replayIntro={() => setOnboarded(false)} />
+      case 'pengingat':
+        return <Pengingat back={back} />
       case 'atur-beranda':
         return <AturBeranda t={t} user={user} back={back} layout={homeLayout} setLayout={setHomeLayout} />
       case 'notifikasi':
-        return <Notifikasi t={t} back={back} go={go} />
+        return <Notifikasi t={t} back={back} go={go} dibaca={dibaca} setDibaca={setDibaca} />
       case 'profil':
         return (
           <Profil
@@ -254,7 +261,7 @@ export default function App() {
         <PwaBanners t={t} />
         <SideRail t={t} section={section} go={go} />
         <main className="min-w-0 flex-1 px-4 pb-32 pt-4 md:px-8 md:pb-12 md:pt-6">
-          <TopBar t={t} go={go} onSos={() => setSos(true)} />
+          <TopBar t={t} go={go} onSos={() => setSos(true)} dibaca={dibaca} />
           <div key={route} className="page-enter">
             <Suspense fallback={<PageSkeleton />}>{view}</Suspense>
           </div>
@@ -423,7 +430,10 @@ function BottomNav({ t, section, go }: { t: Dict; section: string; go: (r: strin
   )
 }
 
-function TopBar({ t, go, onSos }: { t: Dict; go: (r: string) => void; onSos: () => void }) {
+function TopBar({ t, go, onSos, dibaca }: { t: Dict; go: (r: string) => void; onSos: () => void; dibaca: number[] }) {
+  // Jumlah dari data notifikasi yang sama dengan halaman Notifikasi (bukan angka tetap).
+  const notif = useResource(getNotifications)
+  const baru = jumlahBelumDibaca(notif.data, dibaca)
   return (
     <header className="mb-5 flex items-center justify-end gap-2">
       <button onClick={() => go('home')} className="mr-auto flex items-center gap-2 md:hidden">
@@ -432,9 +442,9 @@ function TopBar({ t, go, onSos }: { t: Dict; go: (r: string) => void; onSos: () 
           Super <span className="text-gradient">UNPAM</span>
         </span>
       </button>
-      <button onClick={() => go('notifikasi')} aria-label={`${t.notifications} (3 baru)`} className="glass glass-hover relative flex h-11 w-11 items-center justify-center !rounded-2xl">
-        <Bell className="h-5 w-5" />
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-[10px] font-bold text-white shadow-[0_0_10px_var(--rose)]">3</span>
+      <button onClick={() => go('notifikasi')} aria-label={baru ? `${t.notifications} (${baru} baru)` : t.notifications} className="glass glass-hover relative flex h-11 w-11 items-center justify-center !rounded-2xl">
+        <Bell className="h-5 w-5" aria-hidden />
+        {baru > 0 && <span aria-hidden className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-[10px] font-bold text-white shadow-[0_0_10px_var(--rose)]">{baru > 99 ? '99+' : baru}</span>}
       </button>
       <button onClick={onSos} className="flex h-11 items-center gap-1.5 rounded-2xl bg-rose px-4 text-sm font-bold text-white shadow-[0_0_20px_color-mix(in_srgb,var(--rose)_50%,transparent)]">
         <LifeBuoy className="h-4 w-4" /> {t.sos}

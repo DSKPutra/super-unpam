@@ -87,6 +87,9 @@ Belum:
 - Aksi tulis (kumpul tugas, ajukan KRS, daftar event, bayar) masih simulasi lokal di klien.
 - Nomor kontak darurat resmi (`SosSheet` di `src/App.tsx`).
 - MailPAM & DrivePAM: menunggu keputusan arsitektur. Pertanyaan untuk LPTI/pimpinan/hukum ada di [docs/MAILPAM-DRIVEPAM-KEPUTUSAN.md](docs/MAILPAM-DRIVEPAM-KEPUTUSAN.md).
+- Kumpul tugas sungguhan (U07): butuh penyimpanan objek + pemindai, yaitu keputusan DrivePAM di dokumen di atas. Sampai itu, tidak ada klaim "terkirim ke MENTARI".
+- Web Push (U07): butuh kunci VAPID (env server), database untuk langganan notifikasi, cron, dan Service Worker `injectManifest`. Penjadwal pengingat sudah ada di `src/lib/pengingat.ts` (teruji).
+- Patch "Pusat Tenggat" yang dirujuk prompt Univers tidak ada di repo; fitur yang bergantung padanya (timeline tenggat, .ics) belum dibuat.
 
 ## Instalasi per platform
 | Platform | Cara |
