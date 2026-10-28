@@ -18,7 +18,7 @@ import type {
   Task,
   User,
 } from '../lib/types.js'
-import type { Dosen, JadwalUjianSemester, PengajuanUjian, ProfilKelayakan, SesiUjian, TugasAkhir } from '../lib/akademik/types.js'
+import type { Dosen, JadwalUjianSemester, Logbook, PengajuanUjian, ProfilKelayakan, SesiUjian, TugasAkhir } from '../lib/akademik/types.js'
 
 export const DEMO_USER: User = {
   name: 'DEA SAKA KURNIA PUTRA',
@@ -278,3 +278,30 @@ export const antrianJudul: TugasAkhir[] = [
     perubahan: [],
   },
 ]
+
+/** Mahasiswa bimbingan contoh (untuk tampilan dosen T04). */
+export const taBimbinganContoh: TugasAkhir = {
+  id: 'ta-contoh-2',
+  judul: 'Optimasi Rute Pengantaran Kantin Kampus dengan Algoritma Genetika',
+  abstrak: 'Contoh tugas akhir untuk tampilan dosen.',
+  bidang: 'Kecerdasan Buatan & Data',
+  metode: 'Contoh.',
+  pilihanPembimbing: ['dsn-rina'],
+  pembimbing: ['dsn-rina'],
+  status: 'BIMBINGAN',
+  riwayat: [
+    { dari: 'DRAF_JUDUL', ke: 'DIAJUKAN', peristiwa: 'AJUKAN_JUDUL', pelaku: 'MAHASISWA', waktu: '2026-08-04T03:00:00.000Z' },
+    { dari: 'DIAJUKAN', ke: 'DISETUJUI_PEMBIMBING', peristiwa: 'SETUJUI_JUDUL', pelaku: 'DOSEN', waktu: '2026-08-11T03:00:00.000Z' },
+    { dari: 'DISETUJUI_PEMBIMBING', ke: 'BIMBINGAN', peristiwa: 'MULAI_BIMBINGAN', pelaku: 'MAHASISWA', waktu: '2026-08-12T03:00:00.000Z' },
+  ],
+  perubahan: [],
+}
+
+export const logbookContoh: Logbook = {
+  tugasAkhirId: 'ta-contoh-2',
+  entri: [
+    { id: 'bb-1', tugasAkhirId: 'ta-contoh-2', tanggal: '2026-08-20T03:00:00.000Z', bagian: 'Bab 1 Pendahuluan', ringkasan: 'Perjelas latar belakang dan batasan masalah (contoh).', status: 'DISETUJUI', diverifikasi: { oleh: 'dsn-rina', waktu: '2026-08-21T03:00:00.000Z' } },
+    { id: 'bb-2', tugasAkhirId: 'ta-contoh-2', tanggal: '2026-09-17T03:00:00.000Z', bagian: 'Bab 2 Tinjauan Pustaka', ringkasan: 'Tambahkan penelitian terkait lima tahun terakhir (contoh).', status: 'MENUNGGU', versiDraf: 1 },
+  ],
+  versi: [{ versi: 1, nama: 'draf-bab1-2.pdf', ukuran: 412_000, tipe: 'application/pdf', sha256: 'c0ffee'.repeat(10) + 'c0ff', catatan: 'Draf awal bab 1–2 (contoh)', diunggah: '2026-09-16T03:00:00.000Z' }],
+}

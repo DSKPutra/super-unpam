@@ -134,11 +134,36 @@ export interface RingkasanTA {
 export interface Bimbingan {
   id: string
   tugasAkhirId: string
+  /** Tanggal pertemuan (ISO). */
   tanggal: string
+  /** Bab/bagian yang dibahas. */
   bagian: string
+  /** Ringkasan arahan dosen (diisi mahasiswa, diverifikasi dosen). */
   ringkasan: string
   tugasBerikutnya?: { teks: string; tenggat?: string }
-  disetujui: boolean
+  /** Nomor versi draf yang dibahas (lihat VersiDraf). */
+  versiDraf?: number
+  /** Hanya entri DISETUJUI yang sah dan dihitung sebagai syarat ujian. */
+  status: 'MENUNGGU' | 'DISETUJUI' | 'DITOLAK'
+  catatanDosen?: string
+  diverifikasi?: { oleh: string; waktu: string }
+}
+
+/** Versi draf naskah. Tidak pernah ditimpa: setiap unggahan = versi baru dengan hash SHA-256. */
+export interface VersiDraf {
+  versi: number
+  nama: string
+  ukuran: number
+  tipe: string
+  sha256: string
+  catatan: string
+  diunggah: string
+}
+
+export interface Logbook {
+  tugasAkhirId: string
+  entri: Bimbingan[]
+  versi: VersiDraf[]
 }
 
 export interface PendaftaranUjianAkhir {

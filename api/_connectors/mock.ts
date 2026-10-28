@@ -22,8 +22,9 @@ const roleFor = (username: string): Role => {
 }
 
 const ok = <T>(v: T) => Promise.resolve(v)
-const taMock = new Map(demo.antrianJudul.map((t) => [t.id, t]))
-const taPemilik = new Map<string, string>(demo.antrianJudul.map((t) => [t.id, 'mahasiswa-contoh']))
+const taMock = new Map([...demo.antrianJudul, demo.taBimbinganContoh].map((t) => [t.id, t]))
+const lbMock = new Map([[demo.logbookContoh.tugasAkhirId, demo.logbookContoh]])
+const taPemilik = new Map<string, string>([...demo.antrianJudul, demo.taBimbinganContoh].map((t) => [t.id, 'mahasiswa-contoh']))
 
 export const mock: Connectors = {
   sso: {
@@ -56,6 +57,10 @@ export const mock: Connectors = {
       taMock.set(ta.id, ta)
       return ok(ta)
     },
+    getLogbook: (taId) => ok(lbMock.get(taId) ?? { tugasAkhirId: taId, entri: [], versi: [] }),
+    simpanLogbook: (lb) => (lbMock.set(lb.tugasAkhirId, lb), ok(lb)),
+    // TODO(BFF-AUTHZ): saring berdasarkan dosen pembimbing sungguhan.
+    getTABimbingan: () => ok([...taMock.values()].filter((t) => t.pembimbing.length > 0)),
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },
