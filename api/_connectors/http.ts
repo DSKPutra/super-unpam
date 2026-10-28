@@ -25,4 +25,14 @@ export const http: Connectors = {
   myLb: { getToefl: pending('MY LB') },
   sispema: { getRanking: pending('SISPEMA') },
   portal: { getNews: pending('PORTAL'), getNotifications: pending('PORTAL') },
+  sarpras: {
+    getRingkasanParkir: pending('SARPRAS'),
+    daftarKendaraan: pending('SARPRAS'),
+    hapusKendaraan: pending('SARPRAS'),
+    getPemilikKendaraan: pending('SARPRAS'),
+    catatGerbang: pending('SARPRAS'),
+    isKtmBeku: pending('SARPRAS'),
+    setKtmBeku: pending('SARPRAS'),
+    getLogKtm: pending('SARPRAS'),
+  },
 }

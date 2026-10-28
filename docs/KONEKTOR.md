@@ -31,6 +31,7 @@ Implementasi `http` dapat diaktifkan per sistem (`CONNECTOR_SSO=http`, `CONNECTO
 | MY LB | `MyLbConnector` | Skor TOEFL, jadwal tes, kursi | API pendaftaran tes? |
 | SISPEMA | `SispemaConnector` | Peringkat prodi, poin, daftar prestasi | Apakah peringkat boleh ditampilkan ke mahasiswa yang bersangkutan? |
 | Portal pengumuman | `PortalConnector` | Berita/pengumuman kampus, notifikasi per pengguna | Sistem sumber yang dipakai belum ditentukan: portal web, CMS, atau sistem lain? |
+| SARPRAS (parkir & status KTM) | `SarprasConnector` | Kendaraan terdaftar + STNK, sesi parkir aktif, keterisian area, riwayat parkir, pencatatan gerbang, status beku KTM, log pemakaian KTM | Sistem palang/gerbang parkir apa yang dipakai dan apakah punya API? Siapa yang memverifikasi STNK dan berapa lama? Batas kendaraan per orang, jam operasional, tarif/retribusi? Apakah ada kamera pembaca plat (ANPR) yang perlu dicocokkan? Akun khusus petugas parkir atau semua tendik? |
 | SISKERMA | belum ada antarmuka | Daftar kerjasama (halaman Kerjasama masih memakai data di dalam halaman) | Akses untuk dosen/tendik saja? |
 
 ## Konfigurasi yang dibutuhkan BFF

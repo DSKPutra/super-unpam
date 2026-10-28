@@ -27,7 +27,7 @@ export function verifyCode(kind: QrKind, subject: string, code: string, slot?: n
   return slots.some((s) => safeEqual(code, qrCode(kind, subject, s)))
 }
 
-const PAYLOAD = /^SUPERUNPAM:(KTM|PRESENSI):([A-Za-z0-9-]{1,40}):(\d{1,12}):([A-Z0-9]{7})$/
+const PAYLOAD = /^SUPERUNPAM:(KTM|PRESENSI|PARKIR):([A-Za-z0-9-]{1,40}):(\d{1,12}):([A-Z0-9]{7})$/
 
 export function parseQrPayload(raw: string) {
   const m = PAYLOAD.exec(raw)
