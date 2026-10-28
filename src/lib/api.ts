@@ -8,7 +8,7 @@ import type {
   CheckInRequest,
   CheckInResult,
   KrsClass,
-  NewsItem,
+  NewsFeed,
   OnlineClass,
   QrKind,
   QrToken,
@@ -85,7 +85,8 @@ export const getEvents = resource<CampusEvent[]>((d) => d.events, 'campus/events
 export const getCertifications = resource<Certification[]>((d) => d.certifications, 'campus/certifications')
 export const getToefl = resource<ToeflSummary>((d) => d.toefl, 'campus/toefl')
 export const getRanking = resource<Ranking>((d) => d.ranking, 'campus/ranking')
-export const getNews = resource<NewsItem[]>((d) => d.news, 'campus/news')
+// Berita publik dari situs resmi lewat BFF (tanpa sesi); di mode demo berlabel contoh.
+export const getNews = resource<NewsFeed>((d) => d.news, 'berita')
 export const getNotifications = resource<AppNotification[]>((d) => d.notifications, 'campus/notifications')
 // — Presensi
 export const getCampusAreas = resource<CampusArea[]>((d) => d.demoGeofences.map(({ name, radius }) => ({ name, radius })), 'presensi/campuses')

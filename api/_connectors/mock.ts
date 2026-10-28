@@ -47,5 +47,5 @@ export const mock: Connectors = {
   myLsp: { getCertifications: () => ok(demo.certifications) },
   myLb: { getToefl: () => ok(demo.toefl) },
   sispema: { getRanking: () => ok(demo.ranking) },
-  portal: { getNews: () => ok(demo.news), getNotifications: () => ok(demo.notifications) },
+  portal: { getNotifications: () => ok(demo.notifications) },
 }
