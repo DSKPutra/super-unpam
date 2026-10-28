@@ -14,8 +14,9 @@ const SLOTS = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '1
 // slot terisi (contoh) — deterministik per fasilitas+hari
 const taken = (f: string, d: number, s: number) => (f.length * 7 + d * 3 + s * 5) % 4 === 0
 
-export function Booking({ back }: { back: () => void }) {
-  const [fac, setFac] = useState(FAC[0].id)
+export function Booking({ back, tab }: { back: () => void; tab?: string }) {
+  // #/booking/dosen membuka langsung bimbingan dosen (dari halaman Skripsi/TA).
+  const [fac, setFac] = useState(FAC.some((x) => x.id === tab) ? tab! : FAC[0].id)
   const [day, setDay] = useState(0)
   const [slot, setSlot] = useState<number | null>(null)
   const [booked, setBooked] = useState<string[]>([])
