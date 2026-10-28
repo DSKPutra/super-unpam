@@ -24,5 +24,5 @@ export const http: Connectors = {
   myLsp: { getCertifications: pending('MY LSP') },
   myLb: { getToefl: pending('MY LB') },
   sispema: { getRanking: pending('SISPEMA') },
-  portal: { getNews: pending('PORTAL'), getNotifications: pending('PORTAL') },
+  portal: { getNotifications: pending('PORTAL') },
 }

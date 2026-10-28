@@ -100,11 +100,24 @@ export interface Ranking {
   achievements: { title: string; level: string; points: number }[]
 }
 
-export interface NewsItem {
+/** Berita kampus yang sudah dinormalisasi BFF (api/berita.ts). Ringkasan selalu teks biasa. */
+export interface NewsArticle {
   id: string
-  tag: string
   title: string
+  summary: string
+  /** ISO 8601 */
   date: string
+  /** Tautan ke artikel asli (selalu https://…unpam.ac.id). */
+  url: string
+  tag?: string
+}
+
+export interface NewsFeed {
+  items: NewsArticle[]
+  /** Nama host sumber, mis. "unpam.ac.id". */
+  source: string
+  /** Waktu server mengambil sumber (ISO). Dipakai untuk label "Terakhir diperbarui". */
+  fetchedAt: string
 }
 
 export interface AppNotification {
