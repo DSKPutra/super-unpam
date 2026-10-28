@@ -75,8 +75,8 @@ export function KtmPage({ user, back }: { user: User; back: () => void }) {
             className="holo absolute inset-0 overflow-hidden rounded-3xl p-5 text-left text-white shadow-[var(--glow)] [backface-visibility:hidden]"
             style={{ background: 'radial-gradient(120% 140% at 0% 0%, #4D86FF 0%, #1B3FD1 38%, #3B1FA8 72%, #00B8E6 120%)' }}
           >
-            <div className="absolute -right-12 -top-14 h-48 w-48 rounded-full bg-[#00D4FF]/30 blur-2xl" />
-            <div className="absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-[#7A5CFF]/40 blur-2xl" />
+            <div className="absolute -right-12 -top-14 h-48 w-48 rounded-full bg-[radial-gradient(closest-side,rgba(0,212,255,.4),transparent)]" />
+            <div className="absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-[radial-gradient(closest-side,rgba(122,92,255,.5),transparent)]" />
             <svg className="absolute inset-0 h-full w-full opacity-[0.12]" aria-hidden>
               <defs>
                 <pattern id="grid" width="22" height="22" patternUnits="userSpaceOnUse">
@@ -94,7 +94,7 @@ export function KtmPage({ user, back }: { user: User; back: () => void }) {
               <Cpu className="ml-auto h-8 w-8 text-[#FFD65C]/80" strokeWidth={1.5} />
             </div>
             <div className="relative mt-4 flex items-end gap-4">
-              <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 font-display text-2xl font-bold backdrop-blur">
+              <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 font-display text-2xl font-bold">
                 {user.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
               </div>
               <div className="min-w-0">

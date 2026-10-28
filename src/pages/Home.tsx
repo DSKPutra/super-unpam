@@ -82,10 +82,10 @@ export function Home({ t, user, go, favorites }: { t: Dict; user: User; go: (r: 
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         {/* KTM — tile hero */}
         <button onClick={() => go('ktm')} className="holo group relative col-span-2 overflow-hidden rounded-3xl p-5 text-left text-white shadow-[var(--glow)] md:row-span-2" style={{ background: 'linear-gradient(135deg,#1B3FD1 0%,#2D6BFF 45%,#00B8E6 100%)' }}>
-          <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
+          <div className="absolute -right-10 -top-12 h-48 w-48 rounded-full bg-[radial-gradient(closest-side,rgba(255,255,255,.22),transparent)]" />
           <div className="relative flex items-start justify-between">
             <Icon3D icon={ktm.icon} from="#7FA6FF" to="#1B3FD1" size={48} />
-            <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur">Siap dipindai</span>
+            <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">Siap dipindai</span>
           </div>
           <div className="relative mt-6 md:mt-16">
             <div className="text-xs uppercase tracking-[0.18em] text-white/75">{t.ktm}</div>

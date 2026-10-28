@@ -38,6 +38,13 @@ const Alumni = page(() => import('./pages/fitur/Alumni'), 'Alumni')
 const Pemira = page(() => import('./pages/fitur/Pemira'), 'Pemira')
 const Onboarding = page(() => import('./components/Onboarding'), 'Onboarding')
 
+// Default "Mode hemat efek" untuk pengguna baru: aktif di HP RAM ≤ 4 GB / ≤ 4 core / Data Saver.
+// Pengguna tetap bisa mengubahnya di Profil.
+function isLowEndDevice() {
+  const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } }
+  return (nav.deviceMemory ?? 8) <= 4 || (nav.hardwareConcurrency ?? 8) <= 4 || nav.connection?.saveData === true
+}
+
 // Router berbasis hash: semua halaman ada di dalam satu aplikasi (#/akademik/krs, #/ktm, ...)
 function useRoute() {
   const read = () => location.hash.replace(/^#\/?/, '') || 'home'
@@ -60,7 +67,7 @@ function useRoute() {
 export default function App() {
   const [lang, setLang] = usePref<Lang>('lang', 'id')
   const [theme, setTheme] = usePref<Theme>('theme', 'dark')
-  const [lite, setLite] = usePref<boolean>('lite', false)
+  const [lite, setLite] = usePref<boolean>('lite', isLowEndDevice())
   const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'presensi'])
   // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF dan dicek lewat /api/auth/me.
   const [signedIn, setSignedIn] = usePref<boolean>('signedIn', false)

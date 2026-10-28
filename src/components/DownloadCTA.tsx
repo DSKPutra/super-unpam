@@ -50,7 +50,7 @@ export function DownloadCTA({ go, compact = false }: { go: (r: string) => void; 
 
   return (
     <div className="glass relative overflow-hidden p-5 md:p-6">
-      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[var(--primary)] opacity-25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[radial-gradient(closest-side,var(--primary),transparent)] opacity-30" />
       <div className="relative flex flex-col gap-5 md:flex-row md:items-center">
         <div className="flex-1">
           <h2 className="text-xl font-bold md:text-2xl">
