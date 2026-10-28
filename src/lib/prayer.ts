@@ -1,5 +1,8 @@
 // Perhitungan jadwal sholat lokal (tanpa API/aset) — parameter Kemenag RI:
 // Subuh -20°, Isya -18°, Asar mazhab Syafi'i (bayangan = 1×), ihtiyath +2 menit.
+/** Titik acuan jadwal sholat bila lokasi pengguna tidak dipakai. TODO: koordinat resmi kampus. */
+export const CAMPUS_LOCATION = { lat: -6.3431, lng: 106.7386, name: 'Kampus Pamulang' }
+
 const rad = (d: number) => (d * Math.PI) / 180
 const deg = (r: number) => (r * 180) / Math.PI
 const fix = (a: number, b: number) => ((a % b) + b) % b
