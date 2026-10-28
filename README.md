@@ -84,6 +84,7 @@ Belum:
 - Penyimpanan sesi & rate limit bersama (Redis/KV), supaya "keluar dari semua perangkat" dan batas laju berlaku lintas instance.
 - Aksi tulis (kumpul tugas, ajukan KRS, daftar event, bayar) masih simulasi lokal di klien.
 - Nomor kontak darurat resmi (`SosSheet` di `src/App.tsx`).
+- MailPAM & DrivePAM: menunggu keputusan arsitektur. Pertanyaan untuk LPTI/pimpinan/hukum ada di [docs/MAILPAM-DRIVEPAM-KEPUTUSAN.md](docs/MAILPAM-DRIVEPAM-KEPUTUSAN.md).
 
 ## Instalasi per platform
 | Platform | Cara |
