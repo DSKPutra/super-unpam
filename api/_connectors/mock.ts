@@ -40,12 +40,25 @@ export const mock: Connectors = {
     getKrsOffer: () => ok(demo.krsOffer),
     getAttendanceRecap: () => ok(demo.attendanceRecap),
     recordAttendance: () => ok(undefined),
+    getUjian: (_sub, jenis) => ok(demo.ujianSemester[jenis]),
+    getProfilKelayakan: () => ok(demo.profilKelayakan),
+    getPengajuanUjian: () => ok(demo.pengajuanUjian),
+    // Mock: tidak menyimpan; mengembalikan bentuk respons yang sama dengan sistem asli.
+    ajukanUjian: (_sub, input) => ok({ ...input, id: `pj-${Date.now().toString(36)}`, status: 'DIAJUKAN' as const, diajukan: new Date().toISOString() }),
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },
   ems: { getEvents: () => ok(demo.events) },
-  myLsp: { getCertifications: () => ok(demo.certifications) },
-  myLb: { getToefl: () => ok(demo.toefl) },
+  myLsp: {
+    getRingkasan: () => ok(demo.sertifikasi),
+    // Mock: tidak menyimpan apa pun; hanya mengembalikan bentuk respons yang sama dengan sistem asli.
+    daftarSkema: (_sub, skemaId) => ok({ id: `uk-${skemaId}`, skemaId, status: 'terdaftar' as const }),
+  },
+  myLb: {
+    getJadwal: () => ok(demo.jadwalTes),
+    getRingkasan: () => ok(demo.toefl),
+    daftarTes: (_sub, jadwalId) => ok({ id: `pt-${jadwalId}`, jadwalId, status: 'menunggu-bayar' as const }),
+  },
   sispema: { getRanking: () => ok(demo.ranking) },
-  portal: { getNews: () => ok(demo.news), getNotifications: () => ok(demo.notifications) },
+  portal: { getNotifications: () => ok(demo.notifications) },
 }
