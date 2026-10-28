@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "typecheck:api": "tsc -p tsconfig.api.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:print": "node scripts/test-print.mjs"
   },
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
@@ -28,6 +29,8 @@
     "@types/react": "^18.3.20",
     "@types/react-dom": "^18.3.6",
     "@vitejs/plugin-react": "^4.4.1",
+    "jsqr": "^1.4.0",
+    "playwright-core": "^1.64.1",
     "tailwindcss": "^4.1.4",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",

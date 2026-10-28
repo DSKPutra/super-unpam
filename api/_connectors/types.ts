@@ -3,15 +3,17 @@ import type {
   AttendanceRecap,
   Bill,
   CampusEvent,
-  Certification,
+  JadwalTes,
+  PendaftaranTes,
+  RingkasanSertifikasi,
+  RingkasanToefl,
+  UjianKompetensi,
   KrsClass,
-  NewsItem,
   OnlineClass,
   Ranking,
   ScheduleItem,
   SemesterGrades,
   Task,
-  ToeflSummary,
   User,
 } from '../../src/lib/types.js'
 
@@ -53,12 +55,15 @@ export interface EmsConnector {
 
 /** MY LSP: sertifikasi kompetensi. */
 export interface MyLspConnector {
-  getCertifications(sub: string): Promise<Certification[]>
+  getRingkasan(sub: string): Promise<RingkasanSertifikasi>
+  daftarSkema(sub: string, skemaId: string): Promise<UjianKompetensi>
 }
 
 /** MY LB: lembaga bahasa / TOEFL. */
 export interface MyLbConnector {
-  getToefl(sub: string): Promise<ToeflSummary>
+  getJadwal(sub: string): Promise<JadwalTes[]>
+  getRingkasan(sub: string): Promise<RingkasanToefl>
+  daftarTes(sub: string, jadwalId: string): Promise<PendaftaranTes>
 }
 
 /** SISPEMA: prestasi & poin. */
@@ -66,9 +71,8 @@ export interface SispemaConnector {
   getRanking(sub: string): Promise<Ranking>
 }
 
-/** Pengumuman & notifikasi kampus. TODO(LPTI): sistem sumber belum ditentukan. */
+/** Notifikasi kampus (berita kampus diambil api/berita.ts dari situs resmi). TODO(LPTI): sistem sumber belum ditentukan. */
 export interface PortalConnector {
-  getNews(): Promise<NewsItem[]>
   getNotifications(sub: string): Promise<AppNotification[]>
 }
 
