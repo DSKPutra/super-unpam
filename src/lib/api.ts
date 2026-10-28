@@ -4,7 +4,6 @@ import type {
   Bill,
   CampusArea,
   CampusEvent,
-  Certification,
   CheckInRequest,
   CheckInResult,
   KrsClass,
@@ -16,7 +15,6 @@ import type {
   ScheduleItem,
   SemesterGrades,
   Task,
-  ToeflSummary,
   User,
 } from './types'
 import { distanceMeters } from './geo'
@@ -83,8 +81,7 @@ export const getTasks = resource<Task[]>((d) => d.tasks, 'kuliah/tasks')
 export const getBills = resource<Bill[]>((d) => d.bills, 'finance/bills')
 // — Layanan kampus (EMS, MY LSP, MY LB, SISPEMA, portal)
 export const getEvents = resource<CampusEvent[]>((d) => d.events, 'campus/events')
-export const getCertifications = resource<Certification[]>((d) => d.certifications, 'campus/certifications')
-export const getToefl = resource<ToeflSummary>((d) => d.toefl, 'campus/toefl')
+// TOEFL & sertifikasi: lihat src/lib/sumber (antarmuka sumber data yang dapat diganti).
 export const getRanking = resource<Ranking>((d) => d.ranking, 'campus/ranking')
 // Berita publik dari situs resmi lewat BFF (tanpa sesi); di mode demo berlabel contoh.
 export const getNews = resource<NewsFeed>((d) => d.news, 'berita')
