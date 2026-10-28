@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { usePeristiwa } from '../lib/peristiwa'
 import { getNotifications, USE_DEMO } from '../lib/api'
 import { useResource } from '../lib/useResource'
 import { FEATURES } from '../data/features'
@@ -154,6 +155,8 @@ export function Notifikasi({ t, back, go }: { t: Dict; back: () => void; go: (r:
 
 function NotificationList({ t, back, go, initial }: { t: Dict; back: () => void; go: (r: string) => void; initial: AppNotification[] }) {
   const [items, setItems] = useState(initial)
+  // Peristiwa status dari fitur ujian/TA selama sesi ini (mode BFF: dari server, TODO).
+  const peristiwa = usePeristiwa()
   const route: Record<string, string> = { Keuangan: 'keuangan', Kuliah: 'kuliah/tugas', Prestasi: 'prestasi', Event: 'event' }
   return (
     <div>
@@ -167,6 +170,18 @@ function NotificationList({ t, back, go, initial }: { t: Dict; back: () => void;
         }
       />
       <div className="space-y-2">
+        {peristiwa.map((p) => (
+          <button key={p.id} onClick={() => go(p.rute ?? 'home')} className="glass flex w-full items-start gap-3 p-4 text-left">
+            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan shadow-[0_0_8px_var(--cyan)]" aria-label="baru" />
+            <div className="flex-1">
+              <div className="flex justify-between text-xs">
+                <span className="font-bold text-cyan">{p.judul}</span>
+                <span className="text-low">{new Date(p.waktu).toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <div className="text-sm">{p.isi}</div>
+            </div>
+          </button>
+        ))}
         {items.map((n) => (
           <button key={n.id} onClick={() => go(route[n.src] ?? 'home')} className={`glass flex w-full items-start gap-3 p-4 text-left ${n.read ? 'opacity-60' : ''}`}>
             {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan shadow-[0_0_8px_var(--cyan)]" aria-label="belum dibaca" />}

@@ -30,6 +30,8 @@ const DownloadPage = page(() => import('./pages/Download'), 'DownloadPage')
 const Surat = page(() => import('./pages/fitur/Surat'), 'Surat')
 const Edom = page(() => import('./pages/fitur/Edom'), 'Edom')
 const Ujian = page(() => import('./pages/fitur/Ujian'), 'Ujian')
+const TugasAkhir = page(() => import('./pages/fitur/ta/TugasAkhir'), 'TugasAkhir')
+const Tenggat = page(() => import('./pages/fitur/Tenggat'), 'Tenggat')
 const Herreg = page(() => import('./pages/fitur/Herreg'), 'Herreg')
 const Booking = page(() => import('./pages/fitur/Booking'), 'Booking')
 const Aspirasi = page(() => import('./pages/fitur/Aspirasi'), 'Aspirasi')
@@ -196,7 +198,11 @@ export default function App() {
       case 'edom':
         return <Edom back={back} />
       case 'ujian':
-        return <Ujian user={user} back={back} />
+        return <Ujian user={user} back={back} go={go} />
+      case 'tenggat':
+        return <Tenggat back={back} go={go} />
+      case 'ta':
+        return <TugasAkhir user={user} tab={sub} go={go} back={back} />
       case 'herreg':
         return <Herreg back={back} go={go} />
       case 'booking':

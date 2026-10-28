@@ -1,4 +1,6 @@
 import {
+  AlarmClock,
+  BookMarked,
   BadgeCheck,
   CalendarCheck,
   ClipboardCheck,
@@ -61,7 +63,9 @@ export const FEATURES: Feature[] = [
   { id: 'kerjasama', name: 'Kerjasama', icon: Handshake, from: '#4DF0E0', to: '#0B8F9F', route: 'kerjasama', roles: ['DOSEN', 'TENDIK'], keywords: ['siskerma', 'mou', 'moa', 'ia'], source: 'SISKERMA' },
   // — Fitur 41–51 (Section 7): tiap fitur = chunk terpisah, dimuat saat dibuka —
   { id: 'surat', name: 'Surat & Admin', icon: FileText, from: '#7FB0FF', to: '#2D58E0', route: 'surat', roles: ['MAHASISWA', 'ALUMNI'], keywords: ['surat aktif', 'legalisir', 'transkrip', 'izin', 'administrasi'], source: 'BAAK' },
-  { id: 'ujian', name: 'Exam Center', icon: NotebookPen, from: '#FF8FA3', to: '#C2185B', route: 'ujian', roles: ['MAHASISWA'], keywords: ['uts', 'uas', 'kartu ujian', 'kursi'], source: 'MY UNPAM' },
+  { id: 'tenggat', name: 'Pusat Tenggat', icon: AlarmClock, from: '#FFB86B', to: '#E0582B', route: 'tenggat', roles: ['MAHASISWA', 'DOSEN'], keywords: ['deadline', 'jadwal', 'kalender', 'ics', 'pengingat', 'batas waktu'], source: 'Lokal' },
+  { id: 'ta', name: 'Skripsi / TA', icon: BookMarked, from: '#8FB8FF', to: '#3D3FD6', route: 'ta', roles: ['MAHASISWA', 'DOSEN', 'TENDIK'], keywords: ['skripsi', 'tugas akhir', 'bimbingan', 'sidang', 'proposal', 'seminar hasil', 'uaps', 'yudisium', 'judul'], source: 'MY UNPAM' },
+  { id: 'ujian', name: 'Exam Center', icon: NotebookPen, from: '#FF8FA3', to: '#C2185B', route: 'ujian', roles: ['MAHASISWA'], keywords: ['uts', 'uas', 'kartu ujian', 'kursi', 'susulan', 'remedial'], source: 'MY UNPAM' },
   { id: 'edom', name: 'EDOM & Survei', icon: ClipboardCheck, from: '#8CF5D0', to: '#0E9F80', route: 'edom', roles: ['MAHASISWA'], keywords: ['evaluasi dosen', 'kuesioner', 'survei'], source: 'MY UNPAM' },
   { id: 'herreg', name: 'Registrasi & Cuti', icon: RefreshCcw, from: '#9DB8FF', to: '#3949D6', route: 'herreg', roles: ['MAHASISWA'], keywords: ['her-registrasi', 'daftar ulang', 'cuti', 'aktif kembali'], source: 'MY UNPAM' },
   { id: 'booking', name: 'Booking Ruang', icon: CalendarCheck, from: '#6FE7FF', to: '#0A84C6', route: 'booking', roles: ALL, keywords: ['ruang diskusi', 'lab', 'lapangan', 'bimbingan', 'fasilitas'], source: 'Sarpras' },

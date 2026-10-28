@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hariWib, keIcs, keIsoWib, parseTanggalId, urgensi, urutkanTenggat, type Tenggat } from './tenggat'
+import { hariWib, keIcs, keIsoWib, parseTanggalId, parseTenggatTeks, tagihanKeTenggat, tugasKeTenggat, urgensi, urutkanTenggat, type Tenggat } from './tenggat'
 
 describe('tenggat: tanggal WIB', () => {
   it('parseTanggalId menerima format Indonesia umum', () => {
@@ -46,5 +46,17 @@ describe('tenggat: urgensi & ekspor', () => {
     expect(ics).toContain('TRIGGER:-PT1440M')
     expect(ics).toContain('TRIGGER:-PT120M')
     expect(ics.split('\r\n')[0]).toBe('BEGIN:VCALENDAR')
+  })
+})
+
+describe('tenggat: konverter', () => {
+  it('teks tenggat tugas/tagihan → ISO WIB (tanpa jam = 23:59)', () => {
+    expect(parseTenggatTeks('27 Okt 2026, 23:59')).toBe('2026-10-27T23:59:00+07:00')
+    expect(parseTenggatTeks('10 Nov 2026')).toBe('2026-11-10T23:59:00+07:00')
+  })
+  it('tugas selesai & tagihan lunas tidak dianggap terlambat', () => {
+    const now = new Date('2026-12-01T00:00:00+07:00')
+    expect(urgensi(tugasKeTenggat({ id: 't', course: 'MK', title: 'T', due: '20 Okt 2026', status: 'done' }), now)).not.toBe('terlambat')
+    expect(urgensi(tagihanKeTenggat({ id: 'b', name: 'UKT', amount: 1, due: '10 Nov 2026', status: 'unpaid', va: '' }), now)).toBe('terlambat')
   })
 })

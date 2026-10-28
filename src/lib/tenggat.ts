@@ -1,3 +1,5 @@
+import type { Bill, Task } from './types'
+
 // Pusat Tenggat (inti murni): satu model untuk semua tenggat/jadwal penting (ujian, bimbingan,
 // revisi, pengajuan) agar tampil di radar tenggat dan bisa diekspor ke kalender (.ics).
 // Semua waktu dalam WIB (Asia/Jakarta, UTC+7, tanpa DST).
@@ -90,3 +92,31 @@ export function keIcs(list: Tenggat[], dibuat = new Date()): string {
   baris.push('END:VCALENDAR')
   return baris.join('\r\n') + '\r\n'
 }
+
+// — Konverter sumber lain → Tenggat —
+
+/** "27 Okt 2026, 23:59" atau "20 Okt 2026" → ISO WIB (tanpa jam = akhir hari). */
+export function parseTenggatTeks(teks: string): string {
+  const [tgl, jam] = teks.split(',').map((x) => x.trim())
+  return parseTanggalId(tgl, jam || '23:59')
+}
+
+export const tugasKeTenggat = (t: Task): Tenggat => ({
+  id: `tugas-${t.id}`,
+  judul: `${t.title} (${t.course})`,
+  waktu: parseTenggatTeks(t.due),
+  sumber: 'tugas',
+  rute: 'kuliah/tugas',
+  alarmMenit: [24 * 60],
+  selesaiDikerjakan: t.status === 'done',
+})
+
+export const tagihanKeTenggat = (b: Bill): Tenggat => ({
+  id: `tagihan-${b.id}`,
+  judul: b.name,
+  waktu: parseTenggatTeks(b.due),
+  sumber: 'keuangan',
+  rute: 'keuangan',
+  alarmMenit: [3 * 24 * 60],
+  selesaiDikerjakan: b.status === 'paid',
+})

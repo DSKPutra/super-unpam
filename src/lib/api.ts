@@ -90,6 +90,28 @@ export const getNotifications = resource<AppNotification[]>((d) => d.notificatio
 // — Presensi
 export const getCampusAreas = resource<CampusArea[]>((d) => d.demoGeofences.map(({ name, radius }) => ({ name, radius })), 'presensi/campuses')
 
+// — Ujian & skripsi/TA (data contoh di chunk terpisah: src/data/demo-akademik.ts).
+// TODO(BFF): endpoint /api/akademik/* belum ada; hak akses per peran WAJIB ditegakkan server (TODO(BFF-AUTHZ)).
+const demoAk = () => import('../data/demo-akademik')
+type DemoAk = Awaited<ReturnType<typeof demoAk>>
+const akademik =
+  <T>(fromDemo: (d: DemoAk) => T, path: string) =>
+  (): Promise<T> =>
+    USE_DEMO ? demoAk().then(fromDemo) : request<T>(`akademik/${path}`)
+
+export const getProfilAkademik = akademik((d) => d.profilAkademik, 'profil')
+export const getUjianSemester = akademik((d) => d.ujianSemester, 'ujian')
+export const getDosen = akademik((d) => d.dosen, 'dosen')
+export const getJudulTerdaftar = akademik((d) => d.judulTerdaftar, 'judul-terdaftar')
+export const getTugasAkhir = akademik((d) => d.tugasAkhir, 'ta')
+export const getBimbingan = akademik((d) => d.bimbingan, 'ta/bimbingan')
+export const getVersiDraf = akademik((d) => d.versiDraf, 'ta/draf')
+export const getRevisi = akademik((d) => d.revisiContoh, 'ta/revisi')
+// Peran DOSEN/TENDIK — DEMO sampai server menegakkan hak akses.
+export const getMahasiswaBimbingan = akademik((d) => d.mahasiswaBimbingan, 'dosen/bimbingan')
+export const getUjianPenguji = akademik((d) => d.ujianPengujiDemo(), 'dosen/ujian')
+export const getRekapAngkatan = akademik((d) => d.rekapAngkatan, 'prodi/rekap')
+
 // — Autentikasi
 export async function login(username: string, password: string): Promise<User> {
   if (!USE_DEMO) return post<User>('auth/login', { username, password })
