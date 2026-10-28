@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
-import type { Role, User } from '../../src/lib/types'
-import { SESSION_TTL } from './config'
-import { b64url, hmac, safeEqual } from './crypto'
-import { cookies, HttpError } from './http'
+import type { Role, User } from '../../src/lib/types.js'
+import { SESSION_TTL } from './config.js'
+import { b64url, hmac, safeEqual } from './crypto.js'
+import { cookies, HttpError } from './http.js'
 
 // Sesi = cookie HttpOnly berisi token bertanda tangan HMAC (tanpa penyimpanan server).
 // __Host- memaksa Secure + Path=/ + tanpa Domain, sehingga cookie tidak bisa disetel subdomain lain.

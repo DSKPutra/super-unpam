@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { demoGeofences } from '../../src/data/demo'
-import { ServiceUnavailableError } from './http'
+import { demoGeofences } from '../../src/data/demo.js'
+import { ServiceUnavailableError } from './http.js'
 
 // Konfigurasi server. Semua rahasia hanya dari environment variable; tidak pernah dikirim ke klien.
 

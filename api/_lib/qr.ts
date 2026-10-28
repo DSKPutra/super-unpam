@@ -1,5 +1,5 @@
-import type { QrKind, QrToken } from '../../src/lib/types'
-import { hmac, safeEqual } from './crypto'
+import type { QrKind, QrToken } from '../../src/lib/types.js'
+import { hmac, safeEqual } from './crypto.js'
 
 // Kode QR dinamis ditandatangani server: code = HMAC(QR_SECRET, kind|subject|slot), slot = 30 detik.
 // Format payload QR tetap: SUPERUNPAM:<KIND>:<subject>:<slot>:<code>. Hanya server yang bisa membuat

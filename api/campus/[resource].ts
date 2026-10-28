@@ -1,5 +1,5 @@
-import { connectors } from '../_connectors'
-import { readEndpoint } from '../_lib/endpoint'
+import { connectors } from '../_connectors/index.js'
+import { readEndpoint } from '../_lib/endpoint.js'
 
 // GET /api/campus/{events,certifications,toefl,ranking,news,notifications}
 // sumber: EMS, MY LSP, MY LB, SISPEMA, portal pengumuman

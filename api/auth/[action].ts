@@ -1,8 +1,8 @@
 import { z } from 'zod'
-import { connectors } from '../_connectors'
-import { assertSameOrigin, clientIp, handle, HttpError, json, lastSegment, readJson } from '../_lib/http'
-import { rateLimit } from '../_lib/ratelimit'
-import { clearSessionCookie, createSessionCookie, requireSession } from '../_lib/session'
+import { connectors } from '../_connectors/index.js'
+import { assertSameOrigin, clientIp, handle, HttpError, json, lastSegment, readJson } from '../_lib/http.js'
+import { rateLimit } from '../_lib/ratelimit.js'
+import { clearSessionCookie, createSessionCookie, requireSession } from '../_lib/session.js'
 
 // POST /api/auth/login · POST /api/auth/logout · GET /api/auth/me
 

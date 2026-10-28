@@ -1,5 +1,5 @@
-import { ServiceUnavailableError } from '../_lib/http'
-import type { Connectors } from './types'
+import { ServiceUnavailableError } from '../_lib/http.js'
+import type { Connectors } from './types.js'
 
 // Implementasi http untuk sistem asli kampus. SENGAJA belum diisi: URL, metode autentikasi,
 // format respons, dan batas laju tiap sistem belum diketahui dan tidak boleh ditebak.

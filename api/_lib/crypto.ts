@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import { secret, type SecretName } from './config'
+import { secret, type SecretName } from './config.js'
 
 export const hmac = (key: SecretName, data: string) => createHmac('sha256', secret(key)).update(data).digest()
 

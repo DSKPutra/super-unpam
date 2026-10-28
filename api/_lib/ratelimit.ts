@@ -1,4 +1,4 @@
-import { HttpError } from './http'
+import { HttpError } from './http.js'
 
 // Pembatas laju dasar (fixed window) di memori instance function.
 // TODO(BFF): pindahkan ke penyimpanan bersama (mis. Redis/KV) — di serverless tiap instance punya

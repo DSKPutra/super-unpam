@@ -16,7 +16,7 @@ import type {
   Task,
   ToeflSummary,
   User,
-} from '../lib/types'
+} from '../lib/types.js'
 
 export const DEMO_USER: User = {
   name: 'DEA SAKA KURNIA PUTRA',

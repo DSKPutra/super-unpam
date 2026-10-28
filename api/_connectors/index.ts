@@ -1,6 +1,6 @@
-import { http } from './http'
-import { mock } from './mock'
-import type { Connectors } from './types'
+import { http } from './http.js'
+import { mock } from './mock.js'
+import type { Connectors } from './types.js'
 
 // Pemilihan implementasi per sistem lewat env:
 //   CONNECTOR_MODE=mock|http        → bawaan untuk semua sistem (default: mock)

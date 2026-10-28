@@ -1,5 +1,5 @@
-import { connectors } from '../_connectors'
-import { readEndpoint } from '../_lib/endpoint'
+import { connectors } from '../_connectors/index.js'
+import { readEndpoint } from '../_lib/endpoint.js'
 
 // GET /api/finance/bills — sumber: SISKEMU
 export const GET = readEndpoint({

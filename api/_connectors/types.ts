@@ -13,7 +13,7 @@ import type {
   Task,
   ToeflSummary,
   User,
-} from '../../src/lib/types'
+} from '../../src/lib/types.js'
 
 // Satu antarmuka per sistem sumber kampus (kolom `source` di src/data/features.ts).
 // Setiap sistem punya implementasi `mock` (data contoh) dan `http` (sistem asli), dengan bentuk yang sama.

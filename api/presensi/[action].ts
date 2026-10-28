@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { distanceMeters } from '../../src/lib/geo'
-import type { CheckInResult } from '../../src/lib/types'
-import { connectors } from '../_connectors'
-import { geofences } from '../_lib/config'
-import { assertSameOrigin, handle, HttpError, json, lastSegment, readJson } from '../_lib/http'
-import { parseQrPayload, verifyCode } from '../_lib/qr'
-import { rateLimit } from '../_lib/ratelimit'
-import { requireSession } from '../_lib/session'
+import { distanceMeters } from '../../src/lib/geo.js'
+import type { CheckInResult } from '../../src/lib/types.js'
+import { connectors } from '../_connectors/index.js'
+import { geofences } from '../_lib/config.js'
+import { assertSameOrigin, handle, HttpError, json, lastSegment, readJson } from '../_lib/http.js'
+import { parseQrPayload, verifyCode } from '../_lib/qr.js'
+import { rateLimit } from '../_lib/ratelimit.js'
+import { requireSession } from '../_lib/session.js'
 
 // GET  /api/presensi/campuses → nama & radius area presensi (tanpa koordinat)
 // POST /api/presensi/checkin  → validasi QR / kode sesi / geofence di server, lalu catat ke MY UNPAM

@@ -1,8 +1,8 @@
-import * as demo from '../../src/data/demo'
-import type { Role, User } from '../../src/lib/types'
-import { isProduction } from '../_lib/config'
-import { ServiceUnavailableError } from '../_lib/http'
-import type { Connectors } from './types'
+import * as demo from '../../src/data/demo.js'
+import type { Role, User } from '../../src/lib/types.js'
+import { isProduction } from '../_lib/config.js'
+import { ServiceUnavailableError } from '../_lib/http.js'
+import type { Connectors } from './types.js'
 
 // Implementasi mock: memakai data contoh yang sama dengan mode demo klien (src/data/demo.ts).
 // Akun demo per peran untuk menguji BFF: username berawalan "dosen", "tendik", atau "alumni"
