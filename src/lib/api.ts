@@ -20,6 +20,7 @@ import type {
   User,
 } from './types'
 import { distanceMeters } from './geo'
+import { hapusSemuaDraf } from './kuesioner'
 
 /**
  * Adapter data Super UNPAM: SATU-SATUNYA pintu halaman ke data.
@@ -107,6 +108,8 @@ export async function logout() {
   if (!USE_DEMO) await post('auth/logout', {}).catch(() => undefined)
   // Respons /api yang di-cache service worker berisi data pribadi: hapus saat keluar.
   await globalThis.caches?.delete('api').catch(() => undefined)
+  // Draf kuesioner bisa berisi teks bebas: jangan tertinggal di perangkat bersama.
+  hapusSemuaDraf()
 }
 
 // — QR dinamis (KTM & sesi presensi)
