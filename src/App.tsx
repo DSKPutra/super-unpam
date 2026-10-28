@@ -6,6 +6,7 @@ import { usePref } from './lib/prefs'
 import type { Role, User } from './lib/types'
 import { PwaBanners } from './components/PwaBanners'
 import { Home } from './pages/Home'
+import { DEFAULT_LAYOUT } from './pages/widgets/registry'
 import type { Theme } from './pages/Profil'
 
 // Anggaran performa (Section 7): Beranda dimuat langsung; semua halaman lain = chunk terpisah
@@ -36,6 +37,7 @@ const DompetSertifikat = page(() => import('./pages/fitur/DompetSertifikat'), 'D
 const Islami = page(() => import('./pages/fitur/Islami'), 'Islami')
 const Alumni = page(() => import('./pages/fitur/Alumni'), 'Alumni')
 const Pemira = page(() => import('./pages/fitur/Pemira'), 'Pemira')
+const AturBeranda = page(() => import('./pages/AturBeranda'), 'AturBeranda')
 const Onboarding = page(() => import('./components/Onboarding'), 'Onboarding')
 
 // Default "Mode hemat efek" untuk pengguna baru: aktif di HP RAM ≤ 4 GB / ≤ 4 core / Data Saver.
@@ -69,6 +71,8 @@ export default function App() {
   const [theme, setTheme] = usePref<Theme>('theme', 'dark')
   const [lite, setLite] = usePref<boolean>('lite', isLowEndDevice())
   const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'presensi'])
+  // Bentuk dirapikan saat dibaca (normalizeLayout), jadi nilai rusak/usang di penyimpanan aman.
+  const [homeLayout, setHomeLayout] = usePref<unknown>('home.widgets', DEFAULT_LAYOUT)
   // Hanya penanda UI; sesi asli dipegang cookie HttpOnly dari BFF dan dicek lewat /api/auth/me.
   const [signedIn, setSignedIn] = usePref<boolean>('signedIn', false)
   const [me, setMe] = useState<User | null>(null)
@@ -207,6 +211,8 @@ export default function App() {
         return <Alumni back={back} />
       case 'pemira':
         return <Pemira back={back} />
+      case 'atur-beranda':
+        return <AturBeranda t={t} user={user} back={back} layout={homeLayout} setLayout={setHomeLayout} />
       case 'notifikasi':
         return <Notifikasi t={t} back={back} go={go} />
       case 'profil':
@@ -234,7 +240,7 @@ export default function App() {
           />
         )
       default:
-        return <Home t={t} user={user} go={go} favorites={favorites} />
+        return <Home t={t} user={user} go={go} favorites={favorites} layout={homeLayout} />
     }
   })()
 

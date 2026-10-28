@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BellRing, Compass, MapPin, Moon } from 'lucide-react'
-import { prayerTimes, qibla } from '../../lib/prayer'
+import { CAMPUS_LOCATION, prayerTimes, qibla } from '../../lib/prayer'
 import { DemoNote, PageHeader, Section } from '../../components/ui'
 
 // #48 Pusat layanan Islami — jadwal sholat (hitung lokal), arah kiblat (kompas), kegiatan.
-const KAMPUS = { lat: -6.3431, lng: 106.7386, name: 'Kampus Pamulang' } // TODO: koordinat resmi kampus
+const KAMPUS = CAMPUS_LOCATION
 
 const KEGIATAN = [
   { title: 'Kajian Jumat ba’da Dzuhur', place: 'Masjid Kampus', when: 'Setiap Jumat' },

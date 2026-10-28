@@ -3,6 +3,7 @@ import { getGrades, getKrsOffer, getSchedule } from '../lib/api'
 import { useResource } from '../lib/useResource'
 import type { KrsClass, ScheduleItem, SemesterGrades } from '../lib/types'
 import { Async, Badge, DemoNote, PageHeader, Progress, Tabs } from '../components/ui'
+import { summarizeIpk } from '../lib/academic'
 
 type Tab = 'jadwal' | 'krs' | 'nilai'
 
@@ -115,7 +116,7 @@ function Nilai({ grades }: { grades: SemesterGrades[] }) {
     <div>
       <div className="mb-4 grid grid-cols-3 gap-3">
         <div className="glass p-4 text-center">
-          <div className="text-2xl font-bold text-cyan">3.67</div>
+          <div className="text-2xl font-bold text-cyan">{summarizeIpk(grades).ipk?.toFixed(2) ?? '—'}</div>
           <div className="text-xs text-mid">IPK</div>
         </div>
         <div className="glass p-4 text-center">
