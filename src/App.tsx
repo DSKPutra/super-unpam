@@ -21,8 +21,8 @@ const Presensi = page(() => import('./pages/Presensi'), 'Presensi')
 const Event = page(() => import('./pages/Layanan'), 'Event')
 const Kerjasama = page(() => import('./pages/Layanan'), 'Kerjasama')
 const Prestasi = page(() => import('./pages/Layanan'), 'Prestasi')
-const Sertifikasi = page(() => import('./pages/Layanan'), 'Sertifikasi')
-const Toefl = page(() => import('./pages/Layanan'), 'Toefl')
+const Sertifikasi = page(() => import('./pages/BahasaKompetensi'), 'Sertifikasi')
+const Toefl = page(() => import('./pages/BahasaKompetensi'), 'Toefl')
 const Tracer = page(() => import('./pages/Layanan'), 'Tracer')
 const Notifikasi = page(() => import('./pages/Profil'), 'Notifikasi')
 const Profil = page(() => import('./pages/Profil'), 'Profil')
@@ -180,9 +180,9 @@ export default function App() {
       case 'event':
         return <Event back={back} />
       case 'sertifikasi':
-        return <Sertifikasi back={back} />
+        return <Sertifikasi user={user} back={back} go={go} />
       case 'toefl':
-        return <Toefl back={back} />
+        return <Toefl user={user} back={back} go={go} />
       case 'prestasi':
         return <Prestasi back={back} />
       case 'tracer':
@@ -194,9 +194,9 @@ export default function App() {
       case 'surat':
         return <Surat back={back} />
       case 'edom':
-        return <Edom back={back} />
+        return <Edom user={user} back={back} />
       case 'ujian':
-        return <Ujian user={user} back={back} />
+        return <Ujian user={user} back={back} go={go} />
       case 'herreg':
         return <Herreg back={back} go={go} />
       case 'booking':
