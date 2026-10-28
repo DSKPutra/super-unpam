@@ -1,12 +1,23 @@
 import { useState } from 'react'
 import { CheckCircle2, Star } from 'lucide-react'
-import { schedule } from '../../data/demo'
-import { Badge, DemoNote, PageHeader } from '../../components/ui'
+import { getSchedule } from '../../lib/api'
+import { useResource } from '../../lib/useResource'
+import type { ScheduleItem } from '../../lib/types'
+import { Async, Badge, DemoNote, PageHeader, Skeleton } from '../../components/ui'
 
 // #42 EDOM & survei — form dinamis dari daftar pertanyaan (nantinya dari BFF).
 const QUESTIONS = ['Dosen menjelaskan materi dengan jelas', 'Dosen hadir & tepat waktu', 'Materi sesuai RPS', 'Penilaian adil & transparan']
 
 export function Edom({ back }: { back: () => void }) {
+  const res = useResource(getSchedule)
+  return (
+    <Async res={res} skeleton={<><PageHeader title="EDOM & Survei" onBack={back} /><Skeleton /></>}>
+      {(schedule) => <EdomView schedule={schedule} back={back} />}
+    </Async>
+  )
+}
+
+function EdomView({ schedule, back }: { schedule: ScheduleItem[]; back: () => void }) {
   const courses = schedule.slice(0, 4)
   const [active, setActive] = useState<string | null>(null)
   const [done, setDone] = useState<string[]>([])

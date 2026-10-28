@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { notifications as initial } from '../data/demo'
+import { getNotifications, USE_DEMO } from '../lib/api'
+import { useResource } from '../lib/useResource'
 import { FEATURES } from '../data/features'
 import type { Dict, Lang } from '../lib/i18n'
-import type { Role, User } from '../lib/types'
-import { PageHeader, Section } from '../components/ui'
+import type { AppNotification, Role, User } from '../lib/types'
+import { Async, PageHeader, Section } from '../components/ui'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -112,11 +113,14 @@ export function Profil({
           <Seg value={lang} onChange={setLang} options={[['id', 'Bahasa Indonesia'], ['en', 'English']]} />
         </div>
       </Section>
-      <Section title={`${t.role} (demo)`}>
-        <div className="glass p-4">
-          <Seg value={role} onChange={setRole} options={(['MAHASISWA', 'DOSEN', 'TENDIK', 'ALUMNI'] as Role[]).map((r) => [r, r])} />
-        </div>
-      </Section>
+      {/* Peran hanya bisa diganti di mode demo; di mode BFF peran berasal dari sesi server. */}
+      {USE_DEMO && (
+        <Section title={`${t.role} (demo)`}>
+          <div className="glass p-4">
+            <Seg value={role} onChange={setRole} options={(['MAHASISWA', 'DOSEN', 'TENDIK', 'ALUMNI'] as Role[]).map((r) => [r, r])} />
+          </div>
+        </Section>
+      )}
       <Section title={t.sessions}>
         <ul className="glass divide-y divide-line">
           {sessions.map((s) => (
@@ -144,6 +148,11 @@ export function Profil({
 }
 
 export function Notifikasi({ t, back, go }: { t: Dict; back: () => void; go: (r: string) => void }) {
+  const res = useResource(getNotifications)
+  return <Async res={res}>{(items) => <NotificationList t={t} back={back} go={go} initial={items} />}</Async>
+}
+
+function NotificationList({ t, back, go, initial }: { t: Dict; back: () => void; go: (r: string) => void; initial: AppNotification[] }) {
   const [items, setItems] = useState(initial)
   const route: Record<string, string> = { Keuangan: 'keuangan', Kuliah: 'kuliah/tugas', Prestasi: 'prestasi', Event: 'event' }
   return (

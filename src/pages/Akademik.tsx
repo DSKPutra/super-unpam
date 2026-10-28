@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { grades, krsOffer, schedule } from '../data/demo'
-import { Badge, DemoNote, PageHeader, Progress, Tabs } from '../components/ui'
+import { getGrades, getKrsOffer, getSchedule } from '../lib/api'
+import { useResource } from '../lib/useResource'
+import type { KrsClass, ScheduleItem, SemesterGrades } from '../lib/types'
+import { Async, Badge, DemoNote, PageHeader, Progress, Tabs } from '../components/ui'
 
 type Tab = 'jadwal' | 'krs' | 'nilai'
 
@@ -11,14 +13,29 @@ export function Akademik({ tab, go }: { tab: string; go: (r: string) => void }) 
       <PageHeader title="Akademik" />
       <Tabs value={active} onChange={(v) => go(`akademik/${v}`)} options={[['jadwal', 'Jadwal'], ['krs', 'KRS'], ['nilai', 'Nilai & KHS']]} />
       <DemoNote />
-      {active === 'jadwal' && <Jadwal />}
-      {active === 'krs' && <Krs />}
-      {active === 'nilai' && <Nilai />}
+      {active === 'jadwal' && <JadwalTab />}
+      {active === 'krs' && <KrsTab />}
+      {active === 'nilai' && <NilaiTab />}
     </div>
   )
 }
 
-function Jadwal() {
+function JadwalTab() {
+  const res = useResource(getSchedule)
+  return <Async res={res}>{(schedule) => <Jadwal schedule={schedule} />}</Async>
+}
+
+function KrsTab() {
+  const res = useResource(getKrsOffer)
+  return <Async res={res}>{(offer) => <Krs krsOffer={offer} />}</Async>
+}
+
+function NilaiTab() {
+  const res = useResource(getGrades)
+  return <Async res={res}>{(grades) => <Nilai grades={grades} />}</Async>
+}
+
+function Jadwal({ schedule }: { schedule: ScheduleItem[] }) {
   const days = [...new Set(schedule.map((s) => s.day))]
   return (
     <div className="space-y-4">
@@ -45,7 +62,7 @@ function Jadwal() {
   )
 }
 
-function Krs() {
+function Krs({ krsOffer }: { krsOffer: KrsClass[] }) {
   const MAX = 24
   const [picked, setPicked] = useState<string[]>(['TIF301', 'TIF305'])
   const [submitted, setSubmitted] = useState(false)
@@ -91,7 +108,7 @@ function Krs() {
   )
 }
 
-function Nilai() {
+function Nilai({ grades }: { grades: SemesterGrades[] }) {
   const allCourses = grades.flatMap((g) => g.courses)
   const totalSks = allCourses.reduce((a, c) => a + c.sks, 0)
   return (
@@ -106,7 +123,7 @@ function Nilai() {
           <div className="text-xs text-mid">SKS lulus</div>
         </div>
         <div className="glass p-4 text-center">
-          <div className="text-2xl font-bold">{grades[0].ips}</div>
+          <div className="text-2xl font-bold">{grades[0]?.ips ?? '—'}</div>
           <div className="text-xs text-mid">IPS terakhir</div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, Info } from 'lucide-react'
+import { ArrowLeft, Info, RefreshCw, WifiOff } from 'lucide-react'
+import type { Resource } from '../lib/useResource'
 
 export function PageHeader({ title, subtitle, onBack, right }: { title: string; subtitle?: string; onBack?: () => void; right?: ReactNode }) {
   return (
@@ -108,4 +109,33 @@ export function Row({ children, className = '', onClick }: { children: ReactNode
 
 export function List({ children }: { children: ReactNode }) {
   return <div className="glass divide-y divide-line overflow-hidden">{children}</div>
+}
+
+export function Skeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div aria-busy="true" aria-label="Memuat" className="space-y-3">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="shimmer h-16 rounded-3xl" />
+      ))}
+    </div>
+  )
+}
+
+export function LoadError({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  return (
+    <div role="alert" className="glass flex flex-col items-center gap-3 p-6 text-center">
+      <WifiOff className="h-6 w-6 text-amber" aria-hidden />
+      <p className="text-sm text-mid">{error.message || 'Data gagal dimuat.'}</p>
+      <button onClick={onRetry} className="btn-primary flex min-h-11 items-center gap-2 rounded-2xl px-5 text-sm font-semibold">
+        <RefreshCw className="h-4 w-4" /> Coba lagi
+      </button>
+    </div>
+  )
+}
+
+/** Pola tunggal untuk data async: skeleton saat memuat, pesan + "Coba lagi" saat gagal. */
+export function Async<T>({ res, children, skeleton }: { res: Resource<T>; children: (data: T) => ReactNode; skeleton?: ReactNode }) {
+  if (res.data !== undefined) return <>{children(res.data)}</>
+  if (res.error) return <LoadError error={res.error} onRetry={res.reload} />
+  return <>{skeleton ?? <Skeleton />}</>
 }
