@@ -8,7 +8,7 @@ import type {
   CheckInRequest,
   CheckInResult,
   KrsClass,
-  NewsItem,
+  NewsFeed,
   OnlineClass,
   QrKind,
   QrToken,
@@ -20,6 +20,7 @@ import type {
   User,
 } from './types'
 import { distanceMeters } from './geo'
+import { hapusSemuaDraf } from './kuesioner'
 
 /**
  * Adapter data Super UNPAM: SATU-SATUNYA pintu halaman ke data.
@@ -85,7 +86,8 @@ export const getEvents = resource<CampusEvent[]>((d) => d.events, 'campus/events
 export const getCertifications = resource<Certification[]>((d) => d.certifications, 'campus/certifications')
 export const getToefl = resource<ToeflSummary>((d) => d.toefl, 'campus/toefl')
 export const getRanking = resource<Ranking>((d) => d.ranking, 'campus/ranking')
-export const getNews = resource<NewsItem[]>((d) => d.news, 'campus/news')
+// Berita publik dari situs resmi lewat BFF (tanpa sesi); di mode demo berlabel contoh.
+export const getNews = resource<NewsFeed>((d) => d.news, 'berita')
 export const getNotifications = resource<AppNotification[]>((d) => d.notifications, 'campus/notifications')
 // — Presensi
 export const getCampusAreas = resource<CampusArea[]>((d) => d.demoGeofences.map(({ name, radius }) => ({ name, radius })), 'presensi/campuses')
@@ -106,6 +108,8 @@ export async function logout() {
   if (!USE_DEMO) await post('auth/logout', {}).catch(() => undefined)
   // Respons /api yang di-cache service worker berisi data pribadi: hapus saat keluar.
   await globalThis.caches?.delete('api').catch(() => undefined)
+  // Draf kuesioner bisa berisi teks bebas: jangan tertinggal di perangkat bersama.
+  hapusSemuaDraf()
 }
 
 // — QR dinamis (KTM & sesi presensi)
