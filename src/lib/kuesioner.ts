@@ -1,3 +1,5 @@
+import { DRAF_PREFIX } from './draf'
+
 // Mesin kuesioner generik (EDOM dan survei lain): definisi, validasi, kemajuan, draf, dan pengiriman.
 // Bagian murni (validasi, kemajuan, payload) diuji di kuesioner.test.ts.
 
@@ -103,7 +105,7 @@ export interface Draf {
   disimpan: string
 }
 
-const PREFIX = 'su:kuesioner:draf:'
+const PREFIX = DRAF_PREFIX
 // Anonim → sessionStorage (hilang saat tab ditutup, bertahan saat muat ulang) karena bisa berisi teks bebas
 // yang sensitif. Bernama → localStorage. Keduanya dihapus saat keluar akun (hapusSemuaDraf).
 const store = (k: Pick<Kuesioner, 'anonim'>) => {
@@ -140,15 +142,7 @@ export function hapusDraf(k: Kuesioner) {
   }
 }
 
-export function hapusSemuaDraf() {
-  for (const s of [localStorage, sessionStorage]) {
-    try {
-      for (const key of Object.keys(s)) if (key.startsWith(PREFIX)) s.removeItem(key)
-    } catch {
-      /* abaikan */
-    }
-  }
-}
+export { hapusSemuaDraf } from './draf'
 
 /* ---------- Pengiriman ---------- */
 

@@ -18,6 +18,7 @@ import type {
   Task,
   User,
 } from '../lib/types.js'
+import type { JadwalUjianSemester, PengajuanUjian, ProfilKelayakan, SesiUjian } from '../lib/akademik/types.js'
 
 export const DEMO_USER: User = {
   name: 'DEA SAKA KURNIA PUTRA',
@@ -174,4 +175,73 @@ export const attendanceRecap: AttendanceRecap[] = [
 export const demoGeofences = [
   { name: 'Kampus Pusat Pamulang', lat: -6.3437, lng: 106.739, radius: 300 },
   { name: 'Kampus Viktor', lat: -6.3478, lng: 106.6893, radius: 300 },
+]
+
+// — Exam Center (contoh). Waktu WIB ditulis dengan zona +07:00.
+const wib = (s: string) => new Date(`${s}:00+07:00`).toISOString()
+const sesiUjian = (jenis: JadwalUjianSemester['jenis'], kode: string, nama: string, tgl: string, mulai: string, selesai: string, ruang: string, kursi: string, extra: Partial<SesiUjian> = {}): SesiUjian => ({
+  id: `${jenis.toLowerCase()}-${kode}`,
+  jenis,
+  kode,
+  nama,
+  mulai: wib(`${tgl}T${mulai}`),
+  selesai: wib(`${tgl}T${selesai}`),
+  ruang,
+  kursi,
+  petugas: ['Pengawas contoh'],
+  ...extra,
+})
+
+export const ujianSemester: Record<JadwalUjianSemester['jenis'], JadwalUjianSemester> = {
+  UTS: {
+    jenis: 'UTS',
+    semester: 'Ganjil 2026/2027',
+    kartuId: 'KU-2026-GJ-7F3A9C21',
+    sesi: [
+      sesiUjian('UTS', 'TIF301', 'Pemrograman Web', '2026-11-16', '08:00', '09:40', 'Gedung A · 402', 'A-17'),
+      sesiUjian('UTS', 'TIF303', 'Basis Data Lanjut', '2026-11-17', '10:00', '11:40', 'Gedung B · 305', 'C-04', {
+        sebelumnya: { mulai: wib('2026-11-17T08:00'), selesai: wib('2026-11-17T09:40'), ruang: 'Gedung B · 301' },
+      }),
+      sesiUjian('UTS', 'TIF309', 'Jaringan Komputer', '2026-11-17', '12:00', '13:40', 'Gedung B · 305', 'C-11'),
+      sesiUjian('UTS', 'TIF305', 'Kecerdasan Buatan', '2026-11-18', '13:00', '14:40', 'Lab Komputer 3', 'PC-22'),
+      sesiUjian('UTS', 'TIF307', 'Rekayasa Perangkat Lunak', '2026-11-18', '14:00', '15:40', 'Gedung A · 404', 'B-09'),
+    ],
+  },
+  UAS: {
+    jenis: 'UAS',
+    semester: 'Ganjil 2026/2027',
+    kartuId: 'KU-2026-GJ-UAS-91B2E4D0',
+    sesi: [
+      sesiUjian('UAS', 'TIF301', 'Pemrograman Web', '2027-01-11', '08:00', '09:40', 'Gedung A · 402', 'A-05'),
+      sesiUjian('UAS', 'TIF303', 'Basis Data Lanjut', '2027-01-12', '08:00', '09:40', 'Gedung B · 305', 'C-12'),
+      sesiUjian('UAS', 'TIF305', 'Kecerdasan Buatan', '2027-01-13', '10:00', '11:40', 'Lab Komputer 3', 'PC-07'),
+    ],
+  },
+  SUSULAN: { jenis: 'SUSULAN', semester: 'Ganjil 2026/2027', kartuId: 'KU-2026-GJ-SUS-00000000', sesi: [] },
+  REMEDIAL: { jenis: 'REMEDIAL', semester: 'Ganjil 2026/2027', kartuId: 'KU-2026-GJ-REM-00000000', sesi: [] },
+}
+
+export const profilKelayakan: ProfilKelayakan = {
+  prodi: 'Teknik Informatika',
+  kehadiran: { TIF301: 92, TIF303: 81, TIF305: 68, TIF307: 88, TIF309: 79 },
+  keuanganLunas: true,
+  sks: 84,
+  ipk: 3.67,
+  bimbinganDisetujui: 0,
+  persetujuanPembimbing: false,
+  berkas: [],
+  mkLulus: [],
+}
+
+export const pengajuanUjian: PengajuanUjian[] = [
+  {
+    id: 'pj-2604-01',
+    jenis: 'SUSULAN',
+    kodeMK: 'TIF204',
+    namaMK: 'Sistem Operasi',
+    alasan: 'Sakit (contoh)',
+    lampiran: [{ nama: 'surat-keterangan.pdf', ukuran: 182_000, tipe: 'application/pdf' }],
+    status: 'DISETUJUI',
+    diajukan: '2026-04-20T02:00:00.000Z',
+  },
 ]

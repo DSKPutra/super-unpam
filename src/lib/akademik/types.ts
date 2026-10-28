@@ -128,6 +128,35 @@ export interface Penilaian {
   dikirim?: string
 }
 
+export type JenisUjianSemester = (typeof JENIS_UJIAN_SEMESTER)[number]
+
+/** Jadwal ujian semester milik pemegang sesi untuk satu jenis ujian. */
+export interface JadwalUjianSemester {
+  jenis: JenisUjianSemester
+  semester: string
+  /** ID kartu ujian (isi QR). Verifikasi di server; tidak memuat NIM/nama. */
+  kartuId: string
+  sesi: SesiUjian[]
+}
+
+export interface LampiranBukti {
+  nama: string
+  ukuran: number
+  tipe: string
+}
+
+export interface PengajuanUjian {
+  id: string
+  jenis: 'SUSULAN' | 'REMEDIAL'
+  kodeMK: string
+  namaMK: string
+  alasan: string
+  lampiran: LampiranBukti[]
+  status: 'DIAJUKAN' | 'DIVERIFIKASI' | 'DISETUJUI' | 'DITOLAK'
+  diajukan: string
+  catatan?: string
+}
+
 export interface Revisi {
   id: string
   bagian: string
