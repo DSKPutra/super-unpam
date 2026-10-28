@@ -21,8 +21,8 @@ const Presensi = page(() => import('./pages/Presensi'), 'Presensi')
 const Event = page(() => import('./pages/Layanan'), 'Event')
 const Kerjasama = page(() => import('./pages/Layanan'), 'Kerjasama')
 const Prestasi = page(() => import('./pages/Layanan'), 'Prestasi')
-const Sertifikasi = page(() => import('./pages/Layanan'), 'Sertifikasi')
-const Toefl = page(() => import('./pages/Layanan'), 'Toefl')
+const Sertifikasi = page(() => import('./pages/BahasaKompetensi'), 'Sertifikasi')
+const Toefl = page(() => import('./pages/BahasaKompetensi'), 'Toefl')
 const Tracer = page(() => import('./pages/Layanan'), 'Tracer')
 const Notifikasi = page(() => import('./pages/Profil'), 'Notifikasi')
 const Profil = page(() => import('./pages/Profil'), 'Profil')
@@ -38,6 +38,7 @@ const Islami = page(() => import('./pages/fitur/Islami'), 'Islami')
 const Alumni = page(() => import('./pages/fitur/Alumni'), 'Alumni')
 const Pemira = page(() => import('./pages/fitur/Pemira'), 'Pemira')
 const AturBeranda = page(() => import('./pages/AturBeranda'), 'AturBeranda')
+const KenaliKampus = page(() => import('./pages/KenaliKampus'), 'KenaliKampus')
 const Onboarding = page(() => import('./components/Onboarding'), 'Onboarding')
 
 // Default "Mode hemat efek" untuk pengguna baru: aktif di HP RAM ≤ 4 GB / ≤ 4 core / Data Saver.
@@ -180,9 +181,9 @@ export default function App() {
       case 'event':
         return <Event back={back} />
       case 'sertifikasi':
-        return <Sertifikasi back={back} />
+        return <Sertifikasi user={user} back={back} go={go} />
       case 'toefl':
-        return <Toefl back={back} />
+        return <Toefl user={user} back={back} go={go} />
       case 'prestasi':
         return <Prestasi back={back} />
       case 'tracer':
@@ -194,9 +195,9 @@ export default function App() {
       case 'surat':
         return <Surat back={back} />
       case 'edom':
-        return <Edom back={back} />
+        return <Edom user={user} back={back} />
       case 'ujian':
-        return <Ujian user={user} back={back} />
+        return <Ujian user={user} back={back} go={go} />
       case 'herreg':
         return <Herreg back={back} go={go} />
       case 'booking':
@@ -211,6 +212,8 @@ export default function App() {
         return <Alumni back={back} />
       case 'pemira':
         return <Pemira back={back} />
+      case 'kenali-kampus':
+        return <KenaliKampus t={t} back={back} replayIntro={() => setOnboarded(false)} />
       case 'atur-beranda':
         return <AturBeranda t={t} user={user} back={back} layout={homeLayout} setLayout={setHomeLayout} />
       case 'notifikasi':
@@ -260,7 +263,7 @@ export default function App() {
         {sos && <SosSheet t={t} onClose={() => setSos(false)} />}
         {!onboarded && (
           <Suspense fallback={null}>
-            <Onboarding onDone={() => setOnboarded(true)} />
+            <Onboarding t={t} onDone={() => setOnboarded(true)} />
           </Suspense>
         )}
       </div>

@@ -6,15 +6,16 @@ import type {
   AttendanceRecap,
   Bill,
   CampusEvent,
-  Certification,
+  JadwalTes,
+  RingkasanSertifikasi,
+  RingkasanToefl,
   KrsClass,
-  NewsItem,
+  NewsFeed,
   OnlineClass,
   Ranking,
   ScheduleItem,
   SemesterGrades,
   Task,
-  ToeflSummary,
   User,
 } from '../lib/types.js'
 
@@ -100,20 +101,35 @@ export const events: CampusEvent[] = [
   { id: 'e4', title: 'Lomba Inovasi Bisnis Mahasiswa', date: '28 Nov 2026', place: 'Kampus Pusat', quota: 100, registered: 61, sertifikat: true },
 ]
 
-export const certifications: Certification[] = [
-  { id: 'c1', scheme: 'Junior Web Developer', status: 'Terjadwal', date: 'Uji kompetensi: 15 Nov 2026', progress: 75 },
-  { id: 'c2', scheme: 'Database Administrator (Junior)', status: 'Pendaftaran dibuka', date: 'Tutup: 30 Nov 2026', progress: 0 },
-  { id: 'c3', scheme: 'Network Administrator Muda', status: 'Kompeten', date: 'Terbit: 12 Jun 2026', progress: 100 },
+// — MY LB (contoh)
+export const jadwalTes: JadwalTes[] = [
+  { id: 'jt-2611-08', jenis: 'TOEFL Prediction', tanggal: '2026-11-08T01:00:00Z', tempat: 'Lab Bahasa · Gedung C', kuota: 40, terisi: 16, biaya: 150000, tutupDaftar: '2026-11-05T16:59:59Z' },
+  { id: 'jt-2611-22', jenis: 'TOEFL Prediction', tanggal: '2026-11-22T01:00:00Z', tempat: 'Lab Bahasa · Gedung C', kuota: 40, terisi: 40, biaya: 150000, tutupDaftar: '2026-11-19T16:59:59Z' },
+  { id: 'jt-2612-06', jenis: 'TOEFL Prediction', tanggal: '2026-12-06T01:00:00Z', tempat: 'Online (proctoring)', kuota: 60, terisi: 9, biaya: 150000, tutupDaftar: '2026-12-03T16:59:59Z' },
 ]
 
-export const toefl: ToeflSummary = {
-  best: 520,
+export const toefl: RingkasanToefl = {
   target: 500,
-  history: [
-    { date: '1 Sep 2026', score: 520, listening: 53, structure: 51, reading: 52 },
-    { date: '14 Mar 2026', score: 487, listening: 49, structure: 48, reading: 49 },
+  hasil: [
+    { id: 'h-2609', tanggal: '2026-09-01T01:00:00Z', skor: 520, listening: 53, structure: 51, reading: 52, berlakuSampai: '2028-09-01T00:00:00Z' },
+    { id: 'h-2603', tanggal: '2026-03-14T01:00:00Z', skor: 487, listening: 49, structure: 48, reading: 49, berlakuSampai: '2028-03-14T00:00:00Z' },
   ],
-  next: { date: '8 Nov 2026', place: 'Lab Bahasa · Gedung C', seats: 24 },
+  pendaftaran: [{ id: 'pt-2609', jadwalId: 'jt-2609-01', status: 'selesai', tagihanId: 'b4' }],
+}
+
+// — MY LSP (contoh)
+export const sertifikasi: RingkasanSertifikasi = {
+  skema: [
+    { id: 'sk-jwd', nama: 'Junior Web Developer', prodi: ['Teknik Informatika', 'Sistem Informasi'], dibuka: false },
+    { id: 'sk-dba', nama: 'Database Administrator (Junior)', prodi: ['Teknik Informatika', 'Sistem Informasi'], dibuka: true, tutupDaftar: '2026-11-30T16:59:59Z', biaya: 350000 },
+    { id: 'sk-net', nama: 'Network Administrator Muda', prodi: ['Teknik Informatika'], dibuka: false },
+    { id: 'sk-akt', nama: 'Teknisi Akuntansi Junior', prodi: ['Akuntansi'], dibuka: true, tutupDaftar: '2026-11-30T16:59:59Z', biaya: 350000 },
+  ],
+  ujian: [
+    { id: 'uk-jwd', skemaId: 'sk-jwd', tanggal: '2026-11-15T01:00:00Z', tempat: 'TUK Gedung A · Lab 2', status: 'terjadwal' },
+    { id: 'uk-net', skemaId: 'sk-net', tanggal: '2026-06-05T01:00:00Z', tempat: 'TUK Gedung A · Lab 4', status: 'kompeten' },
+  ],
+  sertifikat: [{ id: 'sert-net', skemaId: 'sk-net', nomor: 'CONTOH-NET-2026-0001', terbit: '2026-06-12T00:00:00Z', berlakuSampai: '2029-06-12T00:00:00Z' }],
 }
 
 export const ranking: Ranking = {
@@ -127,11 +143,16 @@ export const ranking: Ranking = {
   ],
 }
 
-export const news: NewsItem[] = [
-  { id: 'n1', tag: 'Akademik', title: 'Jadwal UTS Ganjil 2026/2027 telah terbit', date: '24 Okt 2026' },
-  { id: 'n2', tag: 'Beasiswa', title: 'Pendaftaran Beasiswa Prestasi UNPAM dibuka hingga 15 November', date: '22 Okt 2026' },
-  { id: 'n3', tag: 'Kampus', title: 'Perpustakaan buka hingga pukul 21.00 selama masa UTS', date: '20 Okt 2026' },
-]
+// Berita CONTOH untuk mode demo saja; selalu ditampilkan dengan label "Contoh" (lihat BeritaSection).
+export const news: NewsFeed = {
+  source: 'contoh',
+  fetchedAt: '2026-10-24T08:00:00.000Z',
+  items: [
+    { id: 'n1', tag: 'Akademik', title: 'Jadwal UTS Ganjil 2026/2027 telah terbit', summary: '', date: '2026-10-24T02:00:00.000Z', url: 'https://unpam.ac.id/' },
+    { id: 'n2', tag: 'Beasiswa', title: 'Pendaftaran Beasiswa Prestasi UNPAM dibuka hingga 15 November', summary: '', date: '2026-10-22T02:00:00.000Z', url: 'https://unpam.ac.id/' },
+    { id: 'n3', tag: 'Kampus', title: 'Perpustakaan buka hingga pukul 21.00 selama masa UTS', summary: '', date: '2026-10-20T02:00:00.000Z', url: 'https://unpam.ac.id/' },
+  ],
+}
 
 export const notifications: AppNotification[] = [
   { id: 1, src: 'Keuangan', text: 'Cicilan 2 UKT jatuh tempo 10 November 2026.', time: '1 jam lalu', read: false },

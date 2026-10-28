@@ -21,8 +21,8 @@ export const http: Connectors = {
   mentari: { getClasses: pending('MENTARI'), getTasks: pending('MENTARI') },
   siskemu: { getBills: pending('SISKEMU') },
   ems: { getEvents: pending('EMS') },
-  myLsp: { getCertifications: pending('MY LSP') },
-  myLb: { getToefl: pending('MY LB') },
+  myLsp: { getRingkasan: pending('MY LSP'), daftarSkema: pending('MY LSP') },
+  myLb: { getJadwal: pending('MY LB'), getRingkasan: pending('MY LB'), daftarTes: pending('MY LB') },
   sispema: { getRanking: pending('SISPEMA') },
-  portal: { getNews: pending('PORTAL'), getNotifications: pending('PORTAL') },
+  portal: { getNotifications: pending('PORTAL') },
 }

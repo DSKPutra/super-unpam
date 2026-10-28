@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Building2, ChevronRight } from 'lucide-react'
 import { getNotifications, USE_DEMO } from '../lib/api'
 import { useResource } from '../lib/useResource'
 import { FEATURES } from '../data/features'
@@ -75,6 +76,15 @@ export function Profil({
           <div className="truncate text-xs opacity-80">{user.role} · {user.prodi}</div>
         </div>
         <span className="flex shrink-0 items-center gap-1 rounded-xl bg-white/15 px-3 py-2 text-xs font-semibold"><span className="hidden sm:inline">{t.ktm}</span> QR →</span>
+      </button>
+
+      <button onClick={() => go('kenali-kampus')} className="glass glass-hover mt-4 flex min-h-14 w-full items-center gap-3 px-4 text-left">
+        <Building2 className="h-5 w-5 shrink-0 text-cyan" aria-hidden />
+        <span className="flex-1">
+          <span className="block font-semibold">{t.kenaliKampus}</span>
+          <span className="block text-xs text-mid">{t.kenaliKampusNote}</span>
+        </span>
+        <ChevronRight className="h-4 w-4 text-low" aria-hidden />
       </button>
 
       <Section title={t.favoritesPick}>

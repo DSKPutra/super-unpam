@@ -72,6 +72,8 @@ Environment variable server (lihat `.env.example`):
 | `CONNECTOR_MODE` | tidak | `mock` (bawaan) atau `http`; per sistem: `CONNECTOR_SSO`, `CONNECTOR_MY_UNPAM`, … |
 | `CAMPUS_GEOFENCES` | tidak | JSON `[{name,lat,lng,radius}]` koordinat resmi; tanpa ini dipakai perkiraan data contoh |
 | `ALLOW_MOCK_LOGIN_IN_PRODUCTION` | tidak | Login mock menolak di production kecuali di-set `true` |
+| `NEWS_FEED_URL` | tidak | URL WP REST (`…/wp-json/wp/v2/posts`) atau RSS/Atom berita resmi di `*.unpam.ac.id`. Tanpa ini `/api/berita` menjawab 503 "Sumber berita resmi belum tersedia". Per 28 Okt 2026 feed unpam.ac.id terhalang tantangan bot Cloudflare untuk server; perlu akses resmi dari LPTI. |
+| `NEWS_FEED_FORMAT` | tidak | `wp` atau `rss` (bawaan: ditebak dari Content-Type) |
 
 Uji lokal mode BFF: `vercel dev` (dengan `VITE_USE_DEMO=false`, `SESSION_SECRET`, dan `QR_SECRET` di environment). Akun mock: username berawalan `dosen`, `tendik`, atau `alumni` masuk sebagai peran tersebut; selainnya mahasiswa.
 

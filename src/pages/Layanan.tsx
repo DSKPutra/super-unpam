@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { getCertifications, getEvents, getRanking, getToefl } from '../lib/api'
+import { getEvents, getRanking } from '../lib/api'
 import { useResource } from '../lib/useResource'
-import type { CampusEvent, Certification, Ranking, ToeflSummary } from '../lib/types'
+import type { CampusEvent, Ranking } from '../lib/types'
 import { Async, Badge, DemoNote, PageHeader, Progress, Section } from '../components/ui'
 
 type Back = { back: () => void }
@@ -45,94 +45,6 @@ function EventList({ events }: { events: CampusEvent[] }) {
         )
       })}
     </div>
-  )
-}
-
-export function Sertifikasi({ back }: Back) {
-  const res = useResource(getCertifications)
-  return (
-    <div>
-      <PageHeader title="Sertifikasi Profesi" onBack={back} />
-      <DemoNote />
-      <Async res={res}>{(certifications) => <CertificationList certifications={certifications} />}</Async>
-    </div>
-  )
-}
-
-function CertificationList({ certifications }: { certifications: Certification[] }) {
-  return (
-    <div className="space-y-3">
-      {certifications.map((c) => (
-        <div key={c.id} className="glass p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-semibold">{c.scheme}</h3>
-              <p className="text-xs text-mid">{c.date}</p>
-            </div>
-            <Badge tone={c.progress === 100 ? 'green' : c.progress > 0 ? 'blue' : 'amber'}>{c.status}</Badge>
-          </div>
-          <div className="mt-3">
-            <Progress value={c.progress} color={c.progress === 100 ? 'var(--mint)' : 'var(--primary)'} />
-          </div>
-          {c.progress === 0 && <button className="mt-3 rounded-lg btn-primary px-4 py-2 text-sm font-semibold text-white">Daftar skema</button>}
-          {c.progress === 100 && <button className="mt-3 rounded-lg border border-mint px-4 py-2 text-sm font-semibold text-mint">⬇️ Unduh sertifikat</button>}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-export function Toefl({ back }: Back) {
-  const res = useResource(getToefl)
-  return (
-    <div>
-      <PageHeader title="TOEFL & Lembaga Bahasa" onBack={back} />
-      <DemoNote />
-      <Async res={res}>{(toefl) => <ToeflView toefl={toefl} />}</Async>
-    </div>
-  )
-}
-
-function ToeflView({ toefl }: { toefl: ToeflSummary }) {
-  const [booked, setBooked] = useState(false)
-  return (
-    <>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="glass p-4 text-center">
-          <div className="text-3xl font-bold text-cyan">{toefl.best}</div>
-          <div className="text-xs text-mid">Skor terbaik</div>
-        </div>
-        <div className="glass p-4 text-center">
-          <div className="text-3xl font-bold text-mint">{toefl.best >= toefl.target ? '✓' : toefl.target}</div>
-          <div className="text-xs text-mid">Syarat lulus ({toefl.target})</div>
-        </div>
-      </div>
-      <Section title="Jadwal tes berikutnya">
-        <div className="glass flex flex-wrap items-center gap-3 p-4">
-          <div className="flex-1">
-            <div className="font-semibold">TOEFL Prediction · {toefl.next.date}</div>
-            <div className="text-xs text-mid">{toefl.next.place} · sisa {toefl.next.seats} kursi</div>
-          </div>
-          <button disabled={booked} onClick={() => setBooked(true)} className="rounded-lg btn-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
-            {booked ? '✓ Terdaftar' : 'Daftar tes'}
-          </button>
-        </div>
-      </Section>
-      <Section title="Riwayat skor">
-        <div className="glass divide-y divide-line">
-          {toefl.history.map((h) => (
-            <div key={h.date} className="flex items-center gap-4 p-4">
-              <div className="text-2xl font-bold">{h.score}</div>
-              <div className="flex-1 text-xs text-mid">
-                {h.date}
-                <br />
-                Listening {h.listening} · Structure {h.structure} · Reading {h.reading}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-    </>
   )
 }
 
