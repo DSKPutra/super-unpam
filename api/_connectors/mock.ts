@@ -2,6 +2,7 @@ import * as demo from '../../src/data/demo.js'
 import type { Role, User } from '../../src/lib/types.js'
 import { isProduction } from '../_lib/config.js'
 import { ServiceUnavailableError } from '../_lib/http.js'
+import type { PendaftaranUjianAkhir } from '../../src/lib/akademik/types.js'
 import type { Connectors } from './types.js'
 
 // Implementasi mock: memakai data contoh yang sama dengan mode demo klien (src/data/demo.ts).
@@ -22,6 +23,11 @@ const roleFor = (username: string): Role => {
 }
 
 const ok = <T>(v: T) => Promise.resolve(v)
+const taMock = new Map([...demo.antrianJudul, demo.taBimbinganContoh].map((t) => [t.id, t]))
+const lbMock = new Map([[demo.logbookContoh.tugasAkhirId, demo.logbookContoh]])
+const pdMock = new Map<string, PendaftaranUjianAkhir>()
+const slotTerisi = new Map<string, number>()
+const taPemilik = new Map<string, string>([...demo.antrianJudul, demo.taBimbinganContoh].map((t) => [t.id, 'mahasiswa-contoh']))
 
 export const mock: Connectors = {
   sso: {
@@ -40,12 +46,49 @@ export const mock: Connectors = {
     getKrsOffer: () => ok(demo.krsOffer),
     getAttendanceRecap: () => ok(demo.attendanceRecap),
     recordAttendance: () => ok(undefined),
+    getUjian: (_sub, jenis) => ok(demo.ujianSemester[jenis]),
+    getProfilKelayakan: () => ok(demo.profilKelayakan),
+    getPengajuanUjian: () => ok(demo.pengajuanUjian),
+    // Mock: tidak menyimpan; mengembalikan bentuk respons yang sama dengan sistem asli.
+    ajukanUjian: (_sub, input) => ok({ ...input, id: `pj-${Date.now().toString(36)}`, status: 'DIAJUKAN' as const, diajukan: new Date().toISOString() }),
+    // Tugas akhir: disimpan di memori instance function saja (data contoh, hilang saat instance berganti).
+    getRingkasanTA: (sub) => ok({ tugasAkhir: [...taMock.values()].find((t) => taPemilik.get(t.id) === sub) ?? null, dosen: demo.dosenPembimbing, judulTerdaftar: demo.judulTerdaftar }),
+    getAntrianTA: () => ok([...taMock.values()].filter((t) => t.status === 'DIAJUKAN')),
+    getTA: (id) => ok(taMock.get(id) ?? null),
+    simpanTA: (sub, ta) => {
+      if (!taPemilik.has(ta.id)) taPemilik.set(ta.id, sub)
+      taMock.set(ta.id, ta)
+      return ok(ta)
+    },
+    getLogbook: (taId) => ok(lbMock.get(taId) ?? { tugasAkhirId: taId, entri: [], versi: [] }),
+    simpanLogbook: (lb) => (lbMock.set(lb.tugasAkhirId, lb), ok(lb)),
+    // TODO(BFF-AUTHZ): saring berdasarkan dosen pembimbing sungguhan.
+    getTABimbingan: () => ok([...taMock.values()].filter((t) => t.pembimbing.length > 0)),
+    getPendaftaranUjian: (taId) => ok([...pdMock.values()].filter((p) => p.tugasAkhirId === taId)),
+    getPendaftaranById: (id) => ok(pdMock.get(id) ?? null),
+    simpanPendaftaranUjian: (p, ubah = {}) => {
+      for (const [k, v] of Object.entries(ubah)) slotTerisi.set(k, (slotTerisi.get(k) ?? 0) + v)
+      pdMock.set(p.id, p)
+      return ok(p)
+    },
+    // TODO(BFF-AUTHZ): saring berdasarkan dosen pembimbing sungguhan.
+    getAntrianUjianAkhir: () => ok([...pdMock.values()].filter((p) => p.status === 'MENUNGGU_PEMBIMBING')),
+    getSlotUjian: () => ok(demo.slotUjianAkhir.map((x) => ({ ...x, terisi: x.terisi + (slotTerisi.get(x.id) ?? 0) }))),
+    getJadwalPenguji: () => ok(demo.jadwalPenguji),
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },
   ems: { getEvents: () => ok(demo.events) },
-  myLsp: { getCertifications: () => ok(demo.certifications) },
-  myLb: { getToefl: () => ok(demo.toefl) },
+  myLsp: {
+    getRingkasan: () => ok(demo.sertifikasi),
+    // Mock: tidak menyimpan apa pun; hanya mengembalikan bentuk respons yang sama dengan sistem asli.
+    daftarSkema: (_sub, skemaId) => ok({ id: `uk-${skemaId}`, skemaId, status: 'terdaftar' as const }),
+  },
+  myLb: {
+    getJadwal: () => ok(demo.jadwalTes),
+    getRingkasan: () => ok(demo.toefl),
+    daftarTes: (_sub, jadwalId) => ok({ id: `pt-${jadwalId}`, jadwalId, status: 'menunggu-bayar' as const }),
+  },
   sispema: { getRanking: () => ok(demo.ranking) },
-  portal: { getNews: () => ok(demo.news), getNotifications: () => ok(demo.notifications) },
+  portal: { getNotifications: () => ok(demo.notifications) },
 }
