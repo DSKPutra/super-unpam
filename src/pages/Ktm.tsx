@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { issueQr, QR_PERIOD, qrPayload } from '../lib/api'
+import { bekukanKtm, getLogKtm, getStatusKtm, issueQr, QR_PERIOD, qrPayload } from '../lib/api'
+import type { JenisLog } from '../lib/parkir'
 import type { QrKind, QrToken, User } from '../lib/types'
-import { Cpu, DoorOpen, Download, FileCheck2, Library, MapPin, RefreshCw, Share2, ShieldCheck, WifiOff } from 'lucide-react'
+import { useResource } from '../lib/useResource'
+import { BookOpen, Car, Cpu, DoorOpen, Download, FileCheck2, Library, LogIn, LogOut, MapPin, NotebookPen, RefreshCw, Share2, ShieldAlert, ShieldCheck, Snowflake, WifiOff } from 'lucide-react'
 import { Icon3D } from '../components/Icon3D'
-import { PageHeader, Section } from '../components/ui'
+import { Async, Badge, PageHeader, Section, Skeleton } from '../components/ui'
 
 // QR berganti tiap 30 detik agar tidak bisa di-screenshot & dipakai ulang. Di mode BFF kode
 // ditandatangani server (HMAC) dan divalidasi server; klien hanya menampilkan.
+// `subject` kosong = jangan terbitkan QR (mis. KTM dibekukan atau belum ada kendaraan terpilih).
 export function useDynamicQr(kind: QrKind, subject: string) {
   const [token, setToken] = useState<QrToken | null>(null)
   const [left, setLeft] = useState(-1) // -1 = belum ada token; 0 = kedaluwarsa → minta token baru
@@ -16,6 +19,10 @@ export function useDynamicQr(kind: QrKind, subject: string) {
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
+    if (!subject) {
+      setToken(null)
+      return setLeft(-1)
+    }
     let alive = true
     issueQr(kind, subject).then(
       (t) => {
@@ -26,6 +33,7 @@ export function useDynamicQr(kind: QrKind, subject: string) {
       },
       (e: Error) => {
         if (!alive) return
+        setToken(null)
         setError(e.message)
         setLeft(10) // coba lagi 10 detik kemudian
       },
@@ -50,13 +58,15 @@ export function useDynamicQr(kind: QrKind, subject: string) {
   }, [token])
 
   // Kode kedaluwarsa tidak boleh terus tampil seolah masih berlaku.
-  const valid = !!token && left > 0 && !error
+  const valid = !!token && token.kind === kind && token.subject === subject && left > 0 && !error
   return { src: valid ? src : '', code: valid ? token.code : '', left: Math.max(left, 0), period: token?.period ?? QR_PERIOD, error }
 }
 
-export function KtmPage({ user, back }: { user: User; back: () => void }) {
+export function KtmPage({ user, back, go }: { user: User; back: () => void; go: (r: string) => void }) {
   const [flipped, setFlipped] = useState(false)
-  const { src, code, left, period, error } = useDynamicQr('KTM', user.nim)
+  const status = useResource(getStatusKtm)
+  const beku = status.data?.beku ?? false
+  const { src, code, left, period, error } = useDynamicQr('KTM', status.data && !beku ? user.nim : '')
   const validUntil = `31 Agu ${Number(user.angkatan) + 4}`
 
   return (
@@ -124,9 +134,16 @@ export function KtmPage({ user, back }: { user: User; back: () => void }) {
       <Section title="QR untuk scan">
         <div className="glass flex flex-col items-center p-5">
           <div className="flex h-56 w-56 items-center justify-center rounded-2xl bg-white p-2 shadow-[var(--glow)]">
-            {src ? <img src={src} alt={`QR KTM dinamis ${user.nim}`} className="h-52 w-52" /> : <div className="shimmer h-52 w-52 rounded-xl" aria-label="Memuat QR" />}
+            {src ? (
+              <img src={src} alt={`QR KTM dinamis ${user.nim}`} className="h-52 w-52" />
+            ) : beku ? (
+              <Snowflake className="h-16 w-16 text-[#4A5775]" aria-label="QR dinonaktifkan karena KTM dibekukan" />
+            ) : (
+              <div className="shimmer h-52 w-52 rounded-xl" aria-label="Memuat QR" />
+            )}
           </div>
-          {error && (
+          {beku && <p className="mt-3 text-center text-sm text-rose">KTM dibekukan. QR tidak diterbitkan sampai diaktifkan kembali.</p>}
+          {error && !beku && (
             <p role="alert" className="mt-3 text-center text-sm text-amber">
               QR belum bisa dibuat: {error}
             </p>
@@ -142,15 +159,29 @@ export function KtmPage({ user, back }: { user: User; back: () => void }) {
       </Section>
 
       <Section title="Dipakai untuk">
-        <div className="glass grid grid-cols-4 gap-2 p-4">
-          {USES.map(({ icon, from, to, label }) => (
-            <div key={label} className="flex flex-col items-center gap-2 text-center">
-              <Icon3D icon={icon} from={from} to={to} size={42} />
-              <span className="text-[11px] text-mid">{label}</span>
-            </div>
-          ))}
+        <div className="glass grid grid-cols-3 gap-2 p-4">
+          {USES.map(({ icon, from, to, label, route }) => {
+            const isi = (
+              <>
+                <Icon3D icon={icon} from={from} to={to} size={42} />
+                <span className="text-[11px] text-mid">{label}</span>
+              </>
+            )
+            return route ? (
+              <button key={label} onClick={() => go(route)} className="flex min-h-11 flex-col items-center gap-2 rounded-xl py-1 text-center hover:bg-glass-strong">
+                {isi}
+              </button>
+            ) : (
+              <div key={label} className="flex flex-col items-center gap-2 py-1 text-center">
+                {isi}
+              </div>
+            )
+          })}
         </div>
       </Section>
+
+      <Keamanan beku={beku} siap={!!status.data} ubah={async (b) => (await bekukanKtm(b), status.reload())} />
+      <RiwayatPemakaian beku={beku} />
 
       <div className="mt-5 grid grid-cols-2 gap-3">
         <button onClick={() => window.print()} className="glass glass-hover flex min-h-12 items-center justify-center gap-2 !rounded-2xl text-sm font-semibold">
@@ -169,9 +200,93 @@ export function KtmPage({ user, back }: { user: User; back: () => void }) {
   )
 }
 
-const USES = [
-  { icon: MapPin, from: '#FF7A93', to: '#E0245E', label: 'Presensi' },
+const USES: { icon: typeof MapPin; from: string; to: string; label: string; route?: string }[] = [
+  { icon: Car, from: '#FFD65C', to: '#E08A00', label: 'Parkir kampus', route: 'parkir' },
+  { icon: MapPin, from: '#FF7A93', to: '#E0245E', label: 'Presensi', route: 'presensi' },
   { icon: DoorOpen, from: '#4DF0E0', to: '#0B8F9F', label: 'Akses gedung' },
   { icon: Library, from: '#A58CFF', to: '#5B3FE0', label: 'Perpustakaan' },
-  { icon: FileCheck2, from: '#5CE1FF', to: '#2D6BFF', label: 'Ujian & event' },
+  { icon: NotebookPen, from: '#5CE1FF', to: '#2D6BFF', label: 'Ujian', route: 'ujian' },
+  { icon: FileCheck2, from: '#7CF29A', to: '#0E9F6E', label: 'Event', route: 'event' },
 ]
+
+/** Bekukan KTM bila HP hilang/dicuri: semua QR KTM & parkir berhenti diterbitkan dan ditolak di gerbang. */
+function Keamanan({ beku, siap, ubah }: { beku: boolean; siap: boolean; ubah: (beku: boolean) => Promise<void> }) {
+  const [sibuk, setSibuk] = useState(false)
+  const [galat, setGalat] = useState('')
+  const klik = async () => {
+    if (!beku && !confirm('Bekukan KTM? QR KTM & parkir akan ditolak di semua gerbang sampai Anda mengaktifkannya lagi.')) return
+    setSibuk(true)
+    setGalat('')
+    try {
+      await ubah(!beku)
+    } catch (e) {
+      setGalat((e as Error).message)
+    } finally {
+      setSibuk(false)
+    }
+  }
+  return (
+    <Section title="Keamanan kartu">
+      <div className="glass flex items-center gap-3 p-4">
+        {beku ? <Snowflake className="h-6 w-6 shrink-0 text-rose" aria-hidden /> : <ShieldCheck className="h-6 w-6 shrink-0 text-mint" aria-hidden />}
+        <div className="min-w-0 flex-1 text-sm">
+          <p className="font-semibold">{beku ? 'KTM dibekukan' : 'KTM aktif'}</p>
+          <p className="text-mid">{beku ? 'Aktifkan lagi setelah HP kembali aman.' : 'HP hilang? Bekukan agar KTM tidak dipakai orang lain.'}</p>
+          {galat && <p role="alert" className="text-rose">{galat}</p>}
+        </div>
+        <button disabled={sibuk || !siap} onClick={klik} className={`min-h-11 shrink-0 rounded-xl px-4 text-sm font-semibold disabled:opacity-50 ${beku ? 'btn-primary' : 'glass !rounded-xl text-rose'}`}>
+          {beku ? 'Aktifkan' : 'Bekukan'}
+        </button>
+      </div>
+    </Section>
+  )
+}
+
+const LOG: Record<JenisLog, { icon: typeof MapPin; label: string }> = {
+  'parkir-masuk': { icon: LogIn, label: 'Parkir masuk' },
+  'parkir-keluar': { icon: LogOut, label: 'Parkir keluar' },
+  gedung: { icon: DoorOpen, label: 'Akses gedung' },
+  perpustakaan: { icon: BookOpen, label: 'Perpustakaan' },
+  presensi: { icon: MapPin, label: 'Presensi' },
+  ujian: { icon: NotebookPen, label: 'Ujian' },
+  keamanan: { icon: ShieldAlert, label: 'Keamanan' },
+}
+
+function RiwayatPemakaian({ beku }: { beku: boolean }) {
+  const res = useResource(getLogKtm)
+  const [semua, setSemua] = useState(false)
+  // Muat ulang saat status beku berubah agar entri "keamanan" langsung tampil.
+  useEffect(() => res.reload(), [beku]) // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <Section title="Riwayat pemakaian KTM" action={<Badge tone="slate">Hanya Anda</Badge>}>
+      <Async res={res} skeleton={<Skeleton rows={3} />}>
+        {(log) => (
+          <>
+            <ul className="glass divide-y divide-line overflow-hidden">
+              {(semua ? log : log.slice(0, 5)).map((l) => {
+                const { icon: I, label } = LOG[l.jenis]
+                return (
+                  <li key={l.id} className="flex items-center gap-3 px-4 py-3">
+                    <I className={`h-5 w-5 shrink-0 ${l.jenis === 'keamanan' ? 'text-rose' : 'text-cyan'}`} aria-hidden />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{label}{l.ket ? ` · ${l.ket}` : ''}</p>
+                      <p className="truncate text-xs text-low">{l.lokasi}</p>
+                    </div>
+                    <time dateTime={l.waktu} className="shrink-0 text-right text-xs text-low">
+                      {new Date(l.waktu).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </time>
+                  </li>
+                )
+              })}
+            </ul>
+            {log.length > 5 && (
+              <button onClick={() => setSemua((x) => !x)} className="mt-2 min-h-11 w-full text-sm font-semibold text-cyan">
+                {semua ? 'Ringkas' : `Lihat semua (${log.length})`}
+              </button>
+            )}
+          </>
+        )}
+      </Async>
+    </Section>
+  )
+}

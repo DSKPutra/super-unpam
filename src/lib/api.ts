@@ -20,6 +20,8 @@ import type {
   User,
 } from './types'
 import { distanceMeters } from './geo'
+import type { Arah, HasilGerbang, InputKendaraan, Kendaraan, LogAkses } from './parkir'
+import type { PenyimpananParkir, RingkasanParkir } from './parkir-store'
 
 /**
  * Adapter data Super UNPAM: SATU-SATUNYA pintu halaman ke data.
@@ -118,9 +120,17 @@ function demoCode(subject: string, slot: number) {
   return h.toString(36).toUpperCase().padStart(7, '0').slice(-7)
 }
 
-/** `subject` hanya dipakai untuk PRESENSI (`SESI-<kode MK>`); KTM selalu milik pemegang sesi. */
+/**
+ * `subject`: KTM → diabaikan server (selalu pemegang sesi); PRESENSI → `SESI-<kode MK>`;
+ * PARKIR → ID kendaraan milik pemegang sesi yang sudah diverifikasi.
+ */
 export async function issueQr(kind: QrKind, subject: string): Promise<QrToken> {
   if (!USE_DEMO) return request<QrToken>(`qr/issue?kind=${kind}&subject=${encodeURIComponent(subject)}`)
+  if (kind !== 'PRESENSI') {
+    const { store, sub } = await parkirDemo()
+    if (store.beku(sub)) throw new ApiError(403, 'KTM sedang dibekukan. Aktifkan kembali di halaman KTM.')
+    if (kind === 'PARKIR' && store.kendaraan(sub, subject)?.status !== 'terverifikasi') throw new ApiError(403, 'Kendaraan belum terverifikasi.')
+  }
   const now = Math.floor(Date.now() / 1000)
   const slot = Math.floor(now / QR_PERIOD)
   return { kind, subject, slot, code: demoCode(subject, slot), expiresIn: QR_PERIOD - (now % QR_PERIOD), period: QR_PERIOD }
@@ -145,3 +155,43 @@ export async function checkIn(input: CheckInRequest, courseName: string): Promis
   if (best.d > best.radius) throw new ApiError(422, `Anda berada ±${(best.d / 1000).toFixed(1)} km dari ${best.name}. Presensi lokasi hanya bisa di area kampus.`)
   return { course: courseName, method: `Lokasi · ${best.name}`, time }
 }
+
+// — KTM & parkir kampus. Mode demo: penyimpanan di memori (src/lib/parkir-store.ts) yang juga dipakai
+// konektor mock BFF; perubahan bertahan selama tab terbuka.
+let demoParkir: Promise<{ store: PenyimpananParkir; sub: string }> | undefined
+const parkirDemo = () =>
+  (demoParkir ??= Promise.all([import('./parkir-store'), demo()]).then(([m, d]) => ({ store: m.buatPenyimpananParkir(), sub: d.DEMO_USER.nim })))
+const viaDemo = async <T>(fn: (store: PenyimpananParkir, sub: string) => T): Promise<T> => {
+  const { store, sub } = await parkirDemo()
+  try {
+    return fn(store, sub)
+  } catch (e) {
+    throw new ApiError((e as { status?: number }).status ?? 422, (e as Error).message)
+  }
+}
+
+export const getParkir = (): Promise<RingkasanParkir> => (USE_DEMO ? viaDemo((s, sub) => s.ringkasan(sub)) : request('parkir/ringkasan'))
+export const getStatusKtm = (): Promise<{ beku: boolean }> => (USE_DEMO ? viaDemo((s, sub) => ({ beku: s.beku(sub) })) : request('ktm/status'))
+export const getLogKtm = (): Promise<LogAkses[]> => (USE_DEMO ? viaDemo((s, sub) => s.log(sub)) : request('ktm/log'))
+
+export const daftarKendaraan = (input: InputKendaraan): Promise<Kendaraan> =>
+  USE_DEMO ? viaDemo((s, sub) => s.daftar(sub, input)) : post('parkir/kendaraan', input)
+export const hapusKendaraan = (id: string): Promise<void> => (USE_DEMO ? viaDemo((s, sub) => s.hapus(sub, id)) : post('parkir/hapus', { id }))
+
+/** Bekukan KTM (mis. HP hilang): semua QR KTM & parkir berhenti diterbitkan dan ditolak di gerbang. */
+export const bekukanKtm = (beku: boolean): Promise<void> => (USE_DEMO ? viaDemo((s, sub) => s.setBeku(sub, beku)) : post('ktm/bekukan', { beku }))
+
+/** Petugas gerbang (TENDIK) memindai QR parkir. Mode BFF: kode HMAC & anti-passback dicek server. */
+export async function pindaiGerbang(payload: string, arah: Arah, areaId: string): Promise<HasilGerbang & { pemilik?: string }> {
+  if (!USE_DEMO) return post('parkir/gerbang', { payload, arah, areaId })
+  const m = /^SUPERUNPAM:PARKIR:([A-Za-z0-9-]{1,40}):\d{1,12}:[A-Z0-9]{7}$/.exec(payload.trim())
+  if (!m) throw new ApiError(422, 'Bukan QR parkir Super UNPAM.')
+  return viaDemo((s, sub) => {
+    if (s.pemilik(m[1]) !== sub) return { ok: false, alasan: 'Kendaraan tidak terdaftar.' } as const
+    return s.gerbang(sub, m[1], arah, areaId)
+  })
+}
+
+/** Khusus demo: meniru keputusan verifikasi kendaraan oleh Sarpras. */
+export const demoVerifikasiKendaraan = (id: string, setuju: boolean) =>
+  viaDemo((s, sub) => s.verifikasi(sub, id, setuju ? 'terverifikasi' : 'ditolak', setuju ? undefined : 'Foto STNK tidak terbaca (contoh).'))

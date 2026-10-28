@@ -1,7 +1,8 @@
 import * as demo from '../../src/data/demo.js'
+import { buatPenyimpananParkir, GalatParkir } from '../../src/lib/parkir-store.js'
 import type { Role, User } from '../../src/lib/types.js'
 import { isProduction } from '../_lib/config.js'
-import { ServiceUnavailableError } from '../_lib/http.js'
+import { HttpError, ServiceUnavailableError } from '../_lib/http.js'
 import type { Connectors } from './types.js'
 
 // Implementasi mock: memakai data contoh yang sama dengan mode demo klien (src/data/demo.ts).
@@ -22,6 +23,17 @@ const roleFor = (username: string): Role => {
 }
 
 const ok = <T>(v: T) => Promise.resolve(v)
+
+// Parkir mock disimpan di memori instance fungsi: hilang saat cold start dan tidak dibagi antar-instance.
+const parkir = buatPenyimpananParkir()
+const coba = async <T>(fn: () => T): Promise<T> => {
+  try {
+    return fn()
+  } catch (e) {
+    if (e instanceof GalatParkir) throw new HttpError(e.status, e.message)
+    throw e
+  }
+}
 
 export const mock: Connectors = {
   sso: {
@@ -48,4 +60,20 @@ export const mock: Connectors = {
   myLb: { getToefl: () => ok(demo.toefl) },
   sispema: { getRanking: () => ok(demo.ranking) },
   portal: { getNews: () => ok(demo.news), getNotifications: () => ok(demo.notifications) },
+  sarpras: {
+    getRingkasanParkir: (sub) => coba(() => parkir.ringkasan(sub)),
+    daftarKendaraan: (sub, input) =>
+      coba(() => {
+        const k = parkir.daftar(sub, input)
+        // Mock: verifikasi STNK otomatis disetujui agar alur bisa diuji ujung-ke-ujung.
+        parkir.verifikasi(sub, k.id, 'terverifikasi')
+        return { ...k, status: 'terverifikasi' as const }
+      }),
+    hapusKendaraan: (sub, id) => coba(() => parkir.hapus(sub, id)),
+    getPemilikKendaraan: (id) => ok(parkir.pemilik(id)),
+    catatGerbang: (sub, id, arah, areaId) => coba(() => parkir.gerbang(sub, id, arah, areaId)),
+    isKtmBeku: (sub) => ok(parkir.beku(sub)),
+    setKtmBeku: (sub, beku) => coba(() => parkir.setBeku(sub, beku)),
+    getLogKtm: (sub) => ok(parkir.log(sub)),
+  },
 }

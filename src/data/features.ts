@@ -1,5 +1,6 @@
 import {
   BadgeCheck,
+  Car,
   CalendarCheck,
   ClipboardCheck,
   Download,
@@ -46,6 +47,7 @@ const ALL: Role[] = ['MAHASISWA', 'DOSEN', 'TENDIK', 'ALUMNI']
 
 export const FEATURES: Feature[] = [
   { id: 'ktm', name: 'KTM Digital', icon: IdCard, from: '#4D86FF', to: '#1B3FD1', route: 'ktm', roles: ALL, keywords: ['kartu', 'qr', 'identitas', 'ktm'], source: 'SSO' },
+  { id: 'parkir', name: 'Parkir Kampus', icon: Car, from: '#FFD65C', to: '#E08A00', route: 'parkir', roles: ['MAHASISWA', 'DOSEN', 'TENDIK'], keywords: ['parkir', 'kendaraan', 'motor', 'mobil', 'gerbang', 'stnk', 'plat'], source: 'SARPRAS' },
   { id: 'presensi', name: 'Presensi', icon: MapPin, from: '#FF7A93', to: '#E0245E', route: 'presensi', roles: ['MAHASISWA', 'DOSEN', 'TENDIK'], keywords: ['absen', 'qr', 'kehadiran'], source: 'MY UNPAM' },
   { id: 'jadwal', name: 'Jadwal', icon: CalendarDays, from: '#3EE0FF', to: '#0090D4', route: 'akademik/jadwal', roles: ['MAHASISWA', 'DOSEN'], keywords: ['kuliah', 'kelas', 'ruang'], source: 'MY UNPAM' },
   { id: 'krs', name: 'KRS', icon: ClipboardList, from: '#6E9BFF', to: '#2D4FE0', route: 'akademik/krs', roles: ['MAHASISWA'], keywords: ['rencana studi', 'mata kuliah', 'registrasi'], source: 'MY UNPAM' },

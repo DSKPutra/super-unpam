@@ -14,6 +14,8 @@ import type {
   ToeflSummary,
   User,
 } from '../../src/lib/types.js'
+import type { Arah, HasilGerbang, InputKendaraan, Kendaraan, LogAkses } from '../../src/lib/parkir.js'
+import type { RingkasanParkir } from '../../src/lib/parkir-store.js'
 
 // Satu antarmuka per sistem sumber kampus (kolom `source` di src/data/features.ts).
 // Setiap sistem punya implementasi `mock` (data contoh) dan `http` (sistem asli), dengan bentuk yang sama.
@@ -72,6 +74,23 @@ export interface PortalConnector {
   getNotifications(sub: string): Promise<AppNotification[]>
 }
 
+/**
+ * SARPRAS: parkir kampus & status kartu (KTM). TODO(Sarpras/LPTI): sistem gerbang parkir yang dipakai,
+ * cara integrasi palang/kamera plat, dan siapa yang memverifikasi STNK belum ditentukan.
+ */
+export interface SarprasConnector {
+  getRingkasanParkir(sub: string): Promise<RingkasanParkir>
+  daftarKendaraan(sub: string, input: InputKendaraan): Promise<Kendaraan>
+  hapusKendaraan(sub: string, kendaraanId: string): Promise<void>
+  /** NIM/NIDN pemilik kendaraan, atau null bila tidak terdaftar. */
+  getPemilikKendaraan(kendaraanId: string): Promise<string | null>
+  /** Catat pindaian gerbang; sistem sumber menerapkan anti-passback & kapasitas. */
+  catatGerbang(sub: string, kendaraanId: string, arah: Arah, areaId: string): Promise<HasilGerbang>
+  isKtmBeku(sub: string): Promise<boolean>
+  setKtmBeku(sub: string, beku: boolean): Promise<void>
+  getLogKtm(sub: string): Promise<LogAkses[]>
+}
+
 export interface Connectors {
   sso: SsoConnector
   myUnpam: MyUnpamConnector
@@ -82,4 +101,5 @@ export interface Connectors {
   myLb: MyLbConnector
   sispema: SispemaConnector
   portal: PortalConnector
+  sarpras: SarprasConnector
 }
