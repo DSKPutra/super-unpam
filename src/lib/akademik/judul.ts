@@ -1,4 +1,4 @@
-import type { Dosen } from './types'
+import type { Dosen } from './types.js'
 
 // Utilitas pengajuan tugas akhir (T03): kemiripan judul sederhana, estimasi waktu syarat SKS,
 // dan pembimbing yang masih punya kuota. Fungsi murni; tes di judul.test.ts.

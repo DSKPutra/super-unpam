@@ -1,6 +1,6 @@
-import type { AturanUjian, DefinisiSyarat } from '../../data/aturan-akademik'
-import { masihContoh } from './aturan'
-import type { HasilKelayakan, HasilSyarat, ProfilKelayakan } from './types'
+import type { AturanUjian, DefinisiSyarat } from '../../data/aturan-akademik.js'
+import { masihContoh } from './aturan.js'
+import type { HasilKelayakan, HasilSyarat, ProfilKelayakan } from './types.js'
 
 // evaluasiKelayakan: syarat dibaca dari aturan (data), alasan dalam kalimat yang bisa ditindaklanjuti.
 // Hasil ini hanya tampilan/pengajuan; keputusan resmi tetap dari server (T-ATURAN 3).

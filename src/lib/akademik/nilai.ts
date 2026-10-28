@@ -1,6 +1,6 @@
-import type { HurufMutu, Rubrik } from '../../data/aturan-akademik'
-import { validasiRubrik } from './aturan'
-import type { Penilaian, SkorKriteria } from './types'
+import type { HurufMutu, Rubrik } from '../../data/aturan-akademik.js'
+import { validasiRubrik } from './aturan.js'
+import type { Penilaian, SkorKriteria } from './types.js'
 
 // Pratinjau nilai ujian akhir dari rubrik konfigurasi. Selalu berlabel "perkiraan": nilai resmi dari server.
 

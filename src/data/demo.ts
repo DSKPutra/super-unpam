@@ -18,7 +18,7 @@ import type {
   Task,
   User,
 } from '../lib/types.js'
-import type { Dosen, JadwalUjianSemester, Logbook, PengajuanUjian, ProfilKelayakan, SesiUjian, TugasAkhir } from '../lib/akademik/types.js'
+import type { Dosen, JadwalUjianSemester, Logbook, PengajuanUjian, ProfilKelayakan, SesiUjian, SlotUjian, TugasAkhir } from '../lib/akademik/types.js'
 
 export const DEMO_USER: User = {
   name: 'DEA SAKA KURNIA PUTRA',
@@ -305,3 +305,22 @@ export const logbookContoh: Logbook = {
   ],
   versi: [{ versi: 1, nama: 'draf-bab1-2.pdf', ukuran: 412_000, tipe: 'application/pdf', sha256: 'c0ffee'.repeat(10) + 'c0ff', catatan: 'Draf awal bab 1–2 (contoh)', diunggah: '2026-09-16T03:00:00.000Z' }],
 }
+
+// — Slot ujian akhir yang ditawarkan prodi (contoh). Beberapa sengaja penuh/bentrok untuk peragaan.
+const slotUjian = (id: string, jenis: SlotUjian['jenis'], tgl: string, mulai: string, selesai: string, ruang: string, kapasitas: number, terisi: number, penguji: string[]): SlotUjian => ({
+  id, jenis, mulai: wib(`${tgl}T${mulai}`), selesai: wib(`${tgl}T${selesai}`), ruang, kapasitas, terisi, penguji,
+})
+export const slotUjianAkhir: SlotUjian[] = [
+  slotUjian('sp-1124', 'PROPOSAL', '2026-11-24', '09:00', '11:00', 'R. Sidang 1', 4, 1, ['dsn-andi', 'dsn-hadi']),
+  slotUjian('sp-1116', 'PROPOSAL', '2026-11-16', '08:30', '10:30', 'R. Sidang 2', 4, 0, ['dsn-rina', 'dsn-siti']),
+  slotUjian('sp-1125', 'PROPOSAL', '2026-11-25', '13:00', '15:00', 'R. Sidang 1', 4, 4, ['dsn-andi', 'dsn-budi']),
+  slotUjian('sp-1126', 'PROPOSAL', '2026-11-26', '09:00', '11:00', 'R. Sidang 3', 4, 2, ['dsn-budi', 'dsn-rina']),
+  slotUjian('ss-0118', 'SIDANG', '2027-01-18', '09:00', '11:00', 'R. Sidang 1', 3, 0, ['dsn-andi', 'dsn-hadi', 'dsn-rina']),
+  slotUjian('sh-0111', 'SEMINAR_HASIL', '2027-01-11', '13:00', '15:00', 'R. Sidang 2', 4, 1, ['dsn-siti', 'dsn-budi']),
+  slotUjian('su-0114', 'UAPS', '2027-01-14', '09:00', '11:00', 'R. Sidang 3', 4, 0, ['dsn-hadi', 'dsn-siti']),
+]
+
+/** Jadwal lain para penguji (contoh) untuk deteksi bentrok penguji. */
+export const jadwalPenguji: SesiUjian[] = [
+  { id: 'pg-budi-1126', jenis: 'SIDANG', kode: 'lain', nama: 'Sidang mahasiswa lain', mulai: wib('2026-11-26T08:00'), selesai: wib('2026-11-26T10:00'), ruang: 'R. Sidang 1', petugas: ['dsn-budi'] },
+]

@@ -1,5 +1,5 @@
-import type { Tenggat } from '../pengingat'
-import type { SesiUjian } from './types'
+import type { Tenggat } from '../pengingat.js'
+import type { SesiUjian } from './types.js'
 
 // Sesi ujian → Tenggat (penjadwal pengingat, src/lib/pengingat.ts) dan berkas .ics (RFC 5545)
 // dengan alarm H-1 dan 2 jam sebelumnya (T02 langkah 8).
