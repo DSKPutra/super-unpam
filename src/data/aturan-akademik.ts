@@ -74,6 +74,16 @@ export interface AturanProdi extends Sumber {
   kuotaBimbingan: number
   /** Pengingat halus bila tidak ada bimbingan lebih dari ini (hari). */
   jedaBimbinganHari: number
+  /** Syarat mulai mengajukan judul skripsi/TA (dievaluasi dengan evaluasiKelayakan). */
+  mulaiTA: Sumber & { syarat: DefinisiSyarat[] }
+  /** Untuk estimasi kapan syarat SKS terpenuhi ("±N semester lagi"). */
+  perkiraanSksPerSemester: number
+  /** Peringatan "judul mirip" bila skor kemiripan ≥ ini (0–1). Bukan pengganti cek plagiasi resmi. */
+  ambangKemiripanJudul: number
+  /** Jumlah pilihan pembimbing yang diminta saat pengajuan (urut prioritas). */
+  jumlahPilihanPembimbing: number
+  /** Bidang/kelompok keilmuan yang bisa dipilih. Kosong = isian bebas. */
+  bidangTA: string[]
 }
 
 const TODO: Sumber = { sumber: null, dicek: null } // TODO(BAAK): isi dari dokumen resmi
@@ -89,6 +99,11 @@ export const ATURAN_BAWAAN: AturanProdi = {
   maksKarakterJudul: 200,
   kuotaBimbingan: 10,
   jedaBimbinganHari: 21,
+  mulaiTA: { ...TODO, syarat: [{ id: 'sks', minimal: 110 }, { id: 'ipk', minimal: 2 }, { id: 'keuangan' }] },
+  perkiraanSksPerSemester: 20,
+  ambangKemiripanJudul: 0.5,
+  jumlahPilihanPembimbing: 3,
+  bidangTA: ['Rekayasa Perangkat Lunak', 'Jaringan & Keamanan', 'Kecerdasan Buatan & Data', 'Sistem Informasi', 'Multimedia & Gim'],
   hurufMutu: [
     { min: 85, huruf: 'A' },
     { min: 80, huruf: 'A-' },

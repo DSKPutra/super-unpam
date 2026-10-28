@@ -88,14 +88,47 @@ export interface RiwayatAlur {
   catatan?: string
 }
 
+export interface PermintaanPerubahan {
+  id: string
+  jenis: 'JUDUL' | 'PEMBIMBING'
+  usulan: string
+  alasan: string
+  status: 'DIAJUKAN' | 'DISETUJUI' | 'DITOLAK'
+  diajukan: string
+}
+
 export interface TugasAkhir {
   id: string
   judul: string
   abstrak: string
   bidang: string
+  metode: string
+  /** Pilihan pembimbing dari mahasiswa, urut prioritas (id dosen). */
+  pilihanPembimbing: string[]
+  /** Pembimbing yang ditetapkan (id dosen). */
   pembimbing: string[]
   status: StatusTugasAkhir
   riwayat: RiwayatAlur[]
+  /** Perubahan judul/pembimbing tidak langsung mengubah data: menunggu persetujuan. */
+  perubahan: PermintaanPerubahan[]
+}
+
+export interface Dosen {
+  id: string
+  nama: string
+  bidang: string[]
+  /** Kuota bimbingan dosen ini; bawaan dari konfigurasi prodi. */
+  kuota?: number
+  terisi: number
+  /** Kanal kontak resmi (mis. "via MY UNPAM"). Tidak diisi dengan alamat karangan. */
+  kontak?: string
+}
+
+export interface RingkasanTA {
+  tugasAkhir: TugasAkhir | null
+  dosen: Dosen[]
+  /** Judul yang sudah terdaftar di prodi, untuk peringatan kemiripan. */
+  judulTerdaftar: string[]
 }
 
 export interface Bimbingan {

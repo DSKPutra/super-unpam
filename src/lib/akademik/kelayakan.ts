@@ -46,7 +46,7 @@ function cek(s: DefinisiSyarat, m: ProfilKelayakan, kodeMK: string | undefined, 
  * Menilai kelayakan satu ujian. `kodeMK` wajib untuk syarat kehadiran (ujian semester).
  * Layak hanya bila SEMUA syarat terpenuhi; urutan syarat mengikuti konfigurasi.
  */
-export function evaluasiKelayakan(m: ProfilKelayakan, aturan: AturanUjian, kodeMK?: string): HasilKelayakan {
+export function evaluasiKelayakan(m: ProfilKelayakan, aturan: Pick<AturanUjian, 'syarat' | 'sumber'>, kodeMK?: string): HasilKelayakan {
   const contoh = masihContoh(aturan)
   const syarat = aturan.syarat.map((s) => cek(s, m, kodeMK, contoh))
   return { layak: syarat.every((s) => s.terpenuhi), syarat }

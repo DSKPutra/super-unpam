@@ -22,6 +22,8 @@ const roleFor = (username: string): Role => {
 }
 
 const ok = <T>(v: T) => Promise.resolve(v)
+const taMock = new Map(demo.antrianJudul.map((t) => [t.id, t]))
+const taPemilik = new Map<string, string>(demo.antrianJudul.map((t) => [t.id, 'mahasiswa-contoh']))
 
 export const mock: Connectors = {
   sso: {
@@ -45,6 +47,15 @@ export const mock: Connectors = {
     getPengajuanUjian: () => ok(demo.pengajuanUjian),
     // Mock: tidak menyimpan; mengembalikan bentuk respons yang sama dengan sistem asli.
     ajukanUjian: (_sub, input) => ok({ ...input, id: `pj-${Date.now().toString(36)}`, status: 'DIAJUKAN' as const, diajukan: new Date().toISOString() }),
+    // Tugas akhir: disimpan di memori instance function saja (data contoh, hilang saat instance berganti).
+    getRingkasanTA: (sub) => ok({ tugasAkhir: [...taMock.values()].find((t) => taPemilik.get(t.id) === sub) ?? null, dosen: demo.dosenPembimbing, judulTerdaftar: demo.judulTerdaftar }),
+    getAntrianTA: () => ok([...taMock.values()].filter((t) => t.status === 'DIAJUKAN')),
+    getTA: (id) => ok(taMock.get(id) ?? null),
+    simpanTA: (sub, ta) => {
+      if (!taPemilik.has(ta.id)) taPemilik.set(ta.id, sub)
+      taMock.set(ta.id, ta)
+      return ok(ta)
+    },
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },

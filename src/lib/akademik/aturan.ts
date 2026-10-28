@@ -19,7 +19,8 @@ export function validasiAturan(daftar: AturanProdi[]): string[] {
   for (const a of daftar) {
     const at = `prodi "${a.prodi}"`
     if (!Number.isInteger(a.desimal) || a.desimal < 0 || a.desimal > 4) m.push(`${at}: desimal harus bilangan bulat 0–4.`)
-    for (const k of ['maksKarakterJudul', 'kuotaBimbingan', 'jedaBimbinganHari'] as const) if (!(a[k] > 0)) m.push(`${at}: ${k} harus lebih dari 0.`)
+    for (const k of ['maksKarakterJudul', 'kuotaBimbingan', 'jedaBimbinganHari', 'perkiraanSksPerSemester', 'jumlahPilihanPembimbing'] as const) if (!(a[k] > 0)) m.push(`${at}: ${k} harus lebih dari 0.`)
+    if (!(a.ambangKemiripanJudul > 0 && a.ambangKemiripanJudul <= 1)) m.push(`${at}: ambangKemiripanJudul harus 0–1.`)
     if (a.hurufMutu.length === 0) m.push(`${at}: hurufMutu kosong.`)
     if (!a.hurufMutu.some((h) => h.min === 0)) m.push(`${at}: hurufMutu harus punya batas min 0 agar setiap nilai mendapat huruf.`)
 

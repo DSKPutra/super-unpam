@@ -1,4 +1,4 @@
-import type { PeranAlur, RiwayatAlur, StatusTugasAkhir, TugasAkhir } from './types'
+import type { PeranAlur, RiwayatAlur, StatusTugasAkhir, TugasAkhir } from './types.js'
 
 // Mesin status tugas akhir yang tegas: hanya transisi di tabel yang sah, dengan pelaku yang boleh,
 // dan penjaga (guard) yang memeriksa konteks. Transisi lain ditolak dan tidak mengubah apa pun.

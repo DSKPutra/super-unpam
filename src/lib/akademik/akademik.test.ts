@@ -168,7 +168,7 @@ describe('deteksiBentrok & deteksiBeruntun', () => {
 
 /* ---------------- Alur skripsi ---------------- */
 
-const ta = (status: StatusTugasAkhir, extra: Partial<TugasAkhir> = {}): TugasAkhir => ({ id: 'ta1', judul: 'Judul', abstrak: '', bidang: 'RPL', pembimbing: ['D1'], status, riwayat: [], ...extra })
+const ta = (status: StatusTugasAkhir, extra: Partial<TugasAkhir> = {}): TugasAkhir => ({ id: 'ta1', judul: 'Judul', abstrak: '', bidang: 'RPL', metode: '', pilihanPembimbing: ['D1'], pembimbing: ['D1'], status, riwayat: [], perubahan: [], ...extra })
 const WAKTU = '2026-10-28T03:00:00.000Z'
 const konteksSah = (pelaku: PeranAlur) => ({ pelaku, layak: true, pembimbing: ['D1'], catatan: 'Alasan', waktu: WAKTU })
 
