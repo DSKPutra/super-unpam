@@ -2,9 +2,12 @@ import { request } from '../api'
 import { transisi, type Peristiwa } from '../akademik/alur-skripsi'
 import type { DataPengajuanJudul } from '../akademik/judul'
 import { tambahVersi, bimbinganSah } from '../akademik/logbook'
-import { aturanUjian, aturanUntuk } from '../akademik/aturan'
+import { aturanUjian, aturanUntuk, rubrikUntuk } from '../akademik/aturan'
+import { hitungNilaiPratinjau } from '../akademik/nilai'
+import { dataPenilaianBaru, tutupPendaftaran, hasilUntukMahasiswa, kirimLembar as kirimLembarMurni, lembarTerlihat, peristiwaHasil, rilisHasil as rilisHasilMurni } from '../akademik/penilaian'
+import { transisi as transisiAlur } from '../akademik/alur-skripsi'
 import { jalankanAksi, pendaftaranBaru, unggahBerkas, verifikasiBerkas as verifikasiBerkasMurni, type AksiPendaftaran } from '../akademik/pendaftaran'
-import type { BerkasUjian, Bimbingan, JenisUjianAkhir, Logbook, PendaftaranUjianAkhir, PeranAlur, PermintaanPerubahan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir, VersiDraf } from '../akademik/types'
+import type { BerkasUjian, Bimbingan, DataPenilaian, HasilUjian, HasilUntukMahasiswa, JenisUjianAkhir, LembarPenilaian, Logbook, PendaftaranUjianAkhir, PeranAlur, PermintaanPerubahan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir, VersiDraf } from '../akademik/types'
 import type { DariSumber } from '../types'
 
 /** Sumber data Skripsi/TA. Komponen hanya mengenal antarmuka ini. */
@@ -33,6 +36,23 @@ export interface SumberTA {
   verifikasiBerkasUjian(pendaftaranId: string, berkasId: string, status: 'DIVERIFIKASI' | 'DITOLAK', alasan?: string): Promise<DariSumber<PendaftaranUjianAkhir>>
   /** Dosen (DEMO): pendaftaran yang menunggu persetujuannya. */
   antrianUjianAkhir(): Promise<DariSumber<{ ta: TugasAkhir; pendaftaran: PendaftaranUjianAkhir }[]>>
+  /** Ujian yang saya uji (DEMO: `pengujiId` dipilih; server memetakan dari sesi — TODO BFF-AUTHZ). */
+  ujianSaya(pengujiId: string): Promise<DariSumber<UjianPenguji[]>>
+  /** Kirim lembar final. `simulasiWaktu` hanya untuk mode demo (memperagakan hari ujian). */
+  kirimLembar(pendaftaranId: string, l: LembarPenilaian, simulasiWaktu?: number): Promise<DariSumber<DataPenilaian>>
+  /** Rilis hasil oleh prodi (DEMO dari layar dosen sampai T08). */
+  rilisHasil(pendaftaranId: string, keputusan: HasilUjian['keputusan']): Promise<DariSumber<DataPenilaian>>
+  hasilUjian(pendaftaranId: string): Promise<DariSumber<HasilUntukMahasiswa>>
+}
+
+export interface UjianPenguji {
+  ta: TugasAkhir
+  pendaftaran: PendaftaranUjianAkhir
+  /** Hanya lembar yang boleh dilihat penguji ini (lihat lembarTerlihat). */
+  penilaian: DataPenilaian
+  /** Semua penguji sudah mengirim (pratinjau & rilis boleh). */
+  lengkap: boolean
+  drafTerakhir?: VersiDraf
 }
 
 export interface DataUjianAkhir {
@@ -104,6 +124,23 @@ const cariPendaftaran = (id: string) => {
   if (!p) throw new Error('Pendaftaran tidak ditemukan.')
   return p
 }
+
+export const PENILAIAN_DEMO_KEY = 'su:ta:penilaian'
+const bacaNilai = (): Record<string, DataPenilaian> => {
+  try {
+    return JSON.parse(localStorage.getItem(PENILAIAN_DEMO_KEY) ?? '{}') as Record<string, DataPenilaian>
+  } catch {
+    return {}
+  }
+}
+const tulisNilai = (d: DataPenilaian) => {
+  try {
+    localStorage.setItem(PENILAIAN_DEMO_KEY, JSON.stringify({ ...bacaNilai(), [d.pendaftaranId]: d }))
+  } catch {
+    /* penyimpanan tidak tersedia */
+  }
+}
+const nilaiUntuk = (pid: string) => bacaNilai()[pid] ?? dataPenilaianBaru(pid)
 
 async function lbDemo(taId: string): Promise<Logbook> {
   const d = await demo()
@@ -234,6 +271,53 @@ export const taDemo: SumberTA = {
     simpanPendaftaran(r.p)
     return contoh(r.p)
   },
+  async ujianSaya(pengujiId) {
+    const ta = baca().milikSaya
+    if (!ta) return contoh([])
+    const lb = await lbDemo(ta.id)
+    const drafTerakhir = [...lb.versi].sort((a, b) => b.versi - a.versi)[0]
+    return contoh(
+      bacaUA().pendaftaran
+        .filter((p) => (p.status === 'TERJADWAL' || p.status === 'SELESAI') && p.sesi && p.sesi.petugas.includes(pengujiId))
+        .map((pendaftaran) => {
+          const d = nilaiUntuk(pendaftaran.id)
+          const terlihat = lembarTerlihat(d, pendaftaran.sesi!, pengujiId)
+          return { ta, pendaftaran, penilaian: { ...d, lembar: terlihat }, lengkap: terlihat.length === pendaftaran.sesi!.petugas.length && terlihat.every((l) => l.dikirim), drafTerakhir }
+        }),
+    )
+  },
+  async kirimLembar(pid, l, simulasiWaktu) {
+    const d = await demo()
+    const p = cariPendaftaran(pid)
+    const rubrik = rubrikUntuk(aturanUntuk(d.profilKelayakan.prodi), p.jenis)
+    if (!p.sesi || !rubrik) throw new Error('Ujian belum terjadwal atau rubrik belum tersedia.')
+    const r = kirimLembarMurni(nilaiUntuk(pid), l, { sesi: p.sesi, rubrik, aturan: aturanUjian(aturanUntuk(d.profilKelayakan.prodi), p.jenis), now: simulasiWaktu ?? Date.now() })
+    if (!r.ok) throw new Error(r.galat)
+    tulisNilai(r.data)
+    return contoh(r.data)
+  },
+  async rilisHasil(pid, keputusan) {
+    const d = await demo()
+    const p = cariPendaftaran(pid)
+    const aturan = aturanUntuk(d.profilKelayakan.prodi)
+    const rubrik = rubrikUntuk(aturan, p.jenis)
+    const data = nilaiUntuk(pid)
+    if (!p.sesi || !rubrik) throw new Error('Ujian belum terjadwal atau rubrik belum tersedia.')
+    // Mode demo: "nilai resmi" = pratinjau rubrik (berlabel contoh). Di server, nilai resmi dari MY UNPAM.
+    const pr = data.lembar.length ? hitungNilaiPratinjau(rubrik, data.lembar.filter((x) => x.dikirim), aturan.hurufMutu, aturan.desimal) : null
+    const r = rilisHasilMurni(data, p.sesi, keputusan, { oleh: 'prodi-demo', now: Date.now(), nilaiAkhir: pr?.nilai, huruf: pr?.huruf })
+    if (!r.ok) throw new Error(r.galat)
+    tulisNilai(r.data)
+    simpanPendaftaran(tutupPendaftaran(p, Date.now()))
+    const s = baca()
+    if (s.milikSaya?.id === p.tugasAkhirId) {
+      const ev = peristiwaHasil(keputusan, s.milikSaya.status)
+      const t = ev && transisiAlur(s.milikSaya, ev, { pelaku: 'PRODI', catatan: keputusan === 'TIDAK_LULUS' ? 'Hasil ujian: tidak lulus' : undefined })
+      if (t && t.ok) tulis({ ...s, milikSaya: t.ta })
+    }
+    return contoh(r.data)
+  },
+  hasilUjian: async (pid) => contoh(hasilUntukMahasiswa(bacaNilai()[pid] ?? null)),
   async antrianUjianAkhir() {
     const ta = baca().milikSaya
     return contoh(ta ? bacaUA().pendaftaran.filter((p) => p.tugasAkhirId === ta.id && p.status === 'MENUNGGU_PEMBIMBING').map((pendaftaran) => ({ ta, pendaftaran })) : [])
@@ -259,4 +343,8 @@ export const taHttp: SumberTA = {
   aksiPendaftaran: (pendaftaranId, aksi, opsi) => request('ta/aksi-ujian', { method: 'POST', body: JSON.stringify({ pendaftaranId, aksi, ...opsi }) }),
   verifikasiBerkasUjian: (pendaftaranId, berkasId, status, alasan) => request('ta/verifikasi-berkas', { method: 'POST', body: JSON.stringify({ pendaftaranId, berkasId, status, alasan }) }),
   antrianUjianAkhir: () => request('ta/antrian-ujian'),
+  ujianSaya: (pengujiId) => request(`ta/ujian-saya?pengujiId=${encodeURIComponent(pengujiId)}`),
+  kirimLembar: (pendaftaranId, l) => request('ta/lembar', { method: 'POST', body: JSON.stringify({ pendaftaranId, ...l }) }),
+  rilisHasil: (pendaftaranId, keputusan) => request('ta/rilis', { method: 'POST', body: JSON.stringify({ pendaftaranId, keputusan }) }),
+  hasilUjian: (pendaftaranId) => request(`ta/hasil?pendaftaranId=${encodeURIComponent(pendaftaranId)}`),
 }

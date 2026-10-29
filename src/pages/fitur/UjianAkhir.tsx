@@ -10,6 +10,7 @@ import type { Dosen, JenisUjianAkhir, Logbook, PendaftaranUjianAkhir, StatusPend
 import { sumber } from '../../lib/sumber'
 import { useResource } from '../../lib/useResource'
 import { Badge, LinkBtn, Section, Skeleton } from '../../components/ui'
+import { HasilUjianMahasiswa } from './Penilaian'
 
 // T05 Pendaftaran ujian akhir: kelayakan, checklist berkas, persetujuan pembimbing, pilih slot prodi,
 // pembatalan/jadwal ulang, dan halaman persiapan. Kelayakan resmi dihitung server (jalankanAksi).
@@ -18,7 +19,7 @@ const zona = { timeZone: 'Asia/Jakarta' } as const
 const tgl = (iso: string) => new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', ...zona }).format(new Date(iso))
 const jam = (iso: string) => new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', ...zona }).format(new Date(iso))
 const LANGKAH: StatusPendaftaran[] = ['DRAF', 'MENUNGGU_PEMBIMBING', 'DIVERIFIKASI_PRODI', 'TERJADWAL']
-const LABEL: Record<StatusPendaftaran, string> = { DRAF: 'Persiapan berkas', MENUNGGU_PEMBIMBING: 'Menunggu pembimbing', DIVERIFIKASI_PRODI: 'Pilih jadwal', TERJADWAL: 'Terjadwal', DIBATALKAN: 'Dibatalkan' }
+const LABEL: Record<StatusPendaftaran, string> = { DRAF: 'Persiapan berkas', MENUNGGU_PEMBIMBING: 'Menunggu pembimbing', DIVERIFIKASI_PRODI: 'Pilih jadwal', TERJADWAL: 'Terjadwal', DIBATALKAN: 'Dibatalkan', SELESAI: 'Selesai' }
 const STATUS_BERKAS = {
   BELUM: { teks: 'Belum diunggah', tone: 'slate', Icon: Circle },
   DIUNGGAH: { teks: 'Menunggu verifikasi', tone: 'blue', Icon: Hourglass },
@@ -53,7 +54,9 @@ export function UjianAkhirMahasiswa({ ta, aturan, dosen, go, onBerubah }: { ta: 
   const aktifUntuk = (j: JenisUjianAkhir) => data.data?.data.pendaftaran.filter((p) => p.jenis === j && p.status !== 'DIBATALKAN').at(-1)
   // Urutan: pilihan pengguna → yang terjadwal → yang sedang berjalan → satu-satunya jenis yang tersedia.
   const pilihan = jenis ?? terjadwal?.jenis ?? tersedia.find((j) => aktifUntuk(j)) ?? (tersedia.length === 1 ? tersedia[0] : null)
-  if (!terjadwal && tersedia.length === 0) return null
+  // Tetap tampil bila ada ujian yang sudah selesai: hasil & butir revisi dibutuhkan saat tahap revisi.
+  const adaSelesai = !!data.data?.data.pendaftaran.some((p) => p.status === 'SELESAI')
+  if (!terjadwal && tersedia.length === 0 && !adaSelesai) return null
   if (data.error || lb.error || profil.error) return <Section title="Ujian akhir"><p className="glass p-4 text-sm text-mid">{(data.error ?? lb.error ?? profil.error)!.message}</p></Section>
   if (!data.data || !lb.data || !profil.data) return <Section title="Ujian akhir"><Skeleton rows={2} /></Section>
 
@@ -75,6 +78,12 @@ export function UjianAkhirMahasiswa({ ta, aturan, dosen, go, onBerubah }: { ta: 
 
   return (
     <Section title="Ujian akhir">
+      {data.data.data.pendaftaran.filter((x) => x.status === 'SELESAI' && x.jenis !== pilihan).map((x) => (
+        <div key={x.id} className="mb-3">
+          <h3 className="mb-1 text-sm font-semibold">{aturanUjian(aturan, x.jenis).nama} (selesai)</h3>
+          <HasilUjianMahasiswa pendaftaranId={x.id} dosen={dosen} />
+        </div>
+      ))}
       {!terjadwal && tersedia.length > 1 && (
         <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Jenis ujian akhir">
           {tersedia.map((j) => (
@@ -86,7 +95,7 @@ export function UjianAkhirMahasiswa({ ta, aturan, dosen, go, onBerubah }: { ta: 
       )}
       <p role="status" aria-live="polite" className="mb-2 min-h-5 text-sm text-mid">{pesan}</p>
       {!pilihan ? (
-        <p className="glass p-4 text-sm text-mid">Pilih jenis ujian akhir.</p>
+        tersedia.length > 0 && <p className="glass p-4 text-sm text-mid">Pilih jenis ujian akhir.</p>
       ) : !p ? (
         <div className="glass p-4 text-sm">
           <p>Belum ada pendaftaran {aturanUjian(aturan, pilihan).nama}.</p>
@@ -176,6 +185,7 @@ function Pendaftaran(props: {
       {p.status === 'MENUNGGU_PEMBIMBING' && <p className="glass p-4 text-sm text-mid">Menunggu pembimbing memeriksa berkas dan menyetujui pendaftaran.</p>}
       {p.status === 'DIVERIFIKASI_PRODI' && <PilihSlot {...props} layak={h.layak} />}
       {p.status === 'TERJADWAL' && <Persiapan {...props} />}
+      {(p.status === 'TERJADWAL' || p.status === 'SELESAI') && <HasilUjianMahasiswa pendaftaranId={p.id} dosen={props.dosen} />}
       {['MENUNGGU_PEMBIMBING', 'DIVERIFIKASI_PRODI', 'TERJADWAL'].includes(p.status) && <Batal {...props} />}
 
       <details className="text-sm">
