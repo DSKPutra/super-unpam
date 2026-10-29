@@ -7,6 +7,7 @@ import { sha256Hex } from '../../lib/akademik/logbook'
 import type { Dosen, Finalisasi as DataFinalisasi, Revisi, TugasAkhir } from '../../lib/akademik/types'
 import { cetak } from '../../lib/cetak'
 import { usePref } from '../../lib/prefs'
+import { bacaBerkas } from '../../lib/berkas'
 import { sumber } from '../../lib/sumber'
 import type { RevisiAktif } from '../../lib/sumber/ta'
 import { useResource } from '../../lib/useResource'
@@ -26,15 +27,6 @@ const STATUS_REV: Record<Revisi['status'], { teks: string; tone: 'slate' | 'blue
   DITOLAK: { teks: 'Ditolak', tone: 'red', Icon: XCircle },
 }
 
-function bacaBerkas(f: File): Promise<ArrayBuffer> {
-  if (typeof f.arrayBuffer === 'function') return f.arrayBuffer()
-  return new Promise((resolve, reject) => {
-    const r = new FileReader()
-    r.onload = () => resolve(r.result as ArrayBuffer)
-    r.onerror = () => reject(new Error('Berkas tidak dapat dibaca.'))
-    r.readAsArrayBuffer(f)
-  })
-}
 
 /** Dokumen cetak di portal; html.has-print-doc menyembunyikan aplikasi saat mencetak. */
 function DokumenCetak({ id, children }: { id: string; children: React.ReactNode }) {

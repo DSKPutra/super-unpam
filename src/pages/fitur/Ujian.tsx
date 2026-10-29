@@ -12,6 +12,7 @@ import { statusSumber, sumber } from '../../lib/sumber'
 import { useResource } from '../../lib/useResource'
 import type { User } from '../../lib/types'
 import { Badge, LinkBtn, PageHeader, Section, Skeleton, Tabs } from '../../components/ui'
+import { UjianDaring } from './UjianDaring'
 
 // #43 Exam Center v2 (T02): UTS, UAS, susulan, remedial. Data lewat src/lib/sumber/ujian.ts, aturan dari
 // src/data/aturan-akademik.ts, logika di src/lib/akademik. Kartu & QR hanya untuk mata kuliah yang layak.
@@ -52,6 +53,8 @@ export function Ujian({ user, back, go }: { user: User; back: () => void; go: (r
       {view && data && <JadwalView view={view} jadwal={data} user={user} go={go} namaJenis={aturan.nama} />}
 
       {(jenis === 'SUSULAN' || jenis === 'REMEDIAL') && <Pengajuan jenis={jenis} prodi={user.prodi} />}
+
+      {(jenis === 'UTS' || jenis === 'UAS') && <UjianDaring aturan={aturanUntuk(user.prodi)} />}
 
       {aturan.tataTertib.length > 0 && (
         <Section title="Tata tertib">

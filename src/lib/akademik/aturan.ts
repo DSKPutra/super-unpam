@@ -22,6 +22,8 @@ export function validasiAturan(daftar: AturanProdi[]): string[] {
     if (!(a.kuotaMaksBimbingan >= a.kuotaBimbingan)) m.push(`${at}: kuotaMaksBimbingan tidak boleh di bawah kuotaBimbingan.`)
     for (const [j, n] of Object.entries(a.pengujiUjian.jumlah)) if (!(Number.isInteger(n) && n >= 1)) m.push(`${at}: jumlah penguji ${j} harus bilangan bulat ≥ 1.`)
     if (!(a.pengujiUjian.maksUjianPerHari >= 1)) m.push(`${at}: maksUjianPerHari harus ≥ 1.`)
+    if (!(a.ujianDaring.toleransiDetik >= 0 && a.ujianDaring.toleransiDetik <= 600)) m.push(`${at}: toleransiDetik ujian daring harus 0–600.`)
+    if (!(a.ujianDaring.maksMB > 0) || a.ujianDaring.tipe.length === 0) m.push(`${at}: ujian daring butuh maksMB > 0 dan daftar tipe berkas.`)
     if (!(Number.isInteger(a.minimalAgregat) && a.minimalAgregat >= 2)) m.push(`${at}: minimalAgregat harus bilangan bulat ≥ 2.`)
     for (const k of ['maksKarakterJudul', 'kuotaBimbingan', 'jedaBimbinganHari', 'perkiraanSksPerSemester', 'jumlahPilihanPembimbing'] as const) if (!(a[k] > 0)) m.push(`${at}: ${k} harus lebih dari 0.`)
     if (!(a.ambangKemiripanJudul > 0 && a.ambangKemiripanJudul <= 1)) m.push(`${at}: ambangKemiripanJudul harus 0–1.`)

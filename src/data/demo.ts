@@ -373,3 +373,12 @@ export const jamBimbinganContoh: (AgendaDosen & { dosen: string })[] = [
   { id: 'jb-rina-1126', dosen: 'dsn-rina', peran: 'BIMBINGAN', judul: 'Jam bimbingan', mulai: wib('2026-11-26T13:00'), selesai: wib('2026-11-26T15:00'), ruang: 'R. Dosen 1' },
   { id: 'jb-siti-1125', dosen: 'dsn-siti', peran: 'BIMBINGAN', judul: 'Jam bimbingan', mulai: wib('2026-11-25T10:00'), selesai: wib('2026-11-25T12:00'), ruang: 'R. Dosen 3' },
 ]
+
+/** Ujian daring (T09, contoh untuk konektor mock): satu berlangsung, satu besok, satu sudah lewat. */
+export const ujianDaringContoh = (t = Date.now()) => {
+  const iso = (m: number) => new Date(t - (t % 3_600_000) + m * 60_000).toISOString()
+  return [
+    { id: 'dr-if301', kodeMK: 'IF301', namaMK: 'Basis Data Lanjut', jenis: 'UTS' as const, mulai: iso(-30), selesai: iso(120), perpanjanganMenit: 0, soal: { nama: 'Soal UTS Basis Data Lanjut (contoh).pdf', url: '#' } },
+    { id: 'dr-if305', kodeMK: 'IF305', namaMK: 'Kecerdasan Buatan', jenis: 'UTS' as const, mulai: iso(24 * 60), selesai: iso(24 * 60 + 100), perpanjanganMenit: 0, soal: { nama: 'Soal UTS Kecerdasan Buatan (contoh).pdf', url: '#' } },
+  ]
+}

@@ -16,6 +16,7 @@ import type {
   Task,
   User,
 } from '../../src/lib/types.js'
+import type { KirimanJawaban, SesiDaring } from '../../src/lib/akademik/ujian-daring.js'
 import type { AgendaDosen } from '../../src/lib/akademik/dosen-prodi.js'
 import type { DataPenilaian, Finalisasi, JadwalUjianSemester, JenisUjianAkhir, JenisUjianSemester, Logbook, PendaftaranUjianAkhir, PengajuanUjian, ProfilKelayakan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir } from '../../src/lib/akademik/types.js'
 
@@ -41,6 +42,10 @@ export interface MyUnpamConnector {
   getProfilKelayakan(sub: string): Promise<ProfilKelayakan>
   getPengajuanUjian(sub: string): Promise<PengajuanUjian[]>
   ajukanUjian(sub: string, input: Omit<PengajuanUjian, 'id' | 'status' | 'diajukan'>): Promise<PengajuanUjian>
+  /** T09 — sesi ujian daring pemegang sesi (dengan soal; BFF menyaringnya sebelum mulai) dan kirimannya. */
+  getUjianDaring(sub: string): Promise<SesiDaring[]>
+  getKirimanDaring(sub: string, sesiId: string): Promise<KirimanJawaban[]>
+  simpanKirimanDaring(sub: string, sesiId: string, daftar: KirimanJawaban[]): Promise<void>
   getRingkasanTA(sub: string): Promise<RingkasanTA>
   /** Pengajuan judul yang menunggu keputusan dosen pemegang sesi. */
   getAntrianTA(sub: string): Promise<TugasAkhir[]>
