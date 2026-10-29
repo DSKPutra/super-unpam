@@ -10,7 +10,8 @@
     "tauri": "tauri",
     "typecheck:api": "tsc -p tsconfig.api.json",
     "test": "vitest run",
-    "test:print": "node scripts/test-print.mjs"
+    "test:print": "node scripts/test-print.mjs",
+    "docs": "node scripts/dokumentasi.mjs"
   },
   "dependencies": {
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
