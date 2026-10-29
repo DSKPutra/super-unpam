@@ -22,22 +22,13 @@ const tgl = (iso: string) => new Intl.DateTimeFormat('id-ID', { weekday: 'short'
 const jam = (iso: string) => new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', ...zona }).format(new Date(iso))
 const LABEL_REK: Record<LembarPenilaian['rekomendasi'], string> = { LULUS: 'Lulus', LULUS_REVISI: 'Lulus dengan revisi', TIDAK_LULUS: 'Tidak lulus' }
 
-export function UjianSayaDosen({ aturan, dosen }: { aturan: AturanProdi; dosen: Dosen[] }) {
-  // DEMO: dosen memilih identitas penguji untuk memperagakan beberapa penguji di satu perangkat.
-  const [tersimpan, setPenguji] = usePref<string>('ta:penguji-demo', '')
-  // Daftar dosen dimuat belakangan: pilihan kosong/tidak dikenal jatuh ke dosen pertama.
-  const penguji = dosen.some((d) => d.id === tersimpan) ? tersimpan : (dosen[0]?.id ?? '')
+/** `penguji` = identitas dosen demo yang dipilih di layar dosen (lihat SisiDosen). */
+export function UjianSayaDosen({ aturan, dosen, penguji }: { aturan: AturanProdi; dosen: Dosen[]; penguji: string }) {
   const muat = useCallback(() => sumber.ta.ujianSaya(penguji), [penguji])
   const res = useResource(muat)
   const nama = (id: string) => dosen.find((d) => d.id === id)?.nama ?? id
   return (
     <Section title="Ujian yang saya uji">
-      <label className="mb-3 block text-sm font-semibold">
-        Bertindak sebagai penguji (demo)
-        <select value={penguji} onChange={(e) => setPenguji(e.target.value)} className="mt-1.5 w-full min-h-11 rounded-xl border border-line bg-glass-strong px-3">
-          {dosen.map((d) => <option key={d.id} value={d.id}>{d.nama}</option>)}
-        </select>
-      </label>
       {!res.data ? (
         <Skeleton rows={1} />
       ) : res.data.data.length === 0 ? (

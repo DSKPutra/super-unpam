@@ -23,9 +23,10 @@ const roleFor = (username: string): Role => {
 }
 
 const ok = <T>(v: T) => Promise.resolve(v)
-const taMock = new Map([...demo.antrianJudul, demo.taBimbinganContoh].map((t) => [t.id, t]))
+const taMock = new Map([...demo.antrianJudul, demo.taBimbinganContoh, ...demo.angkatanContoh].map((t) => [t.id, t]))
+const kuotaMock = new Map<string, { kuota: number; tutup: boolean }>()
 const lbMock = new Map([[demo.logbookContoh.tugasAkhirId, demo.logbookContoh]])
-const pdMock = new Map<string, PendaftaranUjianAkhir>()
+const pdMock = new Map<string, PendaftaranUjianAkhir>(demo.pendaftaranContoh.map((p) => [p.id, p]))
 const slotTerisi = new Map<string, number>()
 const nilaiMock = new Map<string, DataPenilaian>()
 const finMock = new Map<string, Finalisasi>()
@@ -54,7 +55,7 @@ export const mock: Connectors = {
     // Mock: tidak menyimpan; mengembalikan bentuk respons yang sama dengan sistem asli.
     ajukanUjian: (_sub, input) => ok({ ...input, id: `pj-${Date.now().toString(36)}`, status: 'DIAJUKAN' as const, diajukan: new Date().toISOString() }),
     // Tugas akhir: disimpan di memori instance function saja (data contoh, hilang saat instance berganti).
-    getRingkasanTA: (sub) => ok({ tugasAkhir: [...taMock.values()].find((t) => taPemilik.get(t.id) === sub) ?? null, dosen: demo.dosenPembimbing, judulTerdaftar: demo.judulTerdaftar }),
+    getRingkasanTA: (sub) => ok({ tugasAkhir: [...taMock.values()].find((t) => taPemilik.get(t.id) === sub) ?? null, dosen: demo.dosenPembimbing.map((d) => ({ ...d, ...kuotaMock.get(d.id) })), judulTerdaftar: demo.judulTerdaftar }),
     getAntrianTA: () => ok([...taMock.values()].filter((t) => t.status === 'DIAJUKAN')),
     getTA: (id) => ok(taMock.get(id) ?? null),
     simpanTA: (sub, ta) => {
@@ -82,6 +83,11 @@ export const mock: Connectors = {
     simpanPenilaian: (d) => (nilaiMock.set(d.pendaftaranId, d), ok(d)),
     getFinalisasi: (taId) => ok(finMock.get(taId) ?? null),
     simpanFinalisasi: (f) => (finMock.set(f.tugasAkhirId, f), ok(f)),
+    getSemuaTA: () => ok([...taMock.values()]),
+    getNilaiUjianAkhir: () => ok(demo.nilaiUjianContoh),
+    getPengawasan: () => ok(demo.pengawasanContoh),
+    getJamBimbingan: (dosenId) => ok(demo.jamBimbinganContoh.filter((j) => j.dosen === dosenId).map(({ dosen: _, ...a }) => a)),
+    simpanKuota: (dosenId, k) => (kuotaMock.set(dosenId, k), ok(undefined)),
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },

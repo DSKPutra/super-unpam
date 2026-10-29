@@ -48,6 +48,12 @@ export function buatIcs(sesi: SesiUjian[], namaJenis: (s: SesiUjian) => string, 
   return kalender(sesi.flatMap((s) => vevent({ uid: s.id, mulai: s.mulai, selesai: s.selesai, judul: `${namaJenis(s)}: ${s.nama}`, lokasi: `${s.ruang}${s.kursi ? ` · kursi ${s.kursi}` : ''}`, pengingat: s.nama }, stamp)))
 }
 
+/** Agenda bebas (mis. kalender dosen, T08) → .ics dengan alarm H-1 dan 2 jam. */
+export function buatIcsAgenda(daftar: { id: string; mulai: string; selesai: string; judul: string; lokasi?: string }[], sekarang = new Date()): string {
+  const stamp = tglIcs(sekarang.toISOString())
+  return kalender(daftar.flatMap((a) => vevent({ uid: a.id.replace(/[^\w.-]/g, '-'), mulai: a.mulai, selesai: a.selesai, judul: a.judul, lokasi: a.lokasi, pengingat: a.judul }, stamp)))
+}
+
 /** Tenggat apa pun (tugas bimbingan, dsb.) → .ics dengan alarm H-1 dan 2 jam. */
 export function buatIcsTenggat(daftar: Tenggat[], sekarang = new Date()): string {
   const stamp = tglIcs(sekarang.toISOString())

@@ -138,7 +138,7 @@ describe('Finalisasi & administrasi lulus', () => {
 
     // Simulasi prodi menandai semua item selesai.
     cleanup()
-    tampil('DOSEN')
+    tampil('TENDIK')
     const sec = (await screen.findByRole('heading', { name: 'Simulasi prodi (demo)' })).closest('section')!
     for (const item of ATURAN_BAWAAN.adminLulus.item) {
       fireEvent.click(await within(sec).findByRole('button', { name: `Tandai selesai ${item.label}` }))
@@ -153,7 +153,7 @@ describe('Finalisasi & administrasi lulus', () => {
     expect(await screen.findByText(/Terdaftar wisuda sejak/)).toBeTruthy()
     cleanup()
 
-    tampil('DOSEN')
+    tampil('TENDIK')
     const sec2 = (await screen.findByRole('heading', { name: 'Simulasi prodi (demo)' })).closest('section')!
     fireEvent.click(within(sec2).getByRole('button', { name: 'Nyatakan selesai' }))
     await within(sec2).findByText(/dinyatakan selesai/)
