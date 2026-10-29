@@ -1,14 +1,14 @@
 import type { ComponentType } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { Dict } from '../../lib/i18n'
-import type { Bill, CampusEvent, NewsItem, Role, ScheduleItem, Task, User } from '../../lib/types'
+import type { Bill, CampusEvent, NewsFeed, Role, ScheduleItem, Task, User } from '../../lib/types'
 import type { Resource } from '../../lib/useResource'
 
 /** Data Beranda yang dipakai lebih dari satu widget: dimuat sekali di Home, lalu dibagikan. */
 export interface HomeData {
   schedule: Resource<ScheduleItem[]>
   events: Resource<CampusEvent[]>
-  news: Resource<NewsItem[]>
+  news: Resource<NewsFeed>
   bills: Resource<Bill[]>
   tasks: Resource<Task[]>
 }
