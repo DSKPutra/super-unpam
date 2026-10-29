@@ -13,6 +13,7 @@ import { Badge, LinkBtn, PageHeader, Section, Skeleton } from '../../components/
 import { BimbinganDosen, LogbookMahasiswa } from './Logbook'
 import { AntrianUjianDosen, UjianAkhirMahasiswa } from './UjianAkhir'
 import { UjianSayaDosen } from './Penilaian'
+import { FinalisasiMahasiswa, RevisiDosen, RevisiMahasiswa, SimulasiProdi } from './Finalisasi'
 
 // T03 Skripsi/Tugas Akhir: syarat mulai, pengajuan judul + calon pembimbing, kemiripan judul, linimasa
 // status dari mesin alur (src/lib/akademik/alur-skripsi.ts), dan sisi dosen (DEMO).
@@ -349,6 +350,8 @@ function StatusTA({ ta, user, aturan, dosen, proses, go, onPeristiwa, onPerubaha
         )}
       </Section>
 
+      {(ta.status === 'YUDISIUM' || ta.status === 'SELESAI') && <FinalisasiMahasiswa ta={ta} aturan={aturan} go={go} onBerubah={muatUlang} />}
+      {!SEBELUM_BIMBINGAN.includes(ta.status) && <RevisiMahasiswa ta={ta} user={user} dosen={dosen} onBerubah={muatUlang} />}
       {!SEBELUM_BIMBINGAN.includes(ta.status) && <UjianAkhirMahasiswa ta={ta} aturan={aturan} dosen={dosen} go={go} onBerubah={muatUlang} />}
       {!SEBELUM_BIMBINGAN.includes(ta.status) && <LogbookMahasiswa ta={ta} user={user} aturan={aturan} dosen={dosen} go={go} />}
       {ta.pembimbing.length > 0 && <Perubahan ta={ta} dosen={dosen} onAjukan={onPerubahan} />}
@@ -463,6 +466,8 @@ function SisiDosen({ user }: { user: User }) {
         )}
       </Section>
       <UjianSayaDosen aturan={aturanUntuk(user.prodi)} dosen={dosen.data?.data.dosen ?? []} />
+      <RevisiDosen dosen={dosen.data?.data.dosen ?? []} />
+      <SimulasiProdi ta={dosen.data?.data.tugasAkhir ?? null} aturan={aturanUntuk(user.prodi)} />
       <AntrianUjianDosen aturan={aturanUntuk(user.prodi)} />
       <BimbinganDosen aturan={aturanUntuk(user.prodi)} />
     </>

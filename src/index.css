@@ -272,6 +272,10 @@ h3,
   html.has-print-doc #root {
     display: none !important;
   }
+  /* Saat dicetak lewat cetak(id) (src/lib/cetak.ts) hanya dokumen yang diminta yang tampil. */
+  html[data-cetak] .print-doc:not([data-aktif]) {
+    display: none !important;
+  }
   .print-doc {
     display: block;
     color: #000;

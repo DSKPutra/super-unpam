@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { transisi, type Peristiwa } from '../../src/lib/akademik/alur-skripsi.js'
 import { aturanUjian, aturanUntuk, rubrikUntuk } from '../../src/lib/akademik/aturan.js'
 import { bimbinganSah, tambahVersi, validasiEntri, VersiDitolak } from '../../src/lib/akademik/logbook.js'
+import { ajukanAdmin, ajukanRevisi, finalisasiBaru, lengkapiTenggat, putuskanRevisi, semuaRevisiDisetujui, simpanNaskahFinal, siapLulus, tandaiDikerjakan } from '../../src/lib/akademik/finalisasi.js'
 import { dataPenilaianBaru, tutupPendaftaran, hasilUntukMahasiswa, kirimLembar, lembarTerlihat, peristiwaHasil, rilisHasil } from '../../src/lib/akademik/penilaian.js'
 import { jalankanAksi, pendaftaranBaru, unggahBerkas, verifikasiBerkas, type AksiPendaftaran } from '../../src/lib/akademik/pendaftaran.js'
 import { JENIS_UJIAN_AKHIR } from '../../src/lib/akademik/types.js'
@@ -24,6 +25,9 @@ import { requireSession } from '../_lib/session.js'
 // GET  /api/ta/ujian-saya?pengujiId (DOSEN), /api/ta/hasil?pendaftaranId (MAHASISWA; hanya setelah rilis)
 // POST /api/ta/lembar (DOSEN, final, di jendela waktu), /api/ta/rilis (TENDIK/prodi)
 // TODO(BFF-AUTHZ): pengujiId harus dipetakan dari sesi dosen, bukan dikirim klien.
+// GET  /api/ta/revisi?taId, /api/ta/revisi-penguji?pengujiId, /api/ta/finalisasi?taId
+// POST /api/ta/revisi (mahasiswa: dikerjakan/ajukan; dosen: putuskan), /api/ta/finalisasi (mahasiswa: naskah,
+//      ajukan admin, daftar wisuda; TENDIK: admin selesai, selesaikan). Plagiasi: 503 sampai ada penyedia resmi.
 // TODO(BFF-AUTHZ): dosen hanya boleh memutuskan/memverifikasi untuk mahasiswa yang ia bimbing.
 
 const wrap = <T>(data: T): DariSumber<T> => ({ data, asal: connectorMode('myUnpam') === 'mock' ? 'contoh' : 'MY UNPAM' })
@@ -76,6 +80,25 @@ export const GET = handle(async (req) => {
       if (!p) throw new HttpError(404, 'Pendaftaran tidak ditemukan.')
       await milikSendiri(s.sub, p.tugasAkhirId)
       return json(wrap(hasilUntukMahasiswa(await connectors.myUnpam.getPenilaian(p.id))))
+    }
+    case 'revisi': {
+      const s = requireSession(req, ['MAHASISWA'])
+      const taId = new URL(req.url).searchParams.get('taId') ?? ''
+      await milikSendiri(s.sub, taId)
+      return json(wrap(await revisiAktif(taId)))
+    }
+    case 'revisi-penguji': {
+      requireSession(req, ['DOSEN'])
+      const pengujiId = new URL(req.url).searchParams.get('pengujiId') ?? ''
+      const semua = await Promise.all((await connectors.myUnpam.getPendaftaranTerjadwal()).map((p) => revisiAktif(p.tugasAkhirId)))
+      const unik = [...new Map(semua.filter((x) => x).map((x) => [x!.pendaftaran.id, x!])).values()]
+      return json(wrap(unik.filter((x) => x.revisi.some((r) => r.pengujiId === pengujiId)).map((x) => ({ ...x, revisi: x.revisi.filter((r) => r.pengujiId === pengujiId) }))))
+    }
+    case 'finalisasi': {
+      const s = requireSession(req, ['MAHASISWA'])
+      const taId = new URL(req.url).searchParams.get('taId') ?? ''
+      await milikSendiri(s.sub, taId)
+      return json(wrap((await connectors.myUnpam.getFinalisasi(taId)) ?? finalisasiBaru(taId)))
     }
     case 'antrian': {
       const s = requireSession(req, ['DOSEN'])
@@ -206,6 +229,104 @@ async function postPenilaian(req: Request, aksi: string) {
   return json(wrap(await connectors.myUnpam.simpanPenilaian(r.data)))
 }
 
+async function revisiAktif(taId: string) {
+  const ta = await connectors.myUnpam.getTA(taId)
+  if (!ta) return null
+  const aturan = aturanUntuk((await connectors.myUnpam.getProfilKelayakan('mahasiswa-contoh')).prodi)
+  for (const p of (await connectors.myUnpam.getPendaftaranUjian(taId)).filter((x) => x.status === 'SELESAI').reverse()) {
+    const h = (await connectors.myUnpam.getPenilaian(p.id))?.hasil
+    if (h?.keputusan === 'LULUS_REVISI') return { ta, pendaftaran: p, revisi: lengkapiTenggat(h.revisi, h.dirilis, aturan) }
+  }
+  return null
+}
+
+const AksiRevisi = z.discriminatedUnion('jenis', [
+  z.object({ jenis: z.literal('DIKERJAKAN') }),
+  z.object({ jenis: z.literal('AJUKAN'), versiDraf: z.number().int().positive().optional(), catatan: z.string().max(2000) }),
+  z.object({ jenis: z.literal('PUTUSKAN'), pengujiId: z.string().max(64), keputusan: z.enum(['DISETUJUI', 'DITOLAK']), alasan: z.string().max(2000).optional() }),
+])
+
+async function postRevisi(req: Request) {
+  assertSameOrigin(req)
+  const s = requireSession(req, ['MAHASISWA', 'DOSEN'])
+  const b = await readJson(req, z.object({ pendaftaranId: z.string().max(64), revisiId: z.string().max(200) }).and(AksiRevisi))
+  const ids = { pendaftaranId: b.pendaftaranId, revisiId: b.revisiId }
+  const aksi = b
+  if ((aksi.jenis === 'PUTUSKAN') !== (s.role === 'DOSEN')) throw new HttpError(403, 'Aksi tidak sesuai peran.')
+  const p = await connectors.myUnpam.getPendaftaranById(ids.pendaftaranId)
+  if (!p) throw new HttpError(404, 'Pendaftaran tidak ditemukan.')
+  if (s.role === 'MAHASISWA') await milikSendiri(s.sub, p.tugasAkhirId)
+  const ra = await revisiAktif(p.tugasAkhirId)
+  if (!ra || ra.pendaftaran.id !== p.id) throw new HttpError(404, 'Revisi tidak ditemukan.')
+  const r = aksi.jenis === 'DIKERJAKAN' ? tandaiDikerjakan(ra.revisi, ids.revisiId) : aksi.jenis === 'AJUKAN' ? ajukanRevisi(ra.revisi, ids.revisiId, aksi) : putuskanRevisi(ra.revisi, ids.revisiId, aksi.pengujiId, aksi.keputusan, aksi.alasan, Date.now())
+  if (!r.ok) throw new HttpError(409, r.galat)
+  const nilai = (await connectors.myUnpam.getPenilaian(p.id))!
+  await connectors.myUnpam.simpanPenilaian({ ...nilai, hasil: { ...nilai.hasil!, revisi: r.revisi }, audit: [...nilai.audit, { siapa: s.sub, kapan: new Date().toISOString(), apa: `Revisi ${ids.revisiId}: ${aksi.jenis === 'PUTUSKAN' ? aksi.keputusan : aksi.jenis}` }] })
+  let ta = ra.ta
+  if (semuaRevisiDisetujui(r.revisi) && (ta.status === 'REVISI_PROPOSAL' || ta.status === 'REVISI_AKHIR')) {
+    const t = transisi(ta, 'REVISI_DISETUJUI', { pelaku: 'DOSEN' })
+    if (t.ok) ta = await connectors.myUnpam.simpanTA(s.sub, t.ta)
+  }
+  return json(wrap({ ta, pendaftaran: p, revisi: r.revisi }))
+}
+
+const AksiFin = z.discriminatedUnion('jenis', [
+  z.object({ jenis: z.literal('NASKAH'), naskah: z.object({ nama: z.string().min(1).max(200), ukuran: z.number().int().positive(), sha256: z.string(), akses: z.string().max(40), daftarPeriksa: z.array(z.string().max(200)).max(30) }) }),
+  z.object({ jenis: z.literal('PLAGIASI') }),
+  z.object({ jenis: z.literal('AJUKAN_ADMIN'), item: z.string().max(64) }),
+  z.object({ jenis: z.literal('DAFTAR_WISUDA') }),
+  z.object({ jenis: z.literal('ADMIN_SELESAI'), item: z.string().max(64) }),
+  z.object({ jenis: z.literal('SELESAIKAN') }),
+])
+
+async function postFinalisasi(req: Request) {
+  assertSameOrigin(req)
+  const s = requireSession(req, ['MAHASISWA', 'TENDIK'])
+  const aksi = await readJson(req, z.object({ taId: z.string().max(64) }).and(AksiFin))
+  const { taId } = aksi
+  const prodi = aksi.jenis === 'ADMIN_SELESAI' || aksi.jenis === 'SELESAIKAN'
+  if (prodi !== (s.role === 'TENDIK')) throw new HttpError(403, 'Aksi tidak sesuai peran.')
+  let ta = prodi ? await connectors.myUnpam.getTA(taId) : await milikSendiri(s.sub, taId)
+  if (!ta) throw new HttpError(404, 'Tugas akhir tidak ditemukan.')
+  const aturan = aturanUntuk((await connectors.myUnpam.getProfilKelayakan('mahasiswa-contoh')).prodi)
+  let fin = (await connectors.myUnpam.getFinalisasi(taId)) ?? finalisasiBaru(taId)
+  const now = Date.now()
+  const revisi = (await revisiAktif(taId))?.revisi ?? []
+  switch (aksi.jenis) {
+    case 'NASKAH': {
+      // TODO(DrivePAM): terima berkas, hitung ulang SHA-256, simpan ke repositori.
+      try {
+        fin = simpanNaskahFinal(fin, aksi.naskah, now)
+      } catch (e) {
+        throw new HttpError(400, (e as Error).message)
+      }
+      break
+    }
+    case 'PLAGIASI':
+      // Tidak ada penyedia resmi yang tersambung: jangan mengarang hasil di server.
+      throw new HttpError(503, 'Layanan pemeriksaan kemiripan resmi kampus belum tersambung.')
+    case 'AJUKAN_ADMIN':
+      fin = ajukanAdmin(fin, aksi.item, aturan)
+      break
+    case 'ADMIN_SELESAI':
+      fin = { ...fin, admin: { ...fin.admin, [aksi.item]: { status: 'SELESAI' } } }
+      break
+    case 'DAFTAR_WISUDA':
+    case 'SELESAIKAN': {
+      const sl = siapLulus(fin, revisi, aturan)
+      if (!sl.ok) throw new HttpError(409, sl.kurang.join('; '))
+      if (aksi.jenis === 'DAFTAR_WISUDA') fin = { ...fin, wisuda: { terdaftar: new Date(now).toISOString() } }
+      else {
+        const t = transisi(ta, 'SELESAIKAN', { pelaku: 'PRODI' })
+        if (!t.ok) throw new HttpError(409, t.galat)
+        ta = await connectors.myUnpam.simpanTA(s.sub, t.ta)
+      }
+      break
+    }
+  }
+  return json(wrap({ finalisasi: await connectors.myUnpam.simpanFinalisasi(fin), ta }))
+}
+
 async function milikSendiri(sub: string, taId: string) {
   const ta = (await connectors.myUnpam.getRingkasanTA(sub)).tugasAkhir
   if (!ta || ta.id !== taId) throw new HttpError(403, 'Bukan tugas akhir Anda.')
@@ -267,6 +388,8 @@ export const POST = handle(async (req) => {
   if (['entri', 'versi', 'verifikasi'].includes(aksi)) return postLogbook(req, aksi)
   if (['pendaftaran', 'berkas-ujian', 'aksi-ujian', 'verifikasi-berkas'].includes(aksi)) return postUjianAkhir(req, aksi)
   if (aksi === 'lembar' || aksi === 'rilis') return postPenilaian(req, aksi)
+  if (aksi === 'revisi') return postRevisi(req)
+  if (aksi === 'finalisasi') return postFinalisasi(req)
   if (aksi !== 'peristiwa') throw new HttpError(404, 'Tidak ditemukan.')
   assertSameOrigin(req)
   const s = requireSession(req, ['MAHASISWA', 'DOSEN', 'TENDIK'])

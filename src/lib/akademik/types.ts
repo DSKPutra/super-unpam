@@ -297,4 +297,40 @@ export interface Revisi {
   pengujiId: string
   tenggat?: string
   status: 'BELUM' | 'DIKERJAKAN' | 'DIAJUKAN' | 'DISETUJUI' | 'DITOLAK'
+  /** Versi draf (logbook) yang memuat perbaikan. */
+  versiDraf?: number
+  catatanMahasiswa?: string
+  alasan?: string
+  diputuskan?: string
+}
+
+export interface NaskahFinal {
+  nama: string
+  ukuran: number
+  sha256: string
+  diunggah: string
+  akses: string
+  daftarPeriksa: string[]
+}
+
+/** Hasil pemeriksaan kemiripan dari penyedia (bukan dihitung aplikasi). */
+export interface HasilPlagiasi {
+  penyedia: string
+  persen: number
+  ambang: number
+  lolos: boolean
+  waktu: string
+  /** true = penyedia contoh (mode demo), bukan layanan resmi kampus. */
+  contoh: boolean
+}
+
+export type StatusAdmin = 'BELUM' | 'DIAJUKAN' | 'SELESAI'
+
+export interface Finalisasi {
+  tugasAkhirId: string
+  naskah?: NaskahFinal
+  plagiasi?: HasilPlagiasi
+  admin: Record<string, { status: StatusAdmin; catatan?: string }>
+  yudisium?: { jadwal: string; tempat: string }
+  wisuda?: { terdaftar: string }
 }

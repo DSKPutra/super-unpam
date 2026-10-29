@@ -5,6 +5,7 @@ import type { AturanProdi } from '../../data/aturan-akademik'
 import { buatIcsTenggat } from '../../lib/akademik/ics-ujian'
 import { cekJedaBimbingan, mulaiBimbingan, sha256Hex, targetBimbingan, validasiBerkasDraf, validasiEntri } from '../../lib/akademik/logbook'
 import type { Bimbingan, Dosen, Logbook, TugasAkhir } from '../../lib/akademik/types'
+import { cetak } from '../../lib/cetak'
 import { sumber } from '../../lib/sumber'
 import { useResource } from '../../lib/useResource'
 import type { User } from '../../lib/types'
@@ -265,11 +266,11 @@ function KartuBimbingan({ ta, user, lb, dosen }: { ta: TugasAkhir; user: User; l
   const nama = (id: string) => dosen.find((d) => d.id === id)?.nama ?? id
   return (
     <>
-      <button disabled={sah.length === 0} onClick={() => (setDicetak(new Date()), requestAnimationFrame(() => window.print()))} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-glass-strong px-4 text-sm font-semibold">
+      <button disabled={sah.length === 0} onClick={() => (setDicetak(new Date()), cetak(`kartu-bimbingan:${ta.id}`))} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-glass-strong px-4 text-sm font-semibold">
         <Printer className="h-4 w-4" aria-hidden /> Cetak kartu bimbingan
       </button>
       {createPortal(
-        <div className="print-doc" aria-hidden>
+        <div className="print-doc" data-doc={`kartu-bimbingan:${ta.id}`} aria-hidden>
           <div className="pd-head">
             <img src="/brand/unpam-logo-256.webp" alt="" width={56} height={56} />
             <div>

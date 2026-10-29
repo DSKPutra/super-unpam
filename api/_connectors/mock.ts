@@ -2,7 +2,7 @@ import * as demo from '../../src/data/demo.js'
 import type { Role, User } from '../../src/lib/types.js'
 import { isProduction } from '../_lib/config.js'
 import { ServiceUnavailableError } from '../_lib/http.js'
-import type { DataPenilaian, PendaftaranUjianAkhir } from '../../src/lib/akademik/types.js'
+import type { DataPenilaian, Finalisasi, PendaftaranUjianAkhir } from '../../src/lib/akademik/types.js'
 import type { Connectors } from './types.js'
 
 // Implementasi mock: memakai data contoh yang sama dengan mode demo klien (src/data/demo.ts).
@@ -28,6 +28,7 @@ const lbMock = new Map([[demo.logbookContoh.tugasAkhirId, demo.logbookContoh]])
 const pdMock = new Map<string, PendaftaranUjianAkhir>()
 const slotTerisi = new Map<string, number>()
 const nilaiMock = new Map<string, DataPenilaian>()
+const finMock = new Map<string, Finalisasi>()
 const taPemilik = new Map<string, string>([...demo.antrianJudul, demo.taBimbinganContoh].map((t) => [t.id, 'mahasiswa-contoh']))
 
 export const mock: Connectors = {
@@ -79,6 +80,8 @@ export const mock: Connectors = {
     getPendaftaranTerjadwal: () => ok([...pdMock.values()].filter((p) => p.status === 'TERJADWAL' || p.status === 'SELESAI')),
     getPenilaian: (pid) => ok(nilaiMock.get(pid) ?? null),
     simpanPenilaian: (d) => (nilaiMock.set(d.pendaftaranId, d), ok(d)),
+    getFinalisasi: (taId) => ok(finMock.get(taId) ?? null),
+    simpanFinalisasi: (f) => (finMock.set(f.tugasAkhirId, f), ok(f)),
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },

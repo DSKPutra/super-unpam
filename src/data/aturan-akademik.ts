@@ -99,6 +99,15 @@ export interface AturanProdi extends Sumber {
   perkiraanSksPerSemester: number
   /** Peringatan "judul mirip" bila skor kemiripan ≥ ini (0–1). Bukan pengganti cek plagiasi resmi. */
   ambangKemiripanJudul: number
+  /** Tenggat revisi bawaan (hari setelah hasil dirilis) bila penguji tidak menetapkan. */
+  tenggatRevisiHari: number
+  /** Naskah final (T07): daftar periksa, ukuran, dan pilihan akses publikasi. Kebijakan publikasi
+   *  diputuskan kampus — opsi di sini hanya contoh sampai ada kebijakan tertulis. */
+  naskahFinal: Sumber & { maksMB: number; daftarPeriksa: string[]; aksesPublikasi: { id: string; label: string; keterangan?: string }[] }
+  /** Pemeriksaan kemiripan: ambang dari kebijakan kampus; hasil dari penyedia resmi, bukan dihitung aplikasi. */
+  plagiasi: Sumber & { ambangPersen: number }
+  /** Checklist administrasi lulus. `rute` = layanan terkait di aplikasi. */
+  adminLulus: Sumber & { item: { id: string; label: string; rute?: string }[] }
   /** Berkas draf naskah: ukuran maksimal dan tipe yang diterima (versi draf, T04). */
   drafNaskah: { maksMB: number; tipe: string[] }
   /** Jumlah pilihan pembimbing yang diminta saat pengajuan (urut prioritas). */
@@ -132,6 +141,29 @@ export const ATURAN_BAWAAN: AturanProdi = {
   perkiraanSksPerSemester: 20,
   ambangKemiripanJudul: 0.5,
   jumlahPilihanPembimbing: 3,
+  tenggatRevisiHari: 30,
+  naskahFinal: {
+    ...TODO,
+    maksMB: 30,
+    daftarPeriksa: ['Halaman judul dan lembar pengesahan', 'Abstrak (Indonesia dan Inggris)', 'Daftar isi, tabel, dan gambar', 'Bab 1 sampai penutup', 'Daftar pustaka', 'Lampiran'],
+    aksesPublikasi: [
+      { id: 'terbuka', label: 'Terbuka', keterangan: 'Dapat diakses publik di repositori (contoh).' },
+      { id: 'tertahan-12', label: 'Tertahan 12 bulan', keterangan: 'Mis. menunggu publikasi jurnal (contoh).' },
+      { id: 'internal', label: 'Internal kampus', keterangan: 'Hanya civitas (contoh).' },
+    ],
+  },
+  plagiasi: { ...TODO, ambangPersen: 25 },
+  adminLulus: {
+    ...TODO,
+    item: [
+      { id: 'bebas-pustaka', label: 'Bebas pustaka' },
+      { id: 'bebas-keuangan', label: 'Bebas keuangan', rute: 'keuangan' },
+      { id: 'bebas-lab', label: 'Bebas laboratorium' },
+      { id: 'berkas-fisik', label: 'Penyerahan berkas fisik (bila masih diminta)' },
+      { id: 'data-yudisium', label: 'Data yudisium', rute: 'profil' },
+      { id: 'skpi', label: 'SKPI', rute: 'sertifikat' },
+    ],
+  },
   drafNaskah: { maksMB: 20, tipe: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] },
   bidangTA: ['Rekayasa Perangkat Lunak', 'Jaringan & Keamanan', 'Kecerdasan Buatan & Data', 'Sistem Informasi', 'Multimedia & Gim'],
   hurufMutu: [

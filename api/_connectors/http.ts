@@ -37,6 +37,8 @@ export const http: Connectors = {
     getPendaftaranTerjadwal: pending('MY UNPAM'),
     getPenilaian: pending('MY UNPAM'),
     simpanPenilaian: pending('MY UNPAM'),
+    getFinalisasi: pending('MY UNPAM'),
+    simpanFinalisasi: pending('MY UNPAM'),
   },
   mentari: { getClasses: pending('MENTARI'), getTasks: pending('MENTARI') },
   siskemu: { getBills: pending('SISKEMU') },
