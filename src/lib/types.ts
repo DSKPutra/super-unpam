@@ -40,6 +40,8 @@ export interface KrsClass {
   class: string
   quota: number
   filled: number
+  day?: string
+  time?: string
 }
 
 export interface OnlineClass {
@@ -78,19 +80,83 @@ export interface CampusEvent {
   sertifikat: boolean
 }
 
-export interface Certification {
+// — MY LB (Lembaga Bahasa / TOEFL). Semua tanggal ISO 8601, biaya dalam rupiah bulat.
+
+export interface JadwalTes {
   id: string
-  scheme: string
-  status: string
-  date: string
-  progress: number
+  jenis: string
+  tanggal: string
+  tempat: string
+  kuota: number
+  terisi: number
+  biaya: number
+  tutupDaftar: string
 }
 
-export interface ToeflSummary {
-  best: number
-  target: number
-  history: { date: string; score: number; listening: number; structure: number; reading: number }[]
-  next: { date: string; place: string; seats: number }
+export interface PendaftaranTes {
+  id: string
+  jadwalId: string
+  status: 'menunggu-bayar' | 'terdaftar' | 'selesai' | 'batal'
+  /** Tagihan terkait di SISKEMU (halaman Keuangan). */
+  tagihanId?: string
+}
+
+export interface HasilTes {
+  id: string
+  tanggal: string
+  skor: number
+  listening: number
+  structure: number
+  reading: number
+  berlakuSampai: string
+}
+
+export interface RingkasanToefl {
+  hasil: HasilTes[]
+  pendaftaran: PendaftaranTes[]
+  /** Skor minimal kelulusan prodi; null bila belum diketahui. */
+  target: number | null
+}
+
+// — MY LSP (sertifikasi kompetensi)
+
+export interface SkemaSertifikasi {
+  id: string
+  nama: string
+  /** Prodi yang boleh mendaftar; kosong = semua prodi. */
+  prodi: string[]
+  dibuka: boolean
+  tutupDaftar?: string
+  biaya?: number
+}
+
+export interface UjianKompetensi {
+  id: string
+  skemaId: string
+  tanggal?: string
+  tempat?: string
+  status: 'terdaftar' | 'pra-asesmen' | 'terjadwal' | 'kompeten' | 'belum-kompeten'
+}
+
+export interface SertifikatKompetensi {
+  id: string
+  skemaId: string
+  nomor: string
+  terbit: string
+  berlakuSampai?: string
+}
+
+export interface RingkasanSertifikasi {
+  skema: SkemaSertifikasi[]
+  ujian: UjianKompetensi[]
+  sertifikat: SertifikatKompetensi[]
+}
+
+/** Bungkus respons BFF untuk data sistem luar: `asal` menyatakan dari mana data berasal. */
+export interface DariSumber<T> {
+  data: T
+  /** 'contoh' = konektor mock; selain itu nama sistem asli yang benar-benar menjawab. */
+  asal: 'contoh' | 'MyLB' | 'MyLSP' | 'MY UNPAM'
 }
 
 export interface Ranking {
@@ -100,11 +166,24 @@ export interface Ranking {
   achievements: { title: string; level: string; points: number }[]
 }
 
-export interface NewsItem {
+/** Berita kampus yang sudah dinormalisasi BFF (api/berita.ts). Ringkasan selalu teks biasa. */
+export interface NewsArticle {
   id: string
-  tag: string
   title: string
+  summary: string
+  /** ISO 8601 */
   date: string
+  /** Tautan ke artikel asli (selalu https://…unpam.ac.id). */
+  url: string
+  tag?: string
+}
+
+export interface NewsFeed {
+  items: NewsArticle[]
+  /** Nama host sumber, mis. "unpam.ac.id". */
+  source: string
+  /** Waktu server mengambil sumber (ISO). Dipakai untuk label "Terakhir diperbarui". */
+  fetchedAt: string
 }
 
 export interface AppNotification {

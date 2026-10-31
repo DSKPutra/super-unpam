@@ -3,7 +3,7 @@ import { getGrades, getKrsOffer, getSchedule } from '../lib/api'
 import { useResource } from '../lib/useResource'
 import type { KrsClass, ScheduleItem, SemesterGrades } from '../lib/types'
 import { Async, Badge, DemoNote, PageHeader, Progress, Tabs } from '../components/ui'
-import { summarizeIpk } from '../lib/academic'
+import { calculateRequiredIps, findScheduleConflicts, summarizeIpk } from '../lib/academic'
 
 type Tab = 'jadwal' | 'krs' | 'nilai'
 
@@ -67,8 +67,11 @@ function Krs({ krsOffer }: { krsOffer: KrsClass[] }) {
   const MAX = 24
   const [picked, setPicked] = useState<string[]>(['TIF301', 'TIF305'])
   const [submitted, setSubmitted] = useState(false)
-  const sks = krsOffer.filter((c) => picked.includes(c.code)).reduce((a, c) => a + c.sks, 0)
+  const pickedClasses = krsOffer.filter((c) => picked.includes(c.code))
+  const sks = pickedClasses.reduce((a, c) => a + c.sks, 0)
+  const conflicts = findScheduleConflicts(pickedClasses)
   const toggle = (code: string) => setPicked((p) => (p.includes(code) ? p.filter((x) => x !== code) : [...p, code]))
+
   return (
     <div>
       <div className="glass mb-4 p-4">
@@ -80,16 +83,36 @@ function Krs({ krsOffer }: { krsOffer: KrsClass[] }) {
           <Progress value={(sks / MAX) * 100} color={sks > MAX ? 'var(--rose)' : 'var(--primary)'} />
         </div>
       </div>
+
+      {conflicts.length > 0 && (
+        <div role="alert" className="mb-4 rounded-xl border border-[var(--rose)]/30 bg-[color-mix(in_srgb,var(--rose)_12%,transparent)] p-4 text-sm text-[var(--rose)]">
+          <div className="font-bold">⚠️ Terdeteksi {conflicts.length} Bentrok Jadwal KRS:</div>
+          <ul className="mt-1 list-disc pl-5 space-y-1 text-xs">
+            {conflicts.map((c, i) => (
+              <li key={i}>{c.message}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs opacity-90">Harap batalkan salah satu mata kuliah yang bertabrakan sebelum mengajukan ke dosen PA.</p>
+        </div>
+      )}
+
       <div className="glass divide-y divide-line">
         {krsOffer.map((c) => {
           const full = c.filled >= c.quota
           const on = picked.includes(c.code)
+          const isConflicted = conflicts.some((cf) => cf.courseA.code === c.code || cf.courseB.code === c.code)
           return (
-            <label key={c.code} className={`flex items-center gap-3 p-4 ${full && !on ? 'opacity-50' : 'cursor-pointer'}`}>
+            <label key={c.code} className={`flex items-center gap-3 p-4 ${full && !on ? 'opacity-50' : 'cursor-pointer'} ${isConflicted ? 'bg-[color-mix(in_srgb,var(--rose)_8%,transparent)]' : ''}`}>
               <input type="checkbox" checked={on} disabled={(full && !on) || submitted} onChange={() => toggle(c.code)} className="h-5 w-5 accent-[var(--primary)]" />
               <div className="min-w-0 flex-1">
-                <div className="font-medium">{c.name}</div>
-                <div className="text-xs text-mid">{c.code} · Kelas {c.class} · {c.sks} SKS</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{c.name}</span>
+                  {isConflicted && <Badge tone="red">Bentrok</Badge>}
+                </div>
+                <div className="text-xs text-mid">
+                  {c.code} · Kelas {c.class} · {c.sks} SKS
+                  {c.day && c.time && ` · 🗓️ ${c.day}, ${c.time}`}
+                </div>
               </div>
               <Badge tone={full ? 'red' : c.quota - c.filled < 5 ? 'amber' : 'green'}>
                 {full ? 'Penuh' : `Sisa ${c.quota - c.filled}`}
@@ -99,11 +122,11 @@ function Krs({ krsOffer }: { krsOffer: KrsClass[] }) {
         })}
       </div>
       <button
-        disabled={submitted || sks === 0 || sks > MAX}
+        disabled={submitted || sks === 0 || sks > MAX || conflicts.length > 0}
         onClick={() => setSubmitted(true)}
         className="mt-4 w-full rounded-xl btn-primary py-3 font-semibold text-white disabled:opacity-50"
       >
-        {submitted ? '✓ KRS diajukan, menunggu persetujuan dosen PA' : 'Ajukan KRS'}
+        {submitted ? '✓ KRS diajukan, menunggu persetujuan dosen PA' : conflicts.length > 0 ? 'Perbaiki bentrok jadwal sebelum mengajukan' : 'Ajukan KRS'}
       </button>
     </div>
   )
@@ -112,6 +135,12 @@ function Krs({ krsOffer }: { krsOffer: KrsClass[] }) {
 function Nilai({ grades }: { grades: SemesterGrades[] }) {
   const allCourses = grades.flatMap((g) => g.courses)
   const totalSks = allCourses.reduce((a, c) => a + c.sks, 0)
+  const [showSim, setShowSim] = useState(false)
+  const [targetIpk, setTargetIpk] = useState(3.5)
+  const [sisaSks, setSisaSks] = useState(20)
+
+  const targetSim = calculateRequiredIps(grades, targetIpk, sisaSks)
+
   return (
     <div>
       <div className="mb-4 grid grid-cols-3 gap-3">
@@ -128,6 +157,73 @@ function Nilai({ grades }: { grades: SemesterGrades[] }) {
           <div className="text-xs text-mid">IPS terakhir</div>
         </div>
       </div>
+
+      <div className="glass mb-4 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-semibold text-sm">🎯 Kalkulator & Simulasi Target IPK</div>
+            <div className="text-xs text-mid">Hitung IPS yang harus diraih untuk mencapai target kelulusan</div>
+          </div>
+          <button
+            onClick={() => setShowSim((v) => !v)}
+            className="rounded-lg bg-glass-strong px-3 py-1.5 text-xs font-semibold text-cyan hover:opacity-80"
+          >
+            {showSim ? 'Sembunyikan' : 'Buka Simulator'}
+          </button>
+        </div>
+
+        {showSim && (
+          <div className="mt-4 border-t border-line pt-4 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-mid block mb-1">Target IPK Impian</label>
+                <input
+                  type="number"
+                  step="0.05"
+                  min="2.00"
+                  max="4.00"
+                  value={targetIpk}
+                  onChange={(e) => setTargetIpk(parseFloat(e.target.value) || 0)}
+                  className="w-full rounded-lg bg-[rgba(255,255,255,0.05)] border border-line px-3 py-2 text-sm font-semibold"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-mid block mb-1">Sisa SKS yang Diambil</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="1"
+                  max="40"
+                  value={sisaSks}
+                  onChange={(e) => setSisaSks(parseInt(e.target.value) || 0)}
+                  className="w-full rounded-lg bg-[rgba(255,255,255,0.05)] border border-line px-3 py-2 text-sm font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-glass-strong p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-mid">Rekomendasi IPS Minimal:</span>
+                <span className={`text-base font-bold ${targetSim.feasible ? 'text-teal-400' : 'text-rose'}`}>
+                  {targetSim.feasible ? targetSim.requiredIps.toFixed(2) : '> 4.00 (Mustahil)'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-xs text-mid">Maksimum IPK Tercapai:</span>
+                <span className="text-xs font-semibold">{targetSim.maxAchievableIpk.toFixed(2)}</span>
+              </div>
+              <div className="mt-2 text-xs">
+                {targetSim.feasible ? (
+                  <span className="text-teal-400">✓ Target realistis! Anda perlu mempertahankan rata-rata IPS minimal {targetSim.requiredIps.toFixed(2)}.</span>
+                ) : (
+                  <span className="text-rose">⚠️ Target melampaui batas matematis poin 4.00 untuk jumlah sisa SKS saat ini.</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {grades.map((g) => (
         <div key={g.semester} className="glass mb-4 overflow-hidden">
           <div className="flex items-center justify-between bg-glass-strong px-4 py-3 text-sm font-semibold">

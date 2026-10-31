@@ -36,7 +36,15 @@ export function cookies(req: Request): Record<string, string> {
 }
 
 export function clientIp(req: Request) {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown'
+  const realIp = req.headers.get('x-real-ip')?.trim()
+  if (realIp && realIp !== 'unknown') return realIp
+
+  const forwarded = req.headers.get('x-forwarded-for')
+  if (forwarded) {
+    const first = forwarded.split(',')[0]?.trim()
+    if (first && first !== 'unknown') return first
+  }
+  return '127.0.0.1'
 }
 
 /**

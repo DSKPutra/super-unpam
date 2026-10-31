@@ -8,3 +8,7 @@ dev-dist
 .netlify
 .env
 .DS_Store
+~$*
+*.tmp
+*.tsbuildinfo
+print-test-*.pdf

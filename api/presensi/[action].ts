@@ -55,7 +55,9 @@ export const POST = handle(async (req) => {
     method = 'Kode sesi'
   } else {
     // Catatan: koordinat dikirim perangkat dan bisa dipalsukan; geofence server perlu, tapi tidak cukup sendirian.
-    if (body.accuracy !== undefined && body.accuracy > MAX_ACCURACY) throw new HttpError(422, `Akurasi lokasi terlalu rendah (±${Math.round(body.accuracy)} m). Coba di area terbuka atau gunakan QR/kode.`)
+    if (body.accuracy !== undefined && (body.accuracy <= 0 || body.accuracy > MAX_ACCURACY)) {
+      throw new HttpError(422, `Akurasi lokasi tidak valid atau terlalu rendah (±${Math.round(body.accuracy || 0)} m). Terdeteksi anomali GPS.`)
+    }
     const best = geofences()
       .map((g) => ({ ...g, d: distanceMeters(body, g) }))
       .sort((a, b) => a.d - b.d)[0]
