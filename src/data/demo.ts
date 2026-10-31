@@ -64,13 +64,13 @@ export const grades: SemesterGrades[] = [
 ]
 
 export const krsOffer: KrsClass[] = [
-  { code: 'TIF301', name: 'Pemrograman Web', sks: 3, class: '05TPLE001', quota: 40, filled: 34 },
-  { code: 'TIF303', name: 'Basis Data Lanjut', sks: 3, class: '05TPLE001', quota: 40, filled: 40 },
-  { code: 'TIF305', name: 'Kecerdasan Buatan', sks: 3, class: '05TPLE002', quota: 35, filled: 21 },
-  { code: 'TIF307', name: 'Rekayasa Perangkat Lunak', sks: 3, class: '05TPLE001', quota: 40, filled: 38 },
-  { code: 'TIF309', name: 'Jaringan Komputer', sks: 3, class: '05TPLE003', quota: 30, filled: 12 },
-  { code: 'TIF311', name: 'Interaksi Manusia & Komputer', sks: 2, class: '05TPLE001', quota: 40, filled: 29 },
-  { code: 'UNV201', name: 'Bahasa Inggris Akademik', sks: 2, class: '05TPLE004', quota: 45, filled: 30 },
+  { code: 'TIF301', name: 'Pemrograman Web', sks: 3, class: '05TPLE001', quota: 40, filled: 34, day: 'Senin', time: '08:00 - 10:30' },
+  { code: 'TIF303', name: 'Basis Data Lanjut', sks: 3, class: '05TPLE001', quota: 40, filled: 40, day: 'Senin', time: '13:00 - 15:30' },
+  { code: 'TIF305', name: 'Kecerdasan Buatan', sks: 3, class: '05TPLE002', quota: 35, filled: 21, day: 'Rabu', time: '08:00 - 10:30' },
+  { code: 'TIF307', name: 'Rekayasa Perangkat Lunak', sks: 3, class: '05TPLE001', quota: 40, filled: 38, day: 'Kamis', time: '09:40 - 12:10' },
+  { code: 'TIF309', name: 'Jaringan Komputer', sks: 3, class: '05TPLE003', quota: 30, filled: 12, day: 'Jumat', time: '13:30 - 16:00' },
+  { code: 'TIF311', name: 'Interaksi Manusia & Komputer', sks: 2, class: '05TPLE001', quota: 40, filled: 29, day: 'Selasa', time: '10:00 - 11:40' },
+  { code: 'UNV201', name: 'Bahasa Inggris Akademik', sks: 2, class: '05TPLE004', quota: 45, filled: 30, day: 'Senin', time: '09:00 - 10:40' },
 ]
 
 export const classes: OnlineClass[] = [

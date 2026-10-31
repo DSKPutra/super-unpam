@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { checkIn, getAttendanceRecap, getCampusAreas, getSchedule, USE_DEMO } from '../lib/api'
 import { useResource } from '../lib/useResource'
+import { detectGpsAnomaly } from '../lib/geo'
 import type { CheckInRequest, CheckInResult, ScheduleItem, User } from '../lib/types'
 import { useDynamicQr } from './Ktm'
 import { CheckCircle2, Hash, MapPin, ScanLine } from 'lucide-react'
@@ -189,6 +190,17 @@ function GpsCheck({ submit, simulate }: { submit: Submit; simulate: (method: str
     setMsg('')
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        const anomaly = detectGpsAnomaly({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        })
+        if (anomaly.isSuspicious) {
+          setBusy(false)
+          setOutside(true)
+          setMsg(anomaly.reason || 'Terdeteksi anomali sinyal GPS (mock location).')
+          return
+        }
         try {
           await submit({ method: 'gps', lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy })
         } catch (e) {
