@@ -27,6 +27,7 @@ import {
   Trophy,
   type LucideIcon,
   DoorOpen,
+  Briefcase,
 } from 'lucide-react'
 import type { Role } from '../lib/types'
 
@@ -72,6 +73,7 @@ export const FEATURES: Feature[] = [
   { id: 'aspirasi', name: 'Aspirasi', icon: Megaphone, from: '#FFC56B', to: '#E06A00', route: 'aspirasi', roles: ALL, keywords: ['pengaduan', 'lapor', 'whistleblowing', 'keluhan'], source: 'Layanan' },
   { id: 'sertifikat', name: 'Dompet Sertifikat', icon: BadgeCheck, from: '#C4A6FF', to: '#6D3FE0', route: 'sertifikat', roles: ['MAHASISWA', 'ALUMNI'], keywords: ['badge', 'skpi', 'e-sertifikat', 'verifikasi'], source: 'EMS/LSP/SKPI' },
   { id: 'islami', name: 'Layanan Islami', icon: MoonStar, from: '#7DF2C4', to: '#0B8A5F', route: 'islami', roles: ALL, keywords: ['jadwal sholat', 'kiblat', 'kajian', 'masjid'], source: 'Lokal' },
+  { id: 'karier', name: 'Karier & Loker', icon: Briefcase, from: '#7CE38B', to: '#1F8F4E', route: 'karier', roles: ALL, keywords: ['lowongan', 'loker', 'kerja', 'magang', 'karier', 'job', 'freelance', 'linkedin', 'rekrut'], source: 'SUPER UNPAM' },
   { id: 'alumni', name: 'Alumni', icon: Users, from: '#A9C1E8', to: '#4A6290', route: 'alumni', roles: ALL, keywords: ['mentor', 'mentoring', 'lowongan', 'karier'], source: 'TRACER STUDY' },
   { id: 'pemira', name: 'Pemira', icon: Vote, from: '#FF9AE0', to: '#B5179E', route: 'pemira', roles: ['MAHASISWA'], keywords: ['e-voting', 'pemilu', 'bem', 'hmj'], source: 'On-demand' },
   { id: 'download', name: 'Download', icon: Download, from: '#5CE1FF', to: '#2D6BFF', route: 'download', roles: ALL, keywords: ['install', 'unduh', 'android', 'ios', 'windows', 'mac'], source: 'PWA' },
