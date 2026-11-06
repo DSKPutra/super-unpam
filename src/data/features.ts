@@ -1,4 +1,5 @@
 import {
+  BookMarked,
   BadgeCheck,
   CalendarCheck,
   ClipboardCheck,
@@ -25,6 +26,7 @@ import {
   Mic2,
   Trophy,
   type LucideIcon,
+  DoorOpen,
 } from 'lucide-react'
 import type { Role } from '../lib/types'
 
@@ -46,6 +48,7 @@ const ALL: Role[] = ['MAHASISWA', 'DOSEN', 'TENDIK', 'ALUMNI']
 
 export const FEATURES: Feature[] = [
   { id: 'ktm', name: 'KTM Digital', icon: IdCard, from: '#4D86FF', to: '#1B3FD1', route: 'ktm', roles: ALL, keywords: ['kartu', 'qr', 'identitas', 'ktm'], source: 'SSO' },
+  { id: 'gerbang', name: 'QR Gerbang', icon: DoorOpen, from: '#2EC4B6', to: '#0B7A75', route: 'gerbang', roles: ALL, keywords: ['gerbang', 'gate', 'parkir', 'keluar', 'palang', 'qr', 'motor', 'mobil'], source: 'SSO' },
   { id: 'presensi', name: 'Presensi', icon: MapPin, from: '#FF7A93', to: '#E0245E', route: 'presensi', roles: ['MAHASISWA', 'DOSEN', 'TENDIK'], keywords: ['absen', 'qr', 'kehadiran'], source: 'MY UNPAM' },
   { id: 'jadwal', name: 'Jadwal', icon: CalendarDays, from: '#3EE0FF', to: '#0090D4', route: 'akademik/jadwal', roles: ['MAHASISWA', 'DOSEN'], keywords: ['kuliah', 'kelas', 'ruang'], source: 'MY UNPAM' },
   { id: 'krs', name: 'KRS', icon: ClipboardList, from: '#6E9BFF', to: '#2D4FE0', route: 'akademik/krs', roles: ['MAHASISWA'], keywords: ['rencana studi', 'mata kuliah', 'registrasi'], source: 'MY UNPAM' },
@@ -63,6 +66,7 @@ export const FEATURES: Feature[] = [
   { id: 'surat', name: 'Surat & Admin', icon: FileText, from: '#7FB0FF', to: '#2D58E0', route: 'surat', roles: ['MAHASISWA', 'ALUMNI'], keywords: ['surat aktif', 'legalisir', 'transkrip', 'izin', 'administrasi'], source: 'BAAK' },
   { id: 'ujian', name: 'Exam Center', icon: NotebookPen, from: '#FF8FA3', to: '#C2185B', route: 'ujian', roles: ['MAHASISWA'], keywords: ['uts', 'uas', 'kartu ujian', 'kursi'], source: 'MY UNPAM' },
   { id: 'edom', name: 'EDOM & Survei', icon: ClipboardCheck, from: '#8CF5D0', to: '#0E9F80', route: 'edom', roles: ['MAHASISWA'], keywords: ['evaluasi dosen', 'kuesioner', 'survei'], source: 'MY UNPAM' },
+  { id: 'ta', name: 'Skripsi / TA', icon: BookMarked, from: '#9BE7FF', to: '#1E6FD9', route: 'ta', roles: ['MAHASISWA', 'DOSEN'], keywords: ['skripsi', 'tugas akhir', 'judul', 'pembimbing', 'bimbingan', 'sidang', 'proposal'], source: 'MY UNPAM' },
   { id: 'herreg', name: 'Registrasi & Cuti', icon: RefreshCcw, from: '#9DB8FF', to: '#3949D6', route: 'herreg', roles: ['MAHASISWA'], keywords: ['her-registrasi', 'daftar ulang', 'cuti', 'aktif kembali'], source: 'MY UNPAM' },
   { id: 'booking', name: 'Booking Ruang', icon: CalendarCheck, from: '#6FE7FF', to: '#0A84C6', route: 'booking', roles: ALL, keywords: ['ruang diskusi', 'lab', 'lapangan', 'bimbingan', 'fasilitas'], source: 'Sarpras' },
   { id: 'aspirasi', name: 'Aspirasi', icon: Megaphone, from: '#FFC56B', to: '#E06A00', route: 'aspirasi', roles: ALL, keywords: ['pengaduan', 'lapor', 'whistleblowing', 'keluhan'], source: 'Layanan' },

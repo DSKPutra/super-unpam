@@ -1,0 +1,2 @@
+# Tes unit tidak ikut deploy sebagai bagian Vercel Functions
+api/**/*.test.ts

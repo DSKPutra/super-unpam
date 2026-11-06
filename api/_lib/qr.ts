@@ -27,9 +27,25 @@ export function verifyCode(kind: QrKind, subject: string, code: string, slot?: n
   return slots.some((s) => safeEqual(code, qrCode(kind, subject, s)))
 }
 
-const PAYLOAD = /^SUPERUNPAM:(KTM|PRESENSI):([A-Za-z0-9-]{1,40}):(\d{1,12}):([A-Z0-9]{7})$/
+const PAYLOAD = /^SUPERUNPAM:(KTM|PRESENSI|GERBANG):([A-Za-z0-9-]{1,40}):(\d{1,12}):([A-Z0-9]{7})$/
 
 export function parseQrPayload(raw: string) {
   const m = PAYLOAD.exec(raw)
   return m ? { kind: m[1] as QrKind, subject: m[2], slot: Number(m[3]), code: m[4] } : null
 }
+
+// — Gerbang keluar: satu kode QR hanya bisa membuka palang sekali (anti dipakai ulang/dibagikan).
+// TODO(BFF): simpan di penyimpanan bersama (Redis/KV) agar berlaku lintas instance & validator lokal.
+const terpakai = new Map<string, number>()
+
+/** true bila kode belum pernah dipakai; menandainya terpakai sampai kedaluwarsa (2 slot). */
+export function pakaiSekali(kind: QrKind, subject: string, slot: number, nowMs = Date.now()) {
+  for (const [k, habis] of terpakai) if (habis <= nowMs) terpakai.delete(k)
+  const kunci = `${kind}|${subject}|${slot}`
+  if (terpakai.has(kunci)) return false
+  terpakai.set(kunci, (slot + 2) * QR_PERIOD * 1000)
+  return true
+}
+
+/** NIM tersamar untuk log/layar petugas: 2310****01. */
+export const samarkan = (nim: string) => (nim.length > 6 ? `${nim.slice(0, 4)}${'*'.repeat(nim.length - 6)}${nim.slice(-2)}` : '****')
