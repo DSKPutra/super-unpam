@@ -60,6 +60,7 @@ BFF ada di folder `api/`:
 - `auth/[action].ts`: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` (validasi zod, rate limit dasar)
 - `academic`, `kuliah`, `finance`, `campus`: data baca per domain; setiap endpoint memverifikasi sesi dan peran
 - `qr/[action].ts`: QR KTM/presensi ditandatangani server (HMAC, berganti tiap 30 detik), plus `POST /api/qr/verify` untuk petugas
+- `karier/[action].ts`: lowongan, profil kerja, lamaran, laporan, moderasi (`/api/karier/*`). `/api/berita` dilayani `campus/[resource].ts` lewat rewrite: paket Vercel Hobby membatasi 12 fungsi, jadi endpoint baru sebaiknya digabung ke fungsi yang ada.
 - `presensi/[action].ts`: validasi QR/kode/geofence di server; koordinat kampus hanya di konfigurasi server
 - `_connectors/`: satu antarmuka per sistem sumber (SSO, MY UNPAM, MENTARI, SISKEMU, EMS, MY LSP, MY LB, SISPEMA, portal), masing-masing dengan implementasi `mock` dan `http`
 
@@ -72,6 +73,8 @@ Environment variable server (lihat `.env.example`):
 | `CONNECTOR_MODE` | tidak | `mock` (bawaan) atau `http`; per sistem: `CONNECTOR_SSO`, `CONNECTOR_MY_UNPAM`, … |
 | `CAMPUS_GEOFENCES` | tidak | JSON `[{name,lat,lng,radius}]` koordinat resmi; tanpa ini dipakai perkiraan data contoh |
 | `ALLOW_MOCK_LOGIN_IN_PRODUCTION` | tidak | Login mock menolak di production kecuali di-set `true` |
+| `NEWS_FEED_URL` | tidak | URL WP REST (`…/wp-json/wp/v2/posts`) atau RSS/Atom berita resmi di `*.unpam.ac.id`. Tanpa ini `/api/berita` menjawab 503 "Sumber berita resmi belum tersedia". Per 28 Okt 2026 feed unpam.ac.id terhalang tantangan bot Cloudflare untuk server; perlu akses resmi dari LPTI. |
+| `NEWS_FEED_FORMAT` | tidak | `wp` atau `rss` (bawaan: ditebak dari Content-Type) |
 
 Uji lokal mode BFF: `vercel dev` (dengan `VITE_USE_DEMO=false`, `SESSION_SECRET`, dan `QR_SECRET` di environment). Akun mock: username berawalan `dosen`, `tendik`, atau `alumni` masuk sebagai peran tersebut; selainnya mahasiswa.
 
@@ -85,6 +88,9 @@ Belum:
 - Aksi tulis (kumpul tugas, ajukan KRS, daftar event, bayar) masih simulasi lokal di klien.
 - Nomor kontak darurat resmi (`SosSheet` di `src/App.tsx`).
 - MailPAM & DrivePAM: menunggu keputusan arsitektur. Pertanyaan untuk LPTI/pimpinan/hukum ada di [docs/MAILPAM-DRIVEPAM-KEPUTUSAN.md](docs/MAILPAM-DRIVEPAM-KEPUTUSAN.md).
+- Kumpul tugas sungguhan (U07): butuh penyimpanan objek + pemindai, yaitu keputusan DrivePAM di dokumen di atas. Sampai itu, tidak ada klaim "terkirim ke MENTARI".
+- Web Push (U07): butuh kunci VAPID (env server), database untuk langganan notifikasi, cron, dan Service Worker `injectManifest`. Penjadwal pengingat sudah ada di `src/lib/pengingat.ts` (teruji).
+- Patch "Pusat Tenggat" yang dirujuk prompt Univers tidak ada di repo; fitur yang bergantung padanya (timeline tenggat, .ics) belum dibuat.
 
 ## Instalasi per platform
 | Platform | Cara |

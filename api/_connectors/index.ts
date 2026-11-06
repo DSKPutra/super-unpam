@@ -19,8 +19,11 @@ const ENV_NAME: Record<keyof Connectors, string> = {
   portal: 'PORTAL',
 }
 
-const pick = <K extends keyof Connectors>(key: K): Connectors[K] =>
-  (process.env[`CONNECTOR_${ENV_NAME[key]}`] ?? process.env.CONNECTOR_MODE ?? 'mock') === 'http' ? http[key] : mock[key]
+/** Mode aktif sebuah konektor. Dipakai endpoint untuk melabeli data mock sebagai "contoh". */
+export const connectorMode = (key: keyof Connectors): 'mock' | 'http' =>
+  (process.env[`CONNECTOR_${ENV_NAME[key]}`] ?? process.env.CONNECTOR_MODE ?? 'mock') === 'http' ? 'http' : 'mock'
+
+const pick = <K extends keyof Connectors>(key: K): Connectors[K] => (connectorMode(key) === 'http' ? http[key] : mock[key])
 
 export const connectors: Connectors = {
   sso: pick('sso'),
