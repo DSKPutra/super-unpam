@@ -1,8 +1,8 @@
-import type { NewsFeed } from '../src/lib/types.js'
-import { MAX_ITEMS, parseFeed, parseWordPress, safeUrl } from './_lib/berita.js'
-import { handle, HttpError, ServiceUnavailableError } from './_lib/http.js'
+import type { NewsFeed } from '../../src/lib/types.js'
+import { MAX_ITEMS, parseFeed, parseWordPress, safeUrl } from './berita.js'
+import { handle, HttpError, ServiceUnavailableError } from './http.js'
 
-// GET /api/berita — berita terbaru dari situs resmi UNPAM, diambil di server (browser tidak memanggil
+// GET /api/berita (rewrite ke /api/campus/berita, lihat vercel.json; digabung agar jumlah fungsi ≤ 12) — berita terbaru dari situs resmi UNPAM, diambil di server (browser tidak memanggil
 // unpam.ac.id langsung: CSP connect-src 'self'). Data publik, jadi boleh di-cache CDN 15 menit.
 //
 // Sumber diatur lewat env (pertanyaan terbuka untuk LPTI, lihat README):
@@ -33,7 +33,7 @@ async function readLimited(res: Response) {
   return new TextDecoder().decode(Buffer.concat(chunks))
 }
 
-export const GET = handle(async () => {
+export const beritaGET = handle(async () => {
   const source = safeUrl(process.env.NEWS_FEED_URL)
   if (!source) throw new ServiceUnavailableError('Sumber berita resmi belum tersedia.')
 
