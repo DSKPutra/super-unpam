@@ -194,7 +194,7 @@ export default function App() {
       case 'surat':
         return <Surat back={back} />
       case 'edom':
-        return <Edom back={back} />
+        return <Edom user={user} back={back} />
       case 'ujian':
         return <Ujian user={user} back={back} go={go} />
       case 'herreg':
