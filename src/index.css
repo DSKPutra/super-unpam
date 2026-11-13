@@ -253,3 +253,94 @@ h3,
     display: none !important;
   }
 }
+
+/* Dokumen cetak khusus (mis. kartu ujian, src/pages/fitur/Ujian.tsx): disisipkan ke <body> lewat portal.
+   Di layar tidak terlihat; saat dicetak, aplikasi disembunyikan dan hanya dokumen ini yang tampil. */
+.print-doc {
+  display: none;
+}
+@media print {
+  @page {
+    size: A5 portrait;
+    margin: 10mm;
+  }
+  html.has-print-doc,
+  html.has-print-doc body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  html.has-print-doc #root {
+    display: none !important;
+  }
+  .print-doc {
+    display: block;
+    color: #000;
+    font: 10pt/1.35 system-ui, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-doc .pd-head {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+  }
+  .print-doc .pd-head img {
+    width: 40px;
+    height: 40px;
+  }
+  .print-doc .pd-title {
+    font-size: 14pt;
+    font-weight: 700;
+  }
+  .print-doc .pd-id {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .print-doc dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 10px;
+    margin: 0;
+  }
+  .print-doc dt {
+    font-weight: 600;
+  }
+  .print-doc dd {
+    margin: 0;
+  }
+  .print-doc .pd-qr {
+    width: 30mm;
+    height: 30mm;
+    image-rendering: pixelated;
+  }
+  .print-doc .pd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+  }
+  .print-doc th,
+  .print-doc td {
+    border: 1px solid #000;
+    padding: 3px 4px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .print-doc tr {
+    break-inside: avoid;
+  }
+  .print-doc .pd-ic {
+    display: inline;
+    width: 10px;
+    height: 10px;
+  }
+  .print-doc .pd-foot {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    font-size: 8pt;
+  }
+}

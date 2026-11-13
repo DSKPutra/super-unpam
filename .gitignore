@@ -8,3 +8,4 @@ dev-dist
 .netlify
 .env
 .DS_Store
+print-test-*.pdf

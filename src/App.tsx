@@ -196,7 +196,7 @@ export default function App() {
       case 'edom':
         return <Edom back={back} />
       case 'ujian':
-        return <Ujian user={user} back={back} />
+        return <Ujian user={user} back={back} go={go} />
       case 'herreg':
         return <Herreg back={back} go={go} />
       case 'booking':
