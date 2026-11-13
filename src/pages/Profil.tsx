@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BellRing, Building2, ChevronRight } from 'lucide-react'
 import { getNotifications, USE_DEMO } from '../lib/api'
 import { useResource } from '../lib/useResource'
 import { FEATURES } from '../data/features'
@@ -77,6 +78,15 @@ export function Profil({
         <span className="flex shrink-0 items-center gap-1 rounded-xl bg-white/15 px-3 py-2 text-xs font-semibold"><span className="hidden sm:inline">{t.ktm}</span> QR →</span>
       </button>
 
+      <button onClick={() => go('kenali-kampus')} className="glass glass-hover mt-4 flex min-h-14 w-full items-center gap-3 px-4 text-left">
+        <Building2 className="h-5 w-5 shrink-0 text-cyan" aria-hidden />
+        <span className="flex-1">
+          <span className="block font-semibold">{t.kenaliKampus}</span>
+          <span className="block text-xs text-mid">{t.kenaliKampusNote}</span>
+        </span>
+        <ChevronRight className="h-4 w-4 text-low" aria-hidden />
+      </button>
+
       <Section title={t.favoritesPick}>
         <div className="glass flex flex-wrap gap-2 p-4">
           {mine.map((f) => {
@@ -147,29 +157,40 @@ export function Profil({
   )
 }
 
-export function Notifikasi({ t, back, go }: { t: Dict; back: () => void; go: (r: string) => void }) {
+export function Notifikasi({ t, back, go, dibaca, setDibaca }: { t: Dict; back: () => void; go: (r: string) => void; dibaca: number[]; setDibaca: (ids: number[]) => void }) {
   const res = useResource(getNotifications)
-  return <Async res={res}>{(items) => <NotificationList t={t} back={back} go={go} initial={items} />}</Async>
+  return <Async res={res}>{(items) => <NotificationList t={t} back={back} go={go} items={items} dibaca={dibaca} setDibaca={setDibaca} />}</Async>
 }
 
-function NotificationList({ t, back, go, initial }: { t: Dict; back: () => void; go: (r: string) => void; initial: AppNotification[] }) {
-  const [items, setItems] = useState(initial)
+function NotificationList({ t, back, go, items, dibaca, setDibaca }: { t: Dict; back: () => void; go: (r: string) => void; items: AppNotification[]; dibaca: number[]; setDibaca: (ids: number[]) => void }) {
   const route: Record<string, string> = { Keuangan: 'keuangan', Kuliah: 'kuliah/tugas', Prestasi: 'prestasi', Event: 'event' }
+  const read = (n: AppNotification) => n.read || dibaca.includes(n.id)
   return (
     <div>
       <PageHeader
         title={t.notifications}
         onBack={back}
         right={
-          <button className="text-sm font-medium text-cyan" onClick={() => setItems((i) => i.map((x) => ({ ...x, read: true })))}>
+          <button className="min-h-11 px-1 text-sm font-medium text-cyan" onClick={() => setDibaca([...new Set([...dibaca, ...items.map((x) => x.id)])])}>
             {t.markRead}
           </button>
         }
       />
+      <button onClick={() => go('pengingat')} className="glass glass-hover mb-3 flex min-h-12 w-full items-center gap-3 px-4 text-left text-sm font-semibold">
+        <BellRing className="h-4 w-4 text-cyan" aria-hidden /> Pengaturan pengingat
+        <ChevronRight className="ml-auto h-4 w-4 text-low" aria-hidden />
+      </button>
       <div className="space-y-2">
         {items.map((n) => (
-          <button key={n.id} onClick={() => go(route[n.src] ?? 'home')} className={`glass flex w-full items-start gap-3 p-4 text-left ${n.read ? 'opacity-60' : ''}`}>
-            {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan shadow-[0_0_8px_var(--cyan)]" aria-label="belum dibaca" />}
+          <button
+            key={n.id}
+            onClick={() => {
+              if (!read(n)) setDibaca([...dibaca, n.id])
+              go(route[n.src] ?? 'home')
+            }}
+            className={`glass flex w-full items-start gap-3 p-4 text-left ${read(n) ? 'opacity-60' : ''}`}
+          >
+            {!read(n) && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan shadow-[0_0_8px_var(--cyan)]" aria-label="belum dibaca" />}
             <div className="flex-1">
               <div className="flex justify-between text-xs">
                 <span className="font-bold text-cyan">{n.src}</span>

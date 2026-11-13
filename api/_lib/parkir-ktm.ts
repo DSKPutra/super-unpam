@@ -1,10 +1,24 @@
 import { z } from 'zod'
 import { ATURAN_PARKIR } from '../../src/data/aturan-parkir.js'
 import { connectors } from '../_connectors/index.js'
-import { assertSameOrigin, handle, HttpError, json, lastSegment, readJson } from '../_lib/http.js'
-import { parseQrPayload, verifyCode } from '../_lib/qr.js'
-import { rateLimit } from '../_lib/ratelimit.js'
-import { requireSession } from '../_lib/session.js'
+import { assertSameOrigin, HttpError, json, readJson } from './http.js'
+import { parseQrPayload, verifyCode } from './qr.js'
+import { rateLimit } from './ratelimit.js'
+import { requireSession } from './session.js'
+
+// Handler parkir & KTM. Dilayani api/qr/[action].ts lewat rewrite di vercel.json
+// (/api/parkir/* → /api/qr/parkir-*, /api/ktm/* → /api/qr/ktm-*) agar jumlah fungsi Vercel tetap ≤ 12.
+
+/** Domain & aksi dari URL asli (/api/parkir/x) atau hasil rewrite (/api/qr/parkir-x). */
+export function rute(req: Request): { domain: 'parkir' | 'ktm' | 'qr'; aksi: string } {
+  const bagian = new URL(req.url).pathname.split('/').filter(Boolean)
+  const akhir = bagian.at(-1) ?? ''
+  for (const d of ['parkir', 'ktm'] as const) {
+    if (bagian.at(-2) === d) return { domain: d, aksi: akhir }
+    if (akhir.startsWith(d + '-')) return { domain: d, aksi: akhir.slice(d.length + 1) }
+  }
+  return { domain: 'qr', aksi: akhir }
+}
 
 // GET  /api/parkir/ringkasan                         → kendaraan, sesi aktif, area & riwayat milik sesi
 // POST /api/parkir/kendaraan { plat, jenis, ... }     → daftarkan kendaraan (menunggu verifikasi Sarpras)
@@ -13,11 +27,11 @@ import { requireSession } from '../_lib/session.js'
 
 const PEMILIK = ['MAHASISWA', 'DOSEN', 'TENDIK'] as const
 
-export const GET = handle(async (req) => {
-  if (lastSegment(req) !== 'ringkasan') throw new HttpError(404, 'Tidak ditemukan.')
+export async function parkirGET(req: Request, action: string) {
+  if (action !== 'ringkasan') throw new HttpError(404, 'Tidak ditemukan.')
   const s = requireSession(req, PEMILIK)
   return json(await connectors.sarpras.getRingkasanParkir(s.sub))
-})
+}
 
 const Kendaraan = z.object({
   plat: z.string().max(16),
@@ -33,9 +47,8 @@ const Gerbang = z.object({
   areaId: z.string().refine((id) => ATURAN_PARKIR.area.some((a) => a.id === id), 'Area tidak dikenal.'),
 })
 
-export const POST = handle(async (req) => {
+export async function parkirPOST(req: Request, action: string) {
   assertSameOrigin(req)
-  const action = lastSegment(req)
 
   if (action === 'kendaraan') {
     const s = requireSession(req, PEMILIK)
@@ -67,4 +80,25 @@ export const POST = handle(async (req) => {
   }
 
   throw new HttpError(404, 'Tidak ditemukan.')
-})
+}
+
+// GET  /api/ktm/status            → { beku }
+// GET  /api/ktm/log               → riwayat pemakaian KTM (gerbang, parkir, perpustakaan, presensi)
+// POST /api/ktm/bekukan { beku }  → bekukan/aktifkan kembali KTM milik sesi (mis. HP hilang)
+
+export async function ktmGET(req: Request, action: string) {
+  const s = requireSession(req)
+  if (action === 'status') return json({ beku: await connectors.sarpras.isKtmBeku(s.sub) })
+  if (action === 'log') return json(await connectors.sarpras.getLogKtm(s.sub))
+  throw new HttpError(404, 'Tidak ditemukan.')
+}
+
+export async function ktmPOST(req: Request, action: string) {
+  if (action !== 'bekukan') throw new HttpError(404, 'Tidak ditemukan.')
+  assertSameOrigin(req)
+  const s = requireSession(req)
+  rateLimit(`ktm-bekukan:${s.sub}`, 10, 3600)
+  const { beku } = await readJson(req, z.object({ beku: z.boolean() }))
+  await connectors.sarpras.setKtmBeku(s.sub, beku)
+  return json({ ok: true })
+}
