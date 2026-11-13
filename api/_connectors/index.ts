@@ -17,6 +17,7 @@ const ENV_NAME: Record<keyof Connectors, string> = {
   myLb: 'MY_LB',
   sispema: 'SISPEMA',
   portal: 'PORTAL',
+  sarpras: 'SARPRAS',
 }
 
 /** Mode aktif sebuah konektor. Dipakai endpoint untuk melabeli data mock sebagai "contoh". */
@@ -35,4 +36,5 @@ export const connectors: Connectors = {
   myLb: pick('myLb'),
   sispema: pick('sispema'),
   portal: pick('portal'),
+  sarpras: pick('sarpras'),
 }

@@ -5,6 +5,8 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/berita", "destination": "/api/campus/berita" },
+    { "source": "/api/parkir/:action", "destination": "/api/qr/parkir-:action" },
+    { "source": "/api/ktm/:action", "destination": "/api/qr/ktm-:action" },
     { "source": "/((?!api/|assets/|icons/|.*\\..*).*)", "destination": "/index.html" }
   ],
   "headers": [

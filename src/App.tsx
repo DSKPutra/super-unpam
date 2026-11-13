@@ -21,6 +21,7 @@ const Keuangan = page(() => import('./pages/Keuangan'), 'Keuangan')
 const KtmPage = page(() => import('./pages/Ktm'), 'KtmPage')
 const GerbangPage = page(() => import('./pages/Gerbang'), 'GerbangPage')
 const Presensi = page(() => import('./pages/Presensi'), 'Presensi')
+const Parkir = page(() => import('./pages/fitur/Parkir'), 'Parkir')
 const Event = page(() => import('./pages/Layanan'), 'Event')
 const Kerjasama = page(() => import('./pages/Layanan'), 'Kerjasama')
 const Prestasi = page(() => import('./pages/Layanan'), 'Prestasi')
@@ -183,7 +184,9 @@ export default function App() {
       case 'keuangan':
         return <Keuangan />
       case 'ktm':
-        return <KtmPage user={user} back={back} />
+        return <KtmPage user={user} back={back} go={go} />
+      case 'parkir':
+        return <Parkir user={user} back={back} go={go} />
       case 'gerbang':
         return <GerbangPage user={user} back={back} />
       case 'presensi':

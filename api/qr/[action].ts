@@ -5,14 +5,21 @@ import { safeEqual } from '../_lib/crypto.js'
 import { issueQr, pakaiSekali, parseQrPayload, samarkan, verifyCode } from '../_lib/qr.js'
 import { rateLimit } from '../_lib/ratelimit.js'
 import { requireSession } from '../_lib/session.js'
+import { ktmGET, ktmPOST, parkirGET, parkirPOST, rute } from '../_lib/parkir-ktm.js'
 
 // GET  /api/qr/issue?kind=KTM                       → QR KTM milik pemegang sesi
 // GET  /api/qr/issue?kind=GERBANG                   → QR gerbang keluar milik pemegang sesi
 // POST /api/qr/gerbang { payload, jalur }           → validator gerbang (header x-gerbang-key); QR sekali pakai
 // GET  /api/qr/issue?kind=PRESENSI&subject=SESI-<MK> → QR sesi kelas (hanya dosen pengampu)
+// GET  /api/qr/issue?kind=PARKIR&subject=<ID kendaraan> → QR parkir (kendaraan milik sesi & terverifikasi)
+// /api/parkir/* dan /api/ktm/* juga dilayani di sini (lihat api/_lib/parkir-ktm.ts).
 // POST /api/qr/verify { payload }                    → validasi QR KTM oleh petugas (dosen/tendik)
+// KTM yang dibekukan pemiliknya tidak mendapat QR KTM/parkir dan ditolak saat diverifikasi.
 
 export const GET = handle(async (req) => {
+  const r = rute(req)
+  if (r.domain === 'parkir') return parkirGET(req, r.aksi)
+  if (r.domain === 'ktm') return ktmGET(req, r.aksi)
   if (lastSegment(req) !== 'issue') throw new HttpError(404, 'Tidak ditemukan.')
   const params = new URL(req.url).searchParams
   const kind = params.get('kind')
@@ -20,6 +27,7 @@ export const GET = handle(async (req) => {
   if (kind === 'KTM') {
     // Subjek KTM selalu dari sesi, tidak pernah dari parameter klien.
     const s = requireSession(req)
+    if (await connectors.sarpras.isKtmBeku(s.sub)) throw new HttpError(403, 'KTM sedang dibekukan.')
     return json(issueQr('KTM', s.sub))
   }
 
@@ -27,6 +35,17 @@ export const GET = handle(async (req) => {
     // QR gerbang keluar milik pemegang sesi (semua peran yang keluar-masuk kampus).
     const s = requireSession(req)
     return json(issueQr('GERBANG', s.sub))
+  }
+
+  if (kind === 'PARKIR') {
+    const s = requireSession(req, ['MAHASISWA', 'DOSEN', 'TENDIK'])
+    const id = /^KND-[A-Z0-9]{2,20}$/.exec(params.get('subject') ?? '')?.[0]
+    if (!id) throw new HttpError(400, 'Kendaraan tidak valid.')
+    const { ktmBeku, kendaraan } = await connectors.sarpras.getRingkasanParkir(s.sub)
+    if (ktmBeku) throw new HttpError(403, 'KTM sedang dibekukan.')
+    // Kepemilikan dicek di server: QR tidak pernah diterbitkan untuk kendaraan orang lain.
+    if (kendaraan.find((k) => k.id === id)?.status !== 'terverifikasi') throw new HttpError(403, 'Kendaraan belum terverifikasi atau bukan milik Anda.')
+    return json(issueQr('PARKIR', id))
   }
 
   if (kind === 'PRESENSI') {
@@ -56,6 +75,9 @@ async function postGerbang(req: Request) {
 }
 
 export const POST = handle(async (req) => {
+  const r = rute(req)
+  if (r.domain === 'parkir') return parkirPOST(req, r.aksi)
+  if (r.domain === 'ktm') return ktmPOST(req, r.aksi)
   if (lastSegment(req) === 'gerbang') return postGerbang(req)
   if (lastSegment(req) !== 'verify') throw new HttpError(404, 'Tidak ditemukan.')
   assertSameOrigin(req)
@@ -64,6 +86,7 @@ export const POST = handle(async (req) => {
   const { payload } = await readJson(req, z.object({ payload: z.string().max(200) }))
   const qr = parseQrPayload(payload)
   if (!qr || qr.kind !== 'KTM' || !verifyCode('KTM', qr.subject, qr.code, qr.slot)) return json({ valid: false })
+  if (await connectors.sarpras.isKtmBeku(qr.subject)) return json({ valid: false, beku: true })
   const user = await connectors.sso.getUser(qr.subject)
   // Hanya identitas minimum untuk verifikasi tatap muka.
   return json(user ? { valid: true, name: user.name, nim: user.nim, role: user.role, prodi: user.prodi } : { valid: false })
