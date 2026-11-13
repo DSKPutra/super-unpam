@@ -120,6 +120,8 @@ export interface Dosen {
   /** Kuota bimbingan dosen ini; bawaan dari konfigurasi prodi. */
   kuota?: number
   terisi: number
+  /** Dosen menutup kuota sementara (T08): tidak dapat dipilih walau kuota tersisa. */
+  tutup?: boolean
   /** Kanal kontak resmi (mis. "via MY UNPAM"). Tidak diisi dengan alamat karangan. */
   kontak?: string
 }

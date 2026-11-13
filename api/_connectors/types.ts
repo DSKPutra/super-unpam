@@ -16,7 +16,8 @@ import type {
   Task,
   User,
 } from '../../src/lib/types.js'
-import type { DataPenilaian, Finalisasi, JadwalUjianSemester, JenisUjianSemester, Logbook, PendaftaranUjianAkhir, PengajuanUjian, ProfilKelayakan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir } from '../../src/lib/akademik/types.js'
+import type { AgendaDosen } from '../../src/lib/akademik/dosen-prodi.js'
+import type { DataPenilaian, Finalisasi, JadwalUjianSemester, JenisUjianAkhir, JenisUjianSemester, Logbook, PendaftaranUjianAkhir, PengajuanUjian, ProfilKelayakan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir } from '../../src/lib/akademik/types.js'
 
 // Satu antarmuka per sistem sumber kampus (kolom `source` di src/data/features.ts).
 // Setiap sistem punya implementasi `mock` (data contoh) dan `http` (sistem asli), dengan bentuk yang sama.
@@ -63,6 +64,14 @@ export interface MyUnpamConnector {
   simpanPenilaian(d: DataPenilaian): Promise<DataPenilaian>
   getFinalisasi(taId: string): Promise<Finalisasi | null>
   simpanFinalisasi(f: Finalisasi): Promise<Finalisasi>
+  /** T08 — prodi: semua TA di prodi pemegang sesi. */
+  getSemuaTA(): Promise<TugasAkhir[]>
+  /** T08 — nilai akhir ujian untuk diagregasi di server (tidak pernah dikirim per orang ke papan). */
+  getNilaiUjianAkhir(): Promise<{ jenis: JenisUjianAkhir; nilai: number }[]>
+  /** T08 — tugas pengawasan UTS/UAS para dosen. */
+  getPengawasan(): Promise<SesiUjian[]>
+  getJamBimbingan(dosenId: string): Promise<AgendaDosen[]>
+  simpanKuota(dosenId: string, k: { kuota: number; tutup: boolean }): Promise<void>
 }
 
 /** MENTARI: kelas online & tugas. */

@@ -5,7 +5,7 @@
 // tersedia di repo (T00). SEMUA angka di bawah adalah NILAI CONTOH: `sumber: null` dan ditandai
 // TODO(BAAK). UI wajib menampilkan label "contoh" untuk syarat yang ambangnya belum diverifikasi.
 
-import type { JenisUjian } from '../lib/akademik/types.js'
+import type { JenisUjian, JenisUjianAkhir } from '../lib/akademik/types.js'
 
 export interface Sumber {
   /** Dokumen resmi + halaman, mis. "Pedoman Akademik 2026, hlm. 12". null = belum diverifikasi. */
@@ -91,6 +91,12 @@ export interface AturanProdi extends Sumber {
   maksKarakterJudul: number
   /** Kuota mahasiswa bimbingan per dosen. */
   kuotaBimbingan: number
+  /** Batas atas kuota yang boleh dibuka dosen sendiri (T08). */
+  kuotaMaksBimbingan: number
+  /** Komposisi penguji ujian akhir (T08): jumlah per jenis, boleh-tidaknya pembimbing menguji, beban per hari. */
+  pengujiUjian: Sumber & { jumlah: Record<JenisUjianAkhir, number>; pembimbingBolehMenguji: boolean; maksUjianPerHari: number }
+  /** Statistik agregat hanya ditampilkan bila jumlah data ≥ ini, supaya nilai individu tidak bisa ditebak. */
+  minimalAgregat: number
   /** Pengingat halus bila tidak ada bimbingan lebih dari ini (hari). */
   jedaBimbinganHari: number
   /** Syarat mulai mengajukan judul skripsi/TA (dievaluasi dengan evaluasiKelayakan). */
@@ -136,6 +142,9 @@ export const ATURAN_BAWAAN: AturanProdi = {
   desimal: 2,
   maksKarakterJudul: 200,
   kuotaBimbingan: 10,
+  kuotaMaksBimbingan: 12,
+  pengujiUjian: { ...TODO, jumlah: { PROPOSAL: 2, SEMINAR_HASIL: 2, UAPS: 2, SIDANG: 3 }, pembimbingBolehMenguji: false, maksUjianPerHari: 3 },
+  minimalAgregat: 5,
   jedaBimbinganHari: 21,
   mulaiTA: { ...TODO, syarat: [{ id: 'sks', minimal: 110 }, { id: 'ipk', minimal: 2 }, { id: 'keuangan' }] },
   perkiraanSksPerSemester: 20,

@@ -7,8 +7,9 @@ import { hitungNilaiPratinjau } from '../akademik/nilai'
 import { dataPenilaianBaru, tutupPendaftaran, hasilUntukMahasiswa, kirimLembar as kirimLembarMurni, lembarTerlihat, peristiwaHasil, rilisHasil as rilisHasilMurni } from '../akademik/penilaian'
 import { transisi as transisiAlur } from '../akademik/alur-skripsi'
 import { ajukanAdmin as ajukanAdminMurni, ajukanRevisi as ajukanRevisiMurni, finalisasiBaru, hasilPlagiasi, lengkapiTenggat, putuskanRevisi as putuskanRevisiMurni, semuaRevisiDisetujui, simpanNaskahFinal, siapLulus, tandaiDikerjakan as tandaiDikerjakanMurni, type PenyediaPlagiasi } from '../akademik/finalisasi'
+import { kalenderDosen, sesiKeAgenda, susunPapan, ubahKuota as ubahKuotaMurni, validasiPenguji, type AgendaDosen, type PapanProdi } from '../akademik/dosen-prodi'
 import { jalankanAksi, pendaftaranBaru, unggahBerkas, verifikasiBerkas as verifikasiBerkasMurni, type AksiPendaftaran } from '../akademik/pendaftaran'
-import type { BerkasUjian, Bimbingan, DataPenilaian, Finalisasi, NaskahFinal, Revisi, HasilUjian, HasilUntukMahasiswa, JenisUjianAkhir, LembarPenilaian, Logbook, PendaftaranUjianAkhir, PeranAlur, PermintaanPerubahan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir, VersiDraf } from '../akademik/types'
+import type { BerkasUjian, Bimbingan, Dosen, DataPenilaian, Finalisasi, NaskahFinal, Revisi, HasilUjian, HasilUntukMahasiswa, JenisUjianAkhir, LembarPenilaian, Logbook, PendaftaranUjianAkhir, PeranAlur, PermintaanPerubahan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir, VersiDraf } from '../akademik/types'
 import type { DariSumber } from '../types'
 
 /** Sumber data Skripsi/TA. Komponen hanya mengenal antarmuka ini. */
@@ -51,6 +52,14 @@ export interface SumberTA {
   revisiPenguji(pengujiId: string): Promise<DariSumber<RevisiAktif[]>>
   finalisasi(taId: string): Promise<DariSumber<Finalisasi>>
   aksiFinalisasi(taId: string, aksi: AksiFinalisasi): Promise<DariSumber<{ finalisasi: Finalisasi; ta: TugasAkhir }>>
+  /** Dosen (DEMO): buka/tutup atau ubah kuota bimbingan dalam batas aturan. TODO(BFF-AUTHZ): dosenId dari sesi. */
+  ubahKuota(dosenId: string, ubah: { kuota?: number; tutup?: boolean }): Promise<DariSumber<Dosen>>
+  /** Dosen (DEMO): bimbingan, ujian (penguji), pengawasan dalam satu garis waktu. */
+  agendaDosen(dosenId: string): Promise<DariSumber<AgendaDosen[]>>
+  /** Prodi (DEMO): papan kemajuan, rekap tanpa data pribadi, statistik agregat. */
+  papanProdi(): Promise<DariSumber<PapanProdi>>
+  /** Prodi (DEMO): atur penguji ujian terjadwal; aturan komposisi ditegakkan validasiPenguji. */
+  aturPenguji(pendaftaranId: string, penguji: string[]): Promise<DariSumber<PendaftaranUjianAkhir>>
 }
 
 export interface RevisiAktif {
@@ -207,6 +216,44 @@ async function revisiAktifDemo(taId: string): Promise<RevisiAktif | null> {
   return null
 }
 
+export const KUOTA_DEMO_KEY = 'su:ta:kuota'
+export const PENGUJI_PRODI_DEMO_KEY = 'su:ta:penguji-prodi'
+const bacaJson = <T>(k: string, awal: T): T => {
+  try {
+    return { ...awal, ...(JSON.parse(localStorage.getItem(k) ?? '{}') as T) }
+  } catch {
+    return awal
+  }
+}
+const tulisJson = (k: string, v: unknown) => {
+  try {
+    localStorage.setItem(k, JSON.stringify(v))
+  } catch {
+    /* penyimpanan tidak tersedia */
+  }
+}
+const dosenDemo = async (): Promise<Dosen[]> => {
+  const ubah = bacaJson<Record<string, { kuota?: number; tutup?: boolean }>>(KUOTA_DEMO_KEY, {})
+  return (await demo()).dosenPembimbing.map((d) => ({ ...d, ...ubah[d.id] }))
+}
+/** Pendaftaran terjadwal: milik perangkat ini + contoh angkatan (dengan penguji yang diatur prodi demo). */
+async function pendaftaranSemua(): Promise<PendaftaranUjianAkhir[]> {
+  const d = await demo()
+  const atur = bacaJson<Record<string, string[]>>(PENGUJI_PRODI_DEMO_KEY, {})
+  const lokal = bacaUA().pendaftaran
+  return [...lokal, ...d.pendaftaranContoh.filter((p) => !lokal.some((x) => x.id === p.id))].map((p) => (p.sesi && atur[p.id] ? { ...p, sesi: { ...p.sesi, petugas: atur[p.id] } } : p))
+}
+/** Semua jadwal dosen: ujian akhir terjadwal, slot berpeserta, jadwal penguji lain, pengawasan. */
+async function jadwalSemua(): Promise<SesiUjian[]> {
+  const d = await demo()
+  const ua = bacaUA()
+  const pd = (await pendaftaranSemua()).filter((p) => p.status === 'TERJADWAL' && p.sesi)
+  const slot = d.slotUjianAkhir
+    .filter((x) => x.terisi + (ua.terisi[x.id] ?? 0) > 0 && !pd.some((p) => p.sesi!.id.endsWith(`:${x.id}`)))
+    .map((x): SesiUjian => ({ id: `slot:${x.id}`, jenis: x.jenis, kode: x.id, nama: `Slot ${x.ruang}`, mulai: x.mulai, selesai: x.selesai, ruang: x.ruang, petugas: x.penguji }))
+  return [...pd.map((p) => p.sesi!), ...slot, ...d.jadwalPenguji, ...d.pengawasanContoh]
+}
+
 async function lbDemo(taId: string): Promise<Logbook> {
   const d = await demo()
   return bacaLb()[taId] ?? (taId === d.logbookContoh.tugasAkhirId ? d.logbookContoh : { tugasAkhirId: taId, entri: [], versi: [] })
@@ -235,7 +282,7 @@ const contoh = <T>(data: T): DariSumber<T> => ({ data, asal: 'contoh' })
 export const taDemo: SumberTA = {
   async ringkasan() {
     const d = await demo()
-    return contoh({ tugasAkhir: baca().milikSaya, dosen: d.dosenPembimbing, judulTerdaftar: d.judulTerdaftar })
+    return contoh({ tugasAkhir: baca().milikSaya, dosen: await dosenDemo(), judulTerdaftar: d.judulTerdaftar })
   },
   async antrian() {
     const s = baca()
@@ -453,6 +500,45 @@ export const taDemo: SumberTA = {
     tulisFin(fin)
     return contoh({ finalisasi: fin, ta })
   },
+  async ubahKuota(dosenId, ubah) {
+    const d = (await dosenDemo()).find((x) => x.id === dosenId)
+    if (!d) throw new Error('Dosen tidak ditemukan.')
+    const r = ubahKuotaMurni(d, ubah, aturanUntuk((await demo()).profilKelayakan.prodi))
+    if (!r.ok) throw new Error(r.galat)
+    const simpan = bacaJson<Record<string, { kuota?: number; tutup?: boolean }>>(KUOTA_DEMO_KEY, {})
+    tulisJson(KUOTA_DEMO_KEY, { ...simpan, [dosenId]: { kuota: r.dosen.kuota, tutup: r.dosen.tutup } })
+    return contoh(r.dosen)
+  },
+  async agendaDosen(dosenId) {
+    const d = await demo()
+    const aturan = aturanUntuk(d.profilKelayakan.prodi)
+    const nama = (j: SesiUjian['jenis']) => aturanUjian(aturan, j)?.nama ?? j
+    const sesi = (await jadwalSemua()).filter((s) => s.petugas.includes(dosenId)).map((s) => sesiKeAgenda(s, nama(s.jenis)))
+    const jam = d.jamBimbinganContoh.filter((j) => j.dosen === dosenId).map(({ dosen: _, ...a }) => a)
+    return contoh(kalenderDosen([...sesi, ...jam]).agenda)
+  },
+  async papanProdi() {
+    const d = await demo()
+    const s = baca()
+    const milik = s.milikSaya ? [s.milikSaya] : []
+    const tas = [...milik, ...(s.antrian ?? d.antrianJudul), d.taBimbinganContoh, ...d.angkatanContoh].filter((t, i, a) => a.findIndex((x) => x.id === t.id) === i)
+    const lokal = Object.fromEntries(await Promise.all([...milik, d.taBimbinganContoh].map(async (t) => [t.id, bimbinganSah((await lbDemo(t.id)).entri).length] as const)))
+    return contoh(susunPapan({ tas, bimbinganSah: { ...d.bimbinganSahContoh, ...lokal }, pendaftaran: await pendaftaranSemua(), nilai: d.nilaiUjianContoh, jadwal: await jadwalSemua(), minimalAgregat: aturanUntuk(d.profilKelayakan.prodi).minimalAgregat, now: Date.now() }))
+  },
+  async aturPenguji(pendaftaranId, penguji) {
+    const d = await demo()
+    const aturan = aturanUntuk(d.profilKelayakan.prodi)
+    const p = (await pendaftaranSemua()).find((x) => x.id === pendaftaranId)
+    if (!p?.sesi || p.status !== 'TERJADWAL') throw new Error('Ujian terjadwal tidak ditemukan.')
+    const ta = [baca().milikSaya, ...d.angkatanContoh].find((t) => t?.id === p.tugasAkhirId)
+    if (!ta) throw new Error('Tugas akhir tidak ditemukan.')
+    const g = validasiPenguji(penguji, { jenis: p.jenis, namaJenis: aturanUjian(aturan, p.jenis)?.nama ?? p.jenis, ta, dosen: await dosenDemo(), waktu: p.sesi, jadwal: await jadwalSemua() }, aturan)
+    if (g.length) throw new Error(g.join(' '))
+    const baru = { ...p, sesi: { ...p.sesi, petugas: penguji } }
+    if (bacaUA().pendaftaran.some((x) => x.id === p.id)) simpanPendaftaran(baru)
+    else tulisJson(PENGUJI_PRODI_DEMO_KEY, { ...bacaJson<Record<string, string[]>>(PENGUJI_PRODI_DEMO_KEY, {}), [p.id]: penguji })
+    return contoh(baru)
+  },
   async antrianUjianAkhir() {
     const ta = baca().milikSaya
     return contoh(ta ? bacaUA().pendaftaran.filter((p) => p.tugasAkhirId === ta.id && p.status === 'MENUNGGU_PEMBIMBING').map((pendaftaran) => ({ ta, pendaftaran })) : [])
@@ -487,4 +573,8 @@ export const taHttp: SumberTA = {
   revisiPenguji: (pengujiId) => request(`ta/revisi-penguji?pengujiId=${encodeURIComponent(pengujiId)}`),
   finalisasi: (taId) => request(`ta/finalisasi?taId=${encodeURIComponent(taId)}`),
   aksiFinalisasi: (taId, aksi) => request('ta/finalisasi', { method: 'POST', body: JSON.stringify({ taId, ...aksi }) }),
+  ubahKuota: (dosenId, ubah) => request('ta/kuota', { method: 'POST', body: JSON.stringify({ dosenId, ...ubah }) }),
+  agendaDosen: (dosenId) => request(`ta/agenda?dosenId=${encodeURIComponent(dosenId)}`),
+  papanProdi: () => request('ta/papan'),
+  aturPenguji: (pendaftaranId, penguji) => request('ta/penguji', { method: 'POST', body: JSON.stringify({ pendaftaranId, penguji }) }),
 }

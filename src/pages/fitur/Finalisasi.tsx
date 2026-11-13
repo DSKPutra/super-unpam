@@ -310,9 +310,7 @@ function NaskahFinalForm({ fin, aturan, proses, onKirim, onGalat }: { fin: DataF
 /* ================= Dosen & simulasi prodi (DEMO) ================= */
 
 // TODO(BFF-AUTHZ): identitas penguji dari sesi; prodi = peran TENDIK di server (T08).
-export function RevisiDosen({ dosen }: { dosen: Dosen[] }) {
-  const [tersimpan] = usePref<string>('ta:penguji-demo', '')
-  const penguji = dosen.some((d) => d.id === tersimpan) ? tersimpan : (dosen[0]?.id ?? '')
+export function RevisiDosen({ penguji }: { penguji: string }) {
   const muat = useCallback(() => sumber.ta.revisiPenguji(penguji), [penguji])
   const res = useResource(muat)
   const [pesan, setPesan] = useState('')

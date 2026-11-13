@@ -75,9 +75,10 @@ describe('Logbook bimbingan', () => {
     cleanup()
 
     tampil('DOSEN')
-    const kartu = (await screen.findByText('Judul Uji Logbook')).closest('li')!
+    const bagian = (await screen.findByRole('heading', { name: 'Mahasiswa bimbingan' })).closest('section')!
+    const kartu = (await within(bagian).findByText('Judul Uji Logbook')).closest('li')!
     expect(within(kartu).getByText(/0 bimbingan disetujui · 1 menunggu verifikasi/)).toBeTruthy()
-    const contoh = screen.getByText(/Optimasi Rute Pengantaran Kantin/).closest('li')!
+    const contoh = within(bagian).getByText(/Optimasi Rute Pengantaran Kantin/).closest('li')!
     expect(within(contoh).getByText('Perlu perhatian')).toBeTruthy()
     fireEvent.click(within(kartu).getByRole('button', { name: 'Setujui entri' }))
     await screen.findByText(/Entri bimbingan disetujui/)
@@ -97,7 +98,8 @@ describe('Logbook bimbingan', () => {
     await catatBimbingan('Bab 3 Metodologi')
     cleanup()
     tampil('DOSEN')
-    const kartu = (await screen.findByText('Judul Uji Logbook')).closest('li')!
+    const bagian = (await screen.findByRole('heading', { name: 'Mahasiswa bimbingan' })).closest('section')!
+    const kartu = (await within(bagian).findByText('Judul Uji Logbook')).closest('li')!
     fireEvent.click(within(kartu).getByRole('button', { name: 'Tolak…' }))
     expect((within(kartu).getByRole('button', { name: 'Tolak entri' }) as HTMLButtonElement).disabled).toBe(true)
     fireEvent.change(within(kartu).getByLabelText('Alasan penolakan'), { target: { value: 'Tanggal tidak sesuai jadwal' } })

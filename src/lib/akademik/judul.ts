@@ -47,7 +47,7 @@ export function estimasiSemester(kurangSks: number, sksPerSemester: number): num
   return Math.ceil(kurangSks / sksPerSemester)
 }
 
-export const sisaKuota = (d: Dosen, kuotaBawaan: number) => Math.max(0, (d.kuota ?? kuotaBawaan) - d.terisi)
+export const sisaKuota = (d: Dosen, kuotaBawaan: number) => (d.tutup ? 0 : Math.max(0, (d.kuota ?? kuotaBawaan) - d.terisi))
 
 /** Dosen yang masih bisa dipilih (kuota tersisa), dosen sebidang didahulukan. */
 export function pembimbingTersedia(dosen: Dosen[], kuotaBawaan: number, bidang?: string): Dosen[] {

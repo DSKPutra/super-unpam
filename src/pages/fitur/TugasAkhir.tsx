@@ -13,28 +13,14 @@ import { Badge, LinkBtn, PageHeader, Section, Skeleton } from '../../components/
 import { BimbinganDosen, LogbookMahasiswa } from './Logbook'
 import { AntrianUjianDosen, UjianAkhirMahasiswa } from './UjianAkhir'
 import { UjianSayaDosen } from './Penilaian'
+import { LABEL_STATUS } from './label-ta'
+import { IkhtisarBimbingan, KalenderDosen, KuotaDosen, PapanProdiView, PeringatanDemo } from './DosenProdi'
 import { FinalisasiMahasiswa, RevisiDosen, RevisiMahasiswa, SimulasiProdi } from './Finalisasi'
 
 // T03 Skripsi/Tugas Akhir: syarat mulai, pengajuan judul + calon pembimbing, kemiripan judul, linimasa
 // status dari mesin alur (src/lib/akademik/alur-skripsi.ts), dan sisi dosen (DEMO).
 
 const PELAKU: Record<Role, PeranAlur> = { MAHASISWA: 'MAHASISWA', DOSEN: 'DOSEN', TENDIK: 'PRODI', ALUMNI: 'MAHASISWA' }
-const LABEL_STATUS: Record<StatusTugasAkhir, string> = {
-  DRAF_JUDUL: 'Draf judul',
-  DIAJUKAN: 'Diajukan',
-  DITOLAK: 'Ditolak',
-  DISETUJUI_PEMBIMBING: 'Pembimbing ditetapkan',
-  BIMBINGAN: 'Bimbingan',
-  LAYAK_PROPOSAL: 'Layak proposal',
-  UJIAN_PROPOSAL: 'Seminar proposal',
-  REVISI_PROPOSAL: 'Revisi proposal',
-  PENELITIAN: 'Penelitian',
-  LAYAK_UJIAN_AKHIR: 'Layak ujian akhir',
-  UJIAN_AKHIR: 'Ujian akhir',
-  REVISI_AKHIR: 'Revisi akhir',
-  YUDISIUM: 'Yudisium',
-  SELESAI: 'Selesai',
-}
 const LABEL_PELAKU: Record<PeranAlur, string> = { MAHASISWA: 'Mahasiswa', DOSEN: 'Dosen', PRODI: 'Prodi' }
 const tgl = (iso: string) => new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).format(new Date(iso))
 const KOSONG: DataPengajuanJudul = { judul: '', bidang: '', abstrak: '', metode: '', pilihanPembimbing: [] }
@@ -43,7 +29,7 @@ export function TugasAkhir({ user, back, go }: { user: User; back: () => void; g
   return (
     <div>
       <PageHeader title="Skripsi / Tugas Akhir" subtitle={user.prodi} onBack={back} />
-      {user.role === 'MAHASISWA' ? <SisiMahasiswa user={user} go={go} /> : <SisiDosen user={user} />}
+      {user.role === 'MAHASISWA' || user.role === 'ALUMNI' ? <SisiMahasiswa user={user} go={go} /> : user.role === 'TENDIK' ? <SisiProdi user={user} /> : <SisiDosen user={user} />}
     </div>
   )
 }
@@ -433,8 +419,14 @@ function Perubahan({ ta, dosen, onAjukan }: { ta: TugasAkhir; dosen: Dosen[]; on
 function SisiDosen({ user }: { user: User }) {
   const antrian = useResource(sumber.ta.antrian)
   const dosen = useResource(sumber.ta.ringkasan)
+  const aturan = aturanUntuk(user.prodi)
+  const daftar = dosen.data?.data.dosen ?? []
+  // DEMO: dosen memilih identitasnya untuk memperagakan beberapa dosen di satu perangkat. Daftar dosen
+  // dimuat belakangan: pilihan kosong/tidak dikenal jatuh ke dosen pertama. TODO(BFF-AUTHZ): dari sesi.
+  const [tersimpan, setSaya] = usePref<string>('ta:penguji-demo', '')
+  const saya = daftar.some((d) => d.id === tersimpan) ? tersimpan : (daftar[0]?.id ?? '')
   const [pesan, setPesan] = useState('')
-  const nama = (id: string) => dosen.data?.data.dosen.find((d) => d.id === id)?.nama ?? id
+  const nama = (id: string) => daftar.find((d) => d.id === id)?.nama ?? id
 
   const putuskan = async (ta: TugasAkhir, p: Peristiwa, extra: { pembimbing?: string[]; catatan?: string }) => {
     setPesan('')
@@ -449,11 +441,21 @@ function SisiDosen({ user }: { user: User }) {
 
   return (
     <>
-      <div className="glass mb-4 flex gap-3 p-4 text-sm" role="note">
-        <ShieldAlert className="h-5 w-5 shrink-0 text-amber" aria-hidden />
-        <p><strong>Tampilan dosen (demo).</strong> Peran bisa diganti dari Profil dan hak akses belum ditegakkan server, jadi layar ini belum boleh dianggap aman.</p>
-      </div>
-      <p role="status" aria-live="polite" className="mb-2 min-h-5 text-sm text-mid">{pesan}</p>
+      <PeringatanDemo peran="dosen" />
+      <label className="block text-sm font-semibold">
+        Bertindak sebagai dosen (demo)
+        <select value={saya} onChange={(e) => setSaya(e.target.value)} className="mt-1.5 w-full min-h-11 rounded-xl border border-line bg-glass-strong px-3">
+          {daftar.map((d) => <option key={d.id} value={d.id}>{d.nama}</option>)}
+        </select>
+      </label>
+      {saya && (
+        <>
+          <IkhtisarBimbingan key={`ikhtisar:${saya}`} dosenId={saya} aturan={aturan} />
+          <KuotaDosen key={`kuota:${saya}`} dosen={daftar} dosenId={saya} aturan={aturan} onBerubah={dosen.reload} />
+          <KalenderDosen key={`kalender:${saya}`} dosenId={saya} />
+        </>
+      )}
+      <p role="status" aria-live="polite" className="mb-2 mt-4 min-h-5 text-sm text-mid">{pesan}</p>
       <Section title="Pengajuan judul menunggu keputusan">
         {antrian.loading && !antrian.data ? (
           <Skeleton rows={2} />
@@ -465,11 +467,23 @@ function SisiDosen({ user }: { user: User }) {
           </ul>
         )}
       </Section>
-      <UjianSayaDosen aturan={aturanUntuk(user.prodi)} dosen={dosen.data?.data.dosen ?? []} />
-      <RevisiDosen dosen={dosen.data?.data.dosen ?? []} />
-      <SimulasiProdi ta={dosen.data?.data.tugasAkhir ?? null} aturan={aturanUntuk(user.prodi)} />
-      <AntrianUjianDosen aturan={aturanUntuk(user.prodi)} />
-      <BimbinganDosen aturan={aturanUntuk(user.prodi)} />
+      {saya && <UjianSayaDosen aturan={aturan} dosen={daftar} penguji={saya} />}
+      {saya && <RevisiDosen penguji={saya} />}
+      <AntrianUjianDosen aturan={aturan} />
+      <BimbinganDosen aturan={aturan} />
+    </>
+  )
+}
+
+/** Prodi/tendik (DEMO sampai BFF-AUTHZ): papan kemajuan, penguji, rekap, dan simulasi keputusan prodi. */
+function SisiProdi({ user }: { user: User }) {
+  const ringkasan = useResource(sumber.ta.ringkasan)
+  const aturan = aturanUntuk(user.prodi)
+  return (
+    <>
+      <PeringatanDemo peran="prodi" />
+      <PapanProdiView aturan={aturan} dosen={ringkasan.data?.data.dosen ?? []} />
+      <SimulasiProdi ta={ringkasan.data?.data.tugasAkhir ?? null} aturan={aturan} />
     </>
   )
 }

@@ -18,7 +18,8 @@ import type {
   Task,
   User,
 } from '../lib/types.js'
-import type { Dosen, JadwalUjianSemester, Logbook, PengajuanUjian, ProfilKelayakan, SesiUjian, SlotUjian, TugasAkhir } from '../lib/akademik/types.js'
+import type { AgendaDosen } from '../lib/akademik/dosen-prodi.js'
+import type { Dosen, JadwalUjianSemester, JenisUjianAkhir, Logbook, PendaftaranUjianAkhir, PengajuanUjian, ProfilKelayakan, SesiUjian, SlotUjian, StatusTugasAkhir, TugasAkhir } from '../lib/akademik/types.js'
 
 export const DEMO_USER: User = {
   name: 'DEA SAKA KURNIA PUTRA',
@@ -327,3 +328,48 @@ export const jadwalPenguji: SesiUjian[] = [
 
 /** Jadwal yudisium (contoh). TODO(BAAK): dari server. */
 export const jadwalYudisium = { jadwal: new Date('2027-02-15T02:00:00.000Z').toISOString(), tempat: 'Auditorium Kampus Viktor (contoh)' }
+
+// — Sisi dosen & prodi (T08, contoh). Kode TA saja; tidak ada nama/NIM mahasiswa.
+const taAngkatan = (n: number, status: StatusTugasAkhir, bidang: string, pembimbing: string[]): TugasAkhir => ({
+  id: `ta-angk-${n}`, judul: `Tugas akhir contoh ${n}`, abstrak: 'Contoh.', bidang, metode: 'Contoh.', pilihanPembimbing: pembimbing, pembimbing: status === 'DIAJUKAN' ? [] : pembimbing, status, riwayat: [], perubahan: [],
+})
+/** Angkatan contoh untuk papan prodi. */
+export const angkatanContoh: TugasAkhir[] = [
+  taAngkatan(1, 'DIAJUKAN', 'Sistem Informasi', ['dsn-budi', 'dsn-andi']),
+  taAngkatan(2, 'BIMBINGAN', 'Rekayasa Perangkat Lunak', ['dsn-andi']),
+  taAngkatan(3, 'UJIAN_PROPOSAL', 'Sistem Informasi', ['dsn-budi']),
+  taAngkatan(4, 'PENELITIAN', 'Jaringan & Keamanan', ['dsn-hadi']),
+  taAngkatan(5, 'PENELITIAN', 'Kecerdasan Buatan & Data', ['dsn-rina']),
+  taAngkatan(6, 'REVISI_AKHIR', 'Rekayasa Perangkat Lunak', ['dsn-siti']),
+  taAngkatan(7, 'YUDISIUM', 'Multimedia & Gim', ['dsn-siti']),
+  taAngkatan(8, 'SELESAI', 'Sistem Informasi', ['dsn-andi']),
+]
+export const bimbinganSahContoh: Record<string, number> = { 'ta-angk-2': 3, 'ta-angk-3': 6, 'ta-angk-4': 9, 'ta-angk-5': 10, 'ta-angk-6': 14, 'ta-angk-7': 15, 'ta-angk-8': 16 }
+
+/** Ujian akhir terjadwal milik angkatan contoh (prodi dapat mengatur penguji). */
+export const pendaftaranContoh: PendaftaranUjianAkhir[] = [
+  {
+    id: 'pd-angk-3', tugasAkhirId: 'ta-angk-3', jenis: 'PROPOSAL', status: 'TERJADWAL', berkas: [], riwayat: [],
+    sesi: { id: 'pd-angk-3:sesi', jenis: 'PROPOSAL', kode: 'ta-angk-3', nama: 'Seminar Proposal ta-angk-3', mulai: wib('2026-11-27T13:00'), selesai: wib('2026-11-27T15:00'), ruang: 'R. Sidang 2', petugas: ['dsn-andi', 'dsn-siti'] },
+  },
+]
+
+/** Nilai akhir ujian (contoh) — HANYA untuk diagregasi; tidak pernah ditampilkan per orang. */
+export const nilaiUjianContoh: { jenis: JenisUjianAkhir; nilai: number }[] = [
+  ...[78, 84, 71, 88, 80, 76].map((nilai) => ({ jenis: 'PROPOSAL' as const, nilai })),
+  ...[82, 90].map((nilai) => ({ jenis: 'SIDANG' as const, nilai })),
+]
+
+/** Tugas pengawasan UTS dosen (contoh). Satu sengaja bentrok dengan jam bimbingan untuk peragaan. */
+export const pengawasanContoh: SesiUjian[] = [
+  { id: 'aw-andi-1124', jenis: 'UTS', kode: 'IF301', nama: 'Pengawasan UTS Basis Data', mulai: wib('2026-11-24T13:00'), selesai: wib('2026-11-24T15:00'), ruang: 'R. 402', petugas: ['dsn-andi'] },
+  { id: 'aw-rina-1125', jenis: 'UTS', kode: 'IF205', nama: 'Pengawasan UTS Statistika', mulai: wib('2026-11-25T08:00'), selesai: wib('2026-11-25T10:00'), ruang: 'R. 301', petugas: ['dsn-rina'] },
+  { id: 'aw-siti-1127', jenis: 'UTS', kode: 'IF210', nama: 'Pengawasan UTS Grafika', mulai: wib('2026-11-27T08:00'), selesai: wib('2026-11-27T10:00'), ruang: 'R. 305', petugas: ['dsn-siti'] },
+]
+
+/** Jam bimbingan dosen (contoh). */
+export const jamBimbinganContoh: (AgendaDosen & { dosen: string })[] = [
+  { id: 'jb-andi-1124', dosen: 'dsn-andi', peran: 'BIMBINGAN', judul: 'Jam bimbingan', mulai: wib('2026-11-24T14:00'), selesai: wib('2026-11-24T16:00'), ruang: 'R. Dosen 2' },
+  { id: 'jb-rina-1126', dosen: 'dsn-rina', peran: 'BIMBINGAN', judul: 'Jam bimbingan', mulai: wib('2026-11-26T13:00'), selesai: wib('2026-11-26T15:00'), ruang: 'R. Dosen 1' },
+  { id: 'jb-siti-1125', dosen: 'dsn-siti', peran: 'BIMBINGAN', judul: 'Jam bimbingan', mulai: wib('2026-11-25T10:00'), selesai: wib('2026-11-25T12:00'), ruang: 'R. Dosen 3' },
+]

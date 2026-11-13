@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { transisi, type Peristiwa } from '../../src/lib/akademik/alur-skripsi.js'
 import { aturanUjian, aturanUntuk, rubrikUntuk } from '../../src/lib/akademik/aturan.js'
 import { bimbinganSah, tambahVersi, validasiEntri, VersiDitolak } from '../../src/lib/akademik/logbook.js'
+import { kalenderDosen, sesiKeAgenda, susunPapan, ubahKuota, validasiPenguji } from '../../src/lib/akademik/dosen-prodi.js'
 import { ajukanAdmin, ajukanRevisi, finalisasiBaru, lengkapiTenggat, putuskanRevisi, semuaRevisiDisetujui, simpanNaskahFinal, siapLulus, tandaiDikerjakan } from '../../src/lib/akademik/finalisasi.js'
 import { dataPenilaianBaru, tutupPendaftaran, hasilUntukMahasiswa, kirimLembar, lembarTerlihat, peristiwaHasil, rilisHasil } from '../../src/lib/akademik/penilaian.js'
 import { jalankanAksi, pendaftaranBaru, unggahBerkas, verifikasiBerkas, type AksiPendaftaran } from '../../src/lib/akademik/pendaftaran.js'
@@ -29,6 +30,9 @@ import { requireSession } from '../_lib/session.js'
 // POST /api/ta/revisi (mahasiswa: dikerjakan/ajukan; dosen: putuskan), /api/ta/finalisasi (mahasiswa: naskah,
 //      ajukan admin, daftar wisuda; TENDIK: admin selesai, selesaikan). Plagiasi: 503 sampai ada penyedia resmi.
 // TODO(BFF-AUTHZ): dosen hanya boleh memutuskan/memverifikasi untuk mahasiswa yang ia bimbing.
+// GET  /api/ta/agenda?dosenId (DOSEN), /api/ta/papan (TENDIK: hanya agregat + rekap tanpa data pribadi)
+// POST /api/ta/kuota (DOSEN, dalam batas aturan), /api/ta/penguji (TENDIK, aturan komposisi ditegakkan server)
+// TODO(BFF-AUTHZ): dosenId dari sesi; papan dibatasi prodi pemegang sesi.
 
 const wrap = <T>(data: T): DariSumber<T> => ({ data, asal: connectorMode('myUnpam') === 'mock' ? 'contoh' : 'MY UNPAM' })
 const PERAN: Record<string, PeranAlur> = { MAHASISWA: 'MAHASISWA', DOSEN: 'DOSEN', TENDIK: 'PRODI' }
@@ -100,6 +104,20 @@ export const GET = handle(async (req) => {
       await milikSendiri(s.sub, taId)
       return json(wrap((await connectors.myUnpam.getFinalisasi(taId)) ?? finalisasiBaru(taId)))
     }
+    case 'agenda': {
+      requireSession(req, ['DOSEN'])
+      const dosenId = new URL(req.url).searchParams.get('dosenId') ?? ''
+      const aturan = aturanUntuk('*')
+      const [jadwal, jam] = await Promise.all([jadwalSemua(), connectors.myUnpam.getJamBimbingan(dosenId)])
+      const sesi = jadwal.filter((x) => x.petugas.includes(dosenId)).map((x) => sesiKeAgenda(x, aturanUjian(aturan, x.jenis)?.nama ?? x.jenis))
+      return json(wrap(kalenderDosen([...sesi, ...jam]).agenda))
+    }
+    case 'papan': {
+      requireSession(req, ['TENDIK'])
+      const [tas, pendaftaran, nilai, jadwal] = await Promise.all([connectors.myUnpam.getSemuaTA(), connectors.myUnpam.getPendaftaranTerjadwal(), connectors.myUnpam.getNilaiUjianAkhir(), jadwalSemua()])
+      const sah = Object.fromEntries(await Promise.all(tas.map(async (t) => [t.id, bimbinganSah((await connectors.myUnpam.getLogbook(t.id)).entri).length] as const)))
+      return json(wrap(susunPapan({ tas, bimbinganSah: sah, pendaftaran, nilai, jadwal, minimalAgregat: aturanUntuk('*').minimalAgregat, now: Date.now() })))
+    }
     case 'antrian': {
       const s = requireSession(req, ['DOSEN'])
       return json(wrap(await connectors.myUnpam.getAntrianTA(s.sub)))
@@ -116,6 +134,42 @@ const Body = z.object({
   pembimbing: z.array(z.string().max(64)).max(3).optional(),
   judul: z.object({ judul: z.string().trim().min(1).max(300), bidang: z.string().max(120), abstrak: z.string().max(3000), metode: z.string().max(3000), pilihanPembimbing: z.array(z.string().max(64)).max(5) }).optional(),
 })
+
+/** Semua jadwal dosen: ujian akhir terjadwal, slot berpeserta, jadwal penguji lain, pengawasan. */
+async function jadwalSemua() {
+  const [pd, slot, lain, awas] = await Promise.all([connectors.myUnpam.getPendaftaranTerjadwal(), connectors.myUnpam.getSlotUjian(), connectors.myUnpam.getJadwalPenguji(), connectors.myUnpam.getPengawasan()])
+  const terjadwal = pd.filter((p) => p.status === 'TERJADWAL' && p.sesi)
+  const slotSesi = slot
+    .filter((x) => x.terisi > 0 && !terjadwal.some((p) => p.sesi!.id.endsWith(`:${x.id}`)))
+    .map((x) => ({ id: `slot:${x.id}`, jenis: x.jenis, kode: x.id, nama: `Slot ${x.ruang}`, mulai: x.mulai, selesai: x.selesai, ruang: x.ruang, petugas: x.penguji }))
+  return [...terjadwal.map((p) => p.sesi!), ...slotSesi, ...lain, ...awas]
+}
+
+async function postDosenProdi(req: Request, aksi: string) {
+  assertSameOrigin(req)
+  const aturan = aturanUntuk('*')
+  if (aksi === 'kuota') {
+    const s = requireSession(req, ['DOSEN'])
+    rateLimit(`ta-kuota:${s.sub}`, 30, 3600)
+    const b = await readJson(req, z.object({ dosenId: z.string().max(64), kuota: z.number().int().min(0).max(1000).optional(), tutup: z.boolean().optional() }))
+    const d = (await connectors.myUnpam.getRingkasanTA(s.sub)).dosen.find((x) => x.id === b.dosenId)
+    if (!d) throw new HttpError(404, 'Dosen tidak ditemukan.')
+    const r = ubahKuota(d, b, aturan)
+    if (!r.ok) throw new HttpError(422, r.galat)
+    await connectors.myUnpam.simpanKuota(d.id, { kuota: r.dosen.kuota!, tutup: !!r.dosen.tutup })
+    return json(wrap(r.dosen))
+  }
+  const s = requireSession(req, ['TENDIK'])
+  rateLimit(`ta-penguji:${s.sub}`, 60, 3600)
+  const b = await readJson(req, z.object({ pendaftaranId: z.string().max(64), penguji: z.array(z.string().max(64)).max(10) }))
+  const p = await connectors.myUnpam.getPendaftaranById(b.pendaftaranId)
+  if (!p?.sesi || p.status !== 'TERJADWAL') throw new HttpError(404, 'Ujian terjadwal tidak ditemukan.')
+  const ta = await connectors.myUnpam.getTA(p.tugasAkhirId)
+  if (!ta) throw new HttpError(404, 'Tugas akhir tidak ditemukan.')
+  const g = validasiPenguji(b.penguji, { jenis: p.jenis, namaJenis: aturanUjian(aturan, p.jenis)?.nama ?? p.jenis, ta, dosen: (await connectors.myUnpam.getRingkasanTA(s.sub)).dosen, waktu: p.sesi, jadwal: await jadwalSemua() }, aturan)
+  if (g.length) throw new HttpError(422, g.join(' '))
+  return json(wrap(await connectors.myUnpam.simpanPendaftaranUjian({ ...p, sesi: { ...p.sesi, petugas: b.penguji } })))
+}
 
 async function dataUjianAkhir(sub: string, taId: string) {
   const [pendaftaran, slot, jadwalPenguji, uts, uas] = await Promise.all([
@@ -390,6 +444,7 @@ export const POST = handle(async (req) => {
   if (aksi === 'lembar' || aksi === 'rilis') return postPenilaian(req, aksi)
   if (aksi === 'revisi') return postRevisi(req)
   if (aksi === 'finalisasi') return postFinalisasi(req)
+  if (aksi === 'kuota' || aksi === 'penguji') return postDosenProdi(req, aksi)
   if (aksi !== 'peristiwa') throw new HttpError(404, 'Tidak ditemukan.')
   assertSameOrigin(req)
   const s = requireSession(req, ['MAHASISWA', 'DOSEN', 'TENDIK'])

@@ -35,7 +35,7 @@ const kartu = () =>
   })
 
 async function nilaiSebagai(penguji: string, skor: [string, string, string], opsi: { revisi?: boolean } = {}) {
-  fireEvent.change(await screen.findByLabelText('Bertindak sebagai penguji (demo)'), { target: { value: penguji } })
+  fireEvent.change(await screen.findByLabelText('Bertindak sebagai dosen (demo)'), { target: { value: penguji } })
   // Tunggu kartu milik penguji ini (data penguji sebelumnya bisa masih tampil sesaat).
   const k = await waitFor(async () => {
     const li = await kartu()
