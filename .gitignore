@@ -12,3 +12,4 @@ dev-dist
 *.tmp
 *.tsbuildinfo
 print-test-*.pdf
+PROMPT/
