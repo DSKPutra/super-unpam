@@ -5,7 +5,7 @@
 // tersedia di repo (T00). SEMUA angka di bawah adalah NILAI CONTOH: `sumber: null` dan ditandai
 // TODO(BAAK). UI wajib menampilkan label "contoh" untuk syarat yang ambangnya belum diverifikasi.
 
-import type { JenisUjian } from '../lib/akademik/types'
+import type { JenisUjian } from '../lib/akademik/types.js'
 
 export interface Sumber {
   /** Dokumen resmi + halaman, mis. "Pedoman Akademik 2026, hlm. 12". null = belum diverifikasi. */
@@ -80,6 +80,8 @@ export interface AturanProdi extends Sumber {
   perkiraanSksPerSemester: number
   /** Peringatan "judul mirip" bila skor kemiripan ≥ ini (0–1). Bukan pengganti cek plagiasi resmi. */
   ambangKemiripanJudul: number
+  /** Berkas draf naskah: ukuran maksimal dan tipe yang diterima (versi draf, T04). */
+  drafNaskah: { maksMB: number; tipe: string[] }
   /** Jumlah pilihan pembimbing yang diminta saat pengajuan (urut prioritas). */
   jumlahPilihanPembimbing: number
   /** Bidang/kelompok keilmuan yang bisa dipilih. Kosong = isian bebas. */
@@ -103,6 +105,7 @@ export const ATURAN_BAWAAN: AturanProdi = {
   perkiraanSksPerSemester: 20,
   ambangKemiripanJudul: 0.5,
   jumlahPilihanPembimbing: 3,
+  drafNaskah: { maksMB: 20, tipe: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] },
   bidangTA: ['Rekayasa Perangkat Lunak', 'Jaringan & Keamanan', 'Kecerdasan Buatan & Data', 'Sistem Informasi', 'Multimedia & Gim'],
   hurufMutu: [
     { min: 85, huruf: 'A' },

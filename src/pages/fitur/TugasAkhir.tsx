@@ -10,6 +10,7 @@ import { statusSumber, sumber } from '../../lib/sumber'
 import { useResource } from '../../lib/useResource'
 import type { Role, User } from '../../lib/types'
 import { Badge, LinkBtn, PageHeader, Section, Skeleton } from '../../components/ui'
+import { BimbinganDosen, LogbookMahasiswa } from './Logbook'
 
 // T03 Skripsi/Tugas Akhir: syarat mulai, pengajuan judul + calon pembimbing, kemiripan judul, linimasa
 // status dari mesin alur (src/lib/akademik/alur-skripsi.ts), dan sisi dosen (DEMO).
@@ -100,7 +101,7 @@ function SisiMahasiswa({ user, go }: { user: User; go: (r: string) => void }) {
           onKirim={(judul) => jalankan({ taId: ta?.id, peristiwa: 'AJUKAN_JUDUL', judul }, 'Judul diajukan')}
         />
       ) : (
-        <StatusTA ta={ta} dosen={dosen} proses={proses} go={go} onPeristiwa={(p) => jalankan({ taId: ta.id, peristiwa: p }, p === 'AJUKAN_ULANG' ? 'Silakan perbaiki dan ajukan ulang' : 'Status diperbarui')} onPerubahan={async (d) => {
+        <StatusTA ta={ta} user={user} aturan={aturan} dosen={dosen} proses={proses} go={go} onPeristiwa={(p) => jalankan({ taId: ta.id, peristiwa: p }, p === 'AJUKAN_ULANG' ? 'Silakan perbaiki dan ajukan ulang' : 'Status diperbarui')} onPerubahan={async (d) => {
           try {
             await sumber.ta.ajukanPerubahan(ta.id, d)
             setPesan('Permintaan perubahan diajukan dan menunggu persetujuan. Data belum berubah.')
@@ -247,8 +248,13 @@ function FormPengajuan({ aturan, dosen, judulTerdaftar, awal, proses, onKirim }:
   )
 }
 
-function StatusTA({ ta, dosen, proses, go, onPeristiwa, onPerubahan }: {
+/** Tahap yang belum punya pembimbing aktif: logbook dan perubahan belum relevan. */
+const SEBELUM_BIMBINGAN: StatusTugasAkhir[] = ['DRAF_JUDUL', 'DIAJUKAN', 'DITOLAK', 'DISETUJUI_PEMBIMBING']
+
+function StatusTA({ ta, user, aturan, dosen, proses, go, onPeristiwa, onPerubahan }: {
   ta: TugasAkhir
+  user: User
+  aturan: ReturnType<typeof aturanUntuk>
   dosen: Dosen[]
   proses: boolean
   go: (r: string) => void
@@ -340,7 +346,8 @@ function StatusTA({ ta, dosen, proses, go, onPeristiwa, onPerubahan }: {
         )}
       </Section>
 
-      {idx >= URUTAN_UTAMA.indexOf('DISETUJUI_PEMBIMBING') && <Perubahan ta={ta} dosen={dosen} onAjukan={onPerubahan} />}
+      {!SEBELUM_BIMBINGAN.includes(ta.status) && <LogbookMahasiswa ta={ta} user={user} aturan={aturan} dosen={dosen} go={go} />}
+      {ta.pembimbing.length > 0 && <Perubahan ta={ta} dosen={dosen} onAjukan={onPerubahan} />}
     </>
   )
 }
@@ -451,6 +458,7 @@ function SisiDosen({ user }: { user: User }) {
           </ul>
         )}
       </Section>
+      <BimbinganDosen aturan={aturanUntuk(user.prodi)} />
     </>
   )
 }
