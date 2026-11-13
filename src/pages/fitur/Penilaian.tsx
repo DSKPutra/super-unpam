@@ -7,6 +7,7 @@ import { hitungNilaiPratinjau } from '../../lib/akademik/nilai'
 import { jendelaPenilaian, validasiLembar } from '../../lib/akademik/penilaian'
 import type { Dosen, HasilUjian, LembarPenilaian } from '../../lib/akademik/types'
 import { USE_DEMO } from '../../lib/api'
+import { cetak } from '../../lib/cetak'
 import { usePref } from '../../lib/prefs'
 import { sumber } from '../../lib/sumber'
 import type { UjianPenguji } from '../../lib/sumber/ta'
@@ -233,9 +234,9 @@ function BeritaAcara({ u, aturan, nama, hasil }: { u: UjianPenguji; aturan: Atur
   }, [])
   return (
     <>
-      <button onClick={() => window.print()} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-glass-strong px-4 text-sm font-semibold"><Printer className="h-4 w-4" aria-hidden /> Cetak berita acara</button>
+      <button onClick={() => cetak(`berita-acara:${u.pendaftaran.id}`)} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-glass-strong px-4 text-sm font-semibold"><Printer className="h-4 w-4" aria-hidden /> Cetak berita acara</button>
       {createPortal(
-        <div className="print-doc" aria-hidden>
+        <div className="print-doc" data-doc={`berita-acara:${u.pendaftaran.id}`} aria-hidden>
           <div className="pd-head">
             <img src="/brand/unpam-logo-256.webp" alt="" width={56} height={56} />
             <div>

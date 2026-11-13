@@ -324,3 +324,6 @@ export const slotUjianAkhir: SlotUjian[] = [
 export const jadwalPenguji: SesiUjian[] = [
   { id: 'pg-budi-1126', jenis: 'SIDANG', kode: 'lain', nama: 'Sidang mahasiswa lain', mulai: wib('2026-11-26T08:00'), selesai: wib('2026-11-26T10:00'), ruang: 'R. Sidang 1', petugas: ['dsn-budi'] },
 ]
+
+/** Jadwal yudisium (contoh). TODO(BAAK): dari server. */
+export const jadwalYudisium = { jadwal: new Date('2027-02-15T02:00:00.000Z').toISOString(), tempat: 'Auditorium Kampus Viktor (contoh)' }

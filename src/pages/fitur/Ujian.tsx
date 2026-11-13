@@ -7,6 +7,7 @@ import { buatIcs } from '../../lib/akademik/ics-ujian'
 import { ringkasKelayakan } from '../../lib/akademik/kelayakan'
 import { batasPengajuan, susunTampilanUjian, validasiLampiran, type BarisUjian, type TampilanUjian } from '../../lib/akademik/tampilan-ujian'
 import { JENIS_UJIAN_SEMESTER, type JadwalUjianSemester, type JenisUjianSemester, type PengajuanUjian, type SesiUjian } from '../../lib/akademik/types'
+import { cetak } from '../../lib/cetak'
 import { statusSumber, sumber } from '../../lib/sumber'
 import { useResource } from '../../lib/useResource'
 import type { User } from '../../lib/types'
@@ -181,7 +182,7 @@ function Kartu({ view, jadwal, user, namaJenis }: { view: TampilanUjian; jadwal:
   }
   const print = () => {
     setPrintedAt(new Date())
-    requestAnimationFrame(() => window.print())
+    cetak(`kartu-ujian:${jadwal.kartuId}`)
   }
   const share = async () => {
     setPesan('')
@@ -230,7 +231,7 @@ function Kartu({ view, jadwal, user, namaJenis }: { view: TampilanUjian; jadwal:
 /** Versi cetak (lihat .print-doc di index.css): terang, kontras tinggi, A5. */
 function KartuCetak({ user, view, jadwal, qr, printedAt, namaJenis }: { user: User; view: TampilanUjian; jadwal: JadwalUjianSemester; qr: string; printedAt: Date; namaJenis: string }) {
   return (
-    <div className="print-doc" aria-hidden>
+    <div className="print-doc" data-doc={`kartu-ujian:${jadwal.kartuId}`} aria-hidden>
       {/* div, bukan <header>: aturan cetak global menyembunyikan header aplikasi */}
       <div className="pd-head">
         <img src="/brand/unpam-logo-256.webp" alt="" width={56} height={56} />

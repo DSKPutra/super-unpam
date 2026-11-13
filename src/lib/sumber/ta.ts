@@ -6,8 +6,9 @@ import { aturanUjian, aturanUntuk, rubrikUntuk } from '../akademik/aturan'
 import { hitungNilaiPratinjau } from '../akademik/nilai'
 import { dataPenilaianBaru, tutupPendaftaran, hasilUntukMahasiswa, kirimLembar as kirimLembarMurni, lembarTerlihat, peristiwaHasil, rilisHasil as rilisHasilMurni } from '../akademik/penilaian'
 import { transisi as transisiAlur } from '../akademik/alur-skripsi'
+import { ajukanAdmin as ajukanAdminMurni, ajukanRevisi as ajukanRevisiMurni, finalisasiBaru, hasilPlagiasi, lengkapiTenggat, putuskanRevisi as putuskanRevisiMurni, semuaRevisiDisetujui, simpanNaskahFinal, siapLulus, tandaiDikerjakan as tandaiDikerjakanMurni, type PenyediaPlagiasi } from '../akademik/finalisasi'
 import { jalankanAksi, pendaftaranBaru, unggahBerkas, verifikasiBerkas as verifikasiBerkasMurni, type AksiPendaftaran } from '../akademik/pendaftaran'
-import type { BerkasUjian, Bimbingan, DataPenilaian, HasilUjian, HasilUntukMahasiswa, JenisUjianAkhir, LembarPenilaian, Logbook, PendaftaranUjianAkhir, PeranAlur, PermintaanPerubahan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir, VersiDraf } from '../akademik/types'
+import type { BerkasUjian, Bimbingan, DataPenilaian, Finalisasi, NaskahFinal, Revisi, HasilUjian, HasilUntukMahasiswa, JenisUjianAkhir, LembarPenilaian, Logbook, PendaftaranUjianAkhir, PeranAlur, PermintaanPerubahan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir, VersiDraf } from '../akademik/types'
 import type { DariSumber } from '../types'
 
 /** Sumber data Skripsi/TA. Komponen hanya mengenal antarmuka ini. */
@@ -43,7 +44,34 @@ export interface SumberTA {
   /** Rilis hasil oleh prodi (DEMO dari layar dosen sampai T08). */
   rilisHasil(pendaftaranId: string, keputusan: HasilUjian['keputusan']): Promise<DariSumber<DataPenilaian>>
   hasilUjian(pendaftaranId: string): Promise<DariSumber<HasilUntukMahasiswa>>
+  /** Revisi aktif (ujian terakhir yang hasilnya lulus dengan revisi); null bila tidak ada. */
+  revisiAktif(taId: string): Promise<DariSumber<RevisiAktif | null>>
+  aksiRevisi(pendaftaranId: string, revisiId: string, aksi: AksiRevisi): Promise<DariSumber<RevisiAktif>>
+  /** Penguji (DEMO): butir revisi yang menunggu keputusannya. */
+  revisiPenguji(pengujiId: string): Promise<DariSumber<RevisiAktif[]>>
+  finalisasi(taId: string): Promise<DariSumber<Finalisasi>>
+  aksiFinalisasi(taId: string, aksi: AksiFinalisasi): Promise<DariSumber<{ finalisasi: Finalisasi; ta: TugasAkhir }>>
 }
+
+export interface RevisiAktif {
+  ta: TugasAkhir
+  pendaftaran: PendaftaranUjianAkhir
+  revisi: Revisi[]
+}
+
+export type AksiRevisi =
+  | { jenis: 'DIKERJAKAN' }
+  | { jenis: 'AJUKAN'; versiDraf?: number; catatan: string }
+  | { jenis: 'PUTUSKAN'; pengujiId: string; keputusan: 'DISETUJUI' | 'DITOLAK'; alasan?: string }
+
+export type AksiFinalisasi =
+  | { jenis: 'NASKAH'; naskah: Omit<NaskahFinal, 'diunggah'> }
+  | { jenis: 'PLAGIASI' }
+  | { jenis: 'AJUKAN_ADMIN'; item: string }
+  | { jenis: 'DAFTAR_WISUDA' }
+  /** Simulasi prodi (DEMO sampai T08 + BFF-AUTHZ). */
+  | { jenis: 'ADMIN_SELESAI'; item: string }
+  | { jenis: 'SELESAIKAN' }
 
 export interface UjianPenguji {
   ta: TugasAkhir
@@ -141,6 +169,43 @@ const tulisNilai = (d: DataPenilaian) => {
   }
 }
 const nilaiUntuk = (pid: string) => bacaNilai()[pid] ?? dataPenilaianBaru(pid)
+
+export const FINALISASI_DEMO_KEY = 'su:ta:finalisasi'
+const bacaFin = (): Record<string, Finalisasi> => {
+  try {
+    return JSON.parse(localStorage.getItem(FINALISASI_DEMO_KEY) ?? '{}') as Record<string, Finalisasi>
+  } catch {
+    return {}
+  }
+}
+const tulisFin = (f: Finalisasi) => {
+  try {
+    localStorage.setItem(FINALISASI_DEMO_KEY, JSON.stringify({ ...bacaFin(), [f.tugasAkhirId]: f }))
+  } catch {
+    /* penyimpanan tidak tersedia */
+  }
+}
+
+/** Penyedia pemeriksaan kemiripan CONTOH (mode demo): angka deterministik dari hash, bukan hasil sungguhan. */
+export const penyediaPlagiasiContoh: PenyediaPlagiasi = {
+  nama: 'Penyedia contoh (demo)',
+  contoh: true,
+  periksa: async (sha256) => ({ persen: parseInt(sha256.slice(0, 2), 16) % 30 }),
+}
+
+/** Revisi aktif: pendaftaran SELESAI terakhir dengan hasil lulus-dengan-revisi. */
+async function revisiAktifDemo(taId: string): Promise<RevisiAktif | null> {
+  const ta = baca().milikSaya
+  if (!ta || ta.id !== taId) return null
+  const d = await demo()
+  const aturan = aturanUntuk(d.profilKelayakan.prodi)
+  const kandidat = bacaUA().pendaftaran.filter((p) => p.tugasAkhirId === taId && p.status === 'SELESAI').reverse()
+  for (const p of kandidat) {
+    const h = bacaNilai()[p.id]?.hasil
+    if (h?.keputusan === 'LULUS_REVISI') return { ta, pendaftaran: p, revisi: lengkapiTenggat(h.revisi, h.dirilis, aturan) }
+  }
+  return null
+}
 
 async function lbDemo(taId: string): Promise<Logbook> {
   const d = await demo()
@@ -318,6 +383,76 @@ export const taDemo: SumberTA = {
     return contoh(r.data)
   },
   hasilUjian: async (pid) => contoh(hasilUntukMahasiswa(bacaNilai()[pid] ?? null)),
+  revisiAktif: async (taId) => contoh(await revisiAktifDemo(taId)),
+  async aksiRevisi(pid, revisiId, aksi) {
+    const p = cariPendaftaran(pid)
+    const ra = await revisiAktifDemo(p.tugasAkhirId)
+    if (!ra || ra.pendaftaran.id !== pid) throw new Error('Revisi tidak ditemukan.')
+    const r =
+      aksi.jenis === 'DIKERJAKAN' ? tandaiDikerjakanMurni(ra.revisi, revisiId)
+      : aksi.jenis === 'AJUKAN' ? ajukanRevisiMurni(ra.revisi, revisiId, aksi)
+      : putuskanRevisiMurni(ra.revisi, revisiId, aksi.pengujiId, aksi.keputusan, aksi.alasan, Date.now())
+    if (!r.ok) throw new Error(r.galat)
+    const nilai = bacaNilai()[pid]!
+    tulisNilai({ ...nilai, hasil: { ...nilai.hasil!, revisi: r.revisi }, audit: [...nilai.audit, { siapa: aksi.jenis === 'PUTUSKAN' ? aksi.pengujiId : 'mahasiswa', kapan: new Date().toISOString(), apa: `Revisi ${revisiId}: ${aksi.jenis === 'PUTUSKAN' ? aksi.keputusan : aksi.jenis}` }] })
+    // Semua butir disetujui → alur TA lanjut (REVISI_DISETUJUI oleh dosen).
+    let ta = ra.ta
+    if (semuaRevisiDisetujui(r.revisi) && (ta.status === 'REVISI_PROPOSAL' || ta.status === 'REVISI_AKHIR')) {
+      const t = transisiAlur(ta, 'REVISI_DISETUJUI', { pelaku: 'DOSEN' })
+      if (t.ok) (ta = t.ta), tulis({ ...baca(), milikSaya: ta })
+    }
+    return contoh({ ta, pendaftaran: ra.pendaftaran, revisi: r.revisi })
+  },
+  async revisiPenguji(pengujiId) {
+    const ta = baca().milikSaya
+    const ra = ta ? await revisiAktifDemo(ta.id) : null
+    return contoh(ra && ra.revisi.some((r) => r.pengujiId === pengujiId) ? [{ ...ra, revisi: ra.revisi.filter((r) => r.pengujiId === pengujiId) }] : [])
+  },
+  finalisasi: async (taId) => contoh(bacaFin()[taId] ?? finalisasiBaru(taId)),
+  async aksiFinalisasi(taId, aksi) {
+    const d = await demo()
+    const aturan = aturanUntuk(d.profilKelayakan.prodi)
+    const s = baca()
+    let ta = s.milikSaya
+    if (!ta || ta.id !== taId) throw new Error('Tugas akhir tidak ditemukan.')
+    let fin = bacaFin()[taId] ?? finalisasiBaru(taId)
+    const now = Date.now()
+    switch (aksi.jenis) {
+      case 'NASKAH':
+        fin = simpanNaskahFinal(fin, aksi.naskah, now)
+        break
+      case 'PLAGIASI': {
+        if (!fin.naskah) throw new Error('Unggah naskah final lebih dulu.')
+        const { persen } = await penyediaPlagiasiContoh.periksa(fin.naskah.sha256)
+        fin = { ...fin, plagiasi: hasilPlagiasi(persen, penyediaPlagiasiContoh, aturan, now) }
+        break
+      }
+      case 'AJUKAN_ADMIN':
+        fin = ajukanAdminMurni(fin, aksi.item, aturan)
+        break
+      case 'ADMIN_SELESAI':
+        fin = { ...fin, admin: { ...fin.admin, [aksi.item]: { status: 'SELESAI' } } }
+        break
+      case 'DAFTAR_WISUDA': {
+        const sl = siapLulus(fin, (await revisiAktifDemo(taId))?.revisi ?? [], aturan)
+        if (!sl.ok) throw new Error(`Belum bisa mendaftar wisuda: ${sl.kurang.join('; ')}.`)
+        fin = { ...fin, wisuda: { terdaftar: new Date(now).toISOString() } }
+        break
+      }
+      case 'SELESAIKAN': {
+        const sl = siapLulus(fin, (await revisiAktifDemo(taId))?.revisi ?? [], aturan)
+        if (!sl.ok) throw new Error(`Belum bisa diselesaikan: ${sl.kurang.join('; ')}.`)
+        const t = transisiAlur(ta, 'SELESAIKAN', { pelaku: 'PRODI' })
+        if (!t.ok) throw new Error(t.galat)
+        ta = t.ta
+        tulis({ ...s, milikSaya: ta })
+        break
+      }
+    }
+    if (!fin.yudisium) fin = { ...fin, yudisium: d.jadwalYudisium }
+    tulisFin(fin)
+    return contoh({ finalisasi: fin, ta })
+  },
   async antrianUjianAkhir() {
     const ta = baca().milikSaya
     return contoh(ta ? bacaUA().pendaftaran.filter((p) => p.tugasAkhirId === ta.id && p.status === 'MENUNGGU_PEMBIMBING').map((pendaftaran) => ({ ta, pendaftaran })) : [])
@@ -347,4 +482,9 @@ export const taHttp: SumberTA = {
   kirimLembar: (pendaftaranId, l) => request('ta/lembar', { method: 'POST', body: JSON.stringify({ pendaftaranId, ...l }) }),
   rilisHasil: (pendaftaranId, keputusan) => request('ta/rilis', { method: 'POST', body: JSON.stringify({ pendaftaranId, keputusan }) }),
   hasilUjian: (pendaftaranId) => request(`ta/hasil?pendaftaranId=${encodeURIComponent(pendaftaranId)}`),
+  revisiAktif: (taId) => request(`ta/revisi?taId=${encodeURIComponent(taId)}`),
+  aksiRevisi: (pendaftaranId, revisiId, aksi) => request('ta/revisi', { method: 'POST', body: JSON.stringify({ pendaftaranId, revisiId, ...aksi }) }),
+  revisiPenguji: (pengujiId) => request(`ta/revisi-penguji?pengujiId=${encodeURIComponent(pengujiId)}`),
+  finalisasi: (taId) => request(`ta/finalisasi?taId=${encodeURIComponent(taId)}`),
+  aksiFinalisasi: (taId, aksi) => request('ta/finalisasi', { method: 'POST', body: JSON.stringify({ taId, ...aksi }) }),
 }
