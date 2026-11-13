@@ -12,6 +12,7 @@ import type { Role, User } from '../../lib/types'
 import { Badge, LinkBtn, PageHeader, Section, Skeleton } from '../../components/ui'
 import { BimbinganDosen, LogbookMahasiswa } from './Logbook'
 import { AntrianUjianDosen, UjianAkhirMahasiswa } from './UjianAkhir'
+import { UjianSayaDosen } from './Penilaian'
 
 // T03 Skripsi/Tugas Akhir: syarat mulai, pengajuan judul + calon pembimbing, kemiripan judul, linimasa
 // status dari mesin alur (src/lib/akademik/alur-skripsi.ts), dan sisi dosen (DEMO).
@@ -461,6 +462,7 @@ function SisiDosen({ user }: { user: User }) {
           </ul>
         )}
       </Section>
+      <UjianSayaDosen aturan={aturanUntuk(user.prodi)} dosen={dosen.data?.data.dosen ?? []} />
       <AntrianUjianDosen aturan={aturanUntuk(user.prodi)} />
       <BimbinganDosen aturan={aturanUntuk(user.prodi)} />
     </>

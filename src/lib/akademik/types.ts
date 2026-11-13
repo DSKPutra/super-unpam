@@ -167,7 +167,8 @@ export interface Logbook {
 }
 
 export type JenisUjianAkhir = (typeof JENIS_UJIAN_AKHIR)[number]
-export type StatusPendaftaran = 'DRAF' | 'MENUNGGU_PEMBIMBING' | 'DIVERIFIKASI_PRODI' | 'TERJADWAL' | 'DIBATALKAN'
+/** SELESAI = hasil ujian sudah dirilis (lihat penilaian.ts). */
+export type StatusPendaftaran = 'DRAF' | 'MENUNGGU_PEMBIMBING' | 'DIVERIFIKASI_PRODI' | 'TERJADWAL' | 'DIBATALKAN' | 'SELESAI'
 
 export interface BerkasUjian {
   /** Id aturan berkas (AturanBerkas.id). */
@@ -252,6 +253,42 @@ export interface PengajuanUjian {
   diajukan: string
   catatan?: string
 }
+
+/** Lembar penilaian satu penguji. Setelah `dikirim` terisi, lembar final dan tidak bisa diubah. */
+export interface LembarPenilaian {
+  pengujiId: string
+  skor: SkorKriteria[]
+  /** Catatan per kriteria (id kriteria → teks). */
+  catatan: Record<string, string>
+  rekomendasi: 'LULUS' | 'LULUS_REVISI' | 'TIDAK_LULUS'
+  revisi: { bagian: string; permintaan: string; tenggat?: string }[]
+  dikirim?: string
+}
+
+export interface CatatanAudit {
+  siapa: string
+  kapan: string
+  apa: string
+}
+
+export interface HasilUjian {
+  keputusan: 'LULUS' | 'LULUS_REVISI' | 'TIDAK_LULUS'
+  dirilis: string
+  /** Nilai resmi dari server (bukan perhitungan klien). */
+  nilaiAkhir?: number
+  huruf?: string
+  revisi: Revisi[]
+}
+
+export interface DataPenilaian {
+  pendaftaranId: string
+  lembar: LembarPenilaian[]
+  hasil?: HasilUjian
+  audit: CatatanAudit[]
+}
+
+/** Yang boleh dilihat mahasiswa: tanpa nilai per penguji, hanya setelah dirilis. */
+export type HasilUntukMahasiswa = { status: 'MENUNGGU' } | { status: 'DIRILIS'; hasil: HasilUjian }
 
 export interface Revisi {
   id: string

@@ -44,6 +44,8 @@ export interface AturanUjian extends Sumber {
   konsekuensiBatal?: string
   /** Daftar yang harus dibawa saat ujian. */
   bawaan?: string[]
+  /** Lembar penilaian penguji hanya terbuka di jendela ini (relatif terhadap jadwal ujian). */
+  jendelaPenilaian?: { bukaSebelumMenit: number; tutupSesudahJam: number }
 }
 
 export interface AturanBerkas {
@@ -111,6 +113,7 @@ const LAMPIRAN_CONTOH = { maksMB: 5, tipe: ['application/pdf', 'image/jpeg', 'im
 const PDF = ['application/pdf']
 const PDF_GAMBAR = ['application/pdf', 'image/jpeg', 'image/png']
 const UJIAN_AKHIR_CONTOH = {
+  jendelaPenilaian: { bukaSebelumMenit: 30, tutupSesudahJam: 24 },
   batasBatalJam: 48,
   konsekuensiBatal: 'Contoh: pendaftaran dibatalkan dan harus diajukan ulang; jadwal berikutnya mengikuti ketersediaan slot prodi.',
   bawaan: ['Naskah cetak sesuai jumlah penguji (contoh)', 'Kartu bimbingan', 'Kartu tanda mahasiswa', 'Bahan presentasi'],
@@ -183,6 +186,14 @@ export const ATURAN_BAWAAN: AturanProdi = {
     },
   ],
   rubrik: [
+    ...(['PROPOSAL', 'SEMINAR_HASIL', 'UAPS'] as const).map((jenis): Rubrik => ({
+      jenis, ...TODO, ambangSelisih: 15,
+      kriteria: [
+        { id: 'naskah', label: 'Kualitas naskah', bobot: 40, min: 0, maks: 100 },
+        { id: 'presentasi', label: 'Presentasi', bobot: 20, min: 0, maks: 100 },
+        { id: 'penguasaan', label: 'Penguasaan materi', bobot: 40, min: 0, maks: 100 },
+      ],
+    })),
     {
       jenis: 'SIDANG', ...TODO, ambangSelisih: 15,
       kriteria: [
