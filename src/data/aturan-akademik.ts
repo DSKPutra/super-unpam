@@ -95,6 +95,10 @@ export interface AturanProdi extends Sumber {
   kuotaMaksBimbingan: number
   /** Komposisi penguji ujian akhir (T08): jumlah per jenis, boleh-tidaknya pembimbing menguji, beban per hari. */
   pengujiUjian: Sumber & { jumlah: Record<JenisUjianAkhir, number>; pembimbingBolehMenguji: boolean; maksUjianPerHari: number }
+  /** Ujian daring (T09). `aktif` false sampai kampus memutuskan menyelenggarakannya. `perekaman` sengaja bertipe
+   *  `false`: perekaman kamera/layar/mikrofon hanya boleh lewat keputusan kebijakan tertulis
+   *  (docs/KEBIJAKAN-UJIAN-DARING.md), bukan dengan mengubah satu nilai. */
+  ujianDaring: Sumber & { aktif: boolean; toleransiDetik: number; maksMB: number; tipe: string[]; maksPerpanjanganMenit: number; perekaman: false }
   /** Statistik agregat hanya ditampilkan bila jumlah data ≥ ini, supaya nilai individu tidak bisa ditebak. */
   minimalAgregat: number
   /** Pengingat halus bila tidak ada bimbingan lebih dari ini (hari). */
@@ -145,6 +149,7 @@ export const ATURAN_BAWAAN: AturanProdi = {
   kuotaMaksBimbingan: 12,
   pengujiUjian: { ...TODO, jumlah: { PROPOSAL: 2, SEMINAR_HASIL: 2, UAPS: 2, SIDANG: 3 }, pembimbingBolehMenguji: false, maksUjianPerHari: 3 },
   minimalAgregat: 5,
+  ujianDaring: { ...TODO, aktif: false, toleransiDetik: 60, maksMB: 20, tipe: ['application/pdf', 'image/jpeg', 'image/png'], maksPerpanjanganMenit: 60, perekaman: false },
   jedaBimbinganHari: 21,
   mulaiTA: { ...TODO, syarat: [{ id: 'sks', minimal: 110 }, { id: 'ipk', minimal: 2 }, { id: 'keuangan' }] },
   perkiraanSksPerSemester: 20,

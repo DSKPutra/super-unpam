@@ -230,7 +230,7 @@ Ekspor: `SumberToefl`, `toeflDemo`, `toeflHttp`
 ### [src/lib/sumber/ujian.ts](../src/lib/sumber/ujian.ts)
 Sumber data Exam Center (MY UNPAM). Komponen hanya mengenal antarmuka ini.
 
-Ekspor: `SumberUjian`, `ujianDemo`, `ujianHttp`
+Ekspor: `SumberUjian`, `DataDaring`, `DARING_DEMO_KEY`, `ujianDemo`, `ujianHttp`
 
 ## Pustaka klien
 

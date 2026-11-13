@@ -84,7 +84,8 @@ export function validasiBerkasDraf(f: { size: number; type: string }, aturan: At
 }
 
 /** SHA-256 heksadesimal memakai Web Crypto (tersedia di browser dan Node ≥ 19). */
-export async function sha256Hex(data: ArrayBuffer): Promise<string> {
-  const h = await crypto.subtle.digest('SHA-256', data)
+export async function sha256Hex(data: ArrayBuffer | Uint8Array): Promise<string> {
+  const buffer = data instanceof Uint8Array ? data : new Uint8Array(data)
+  const h = await crypto.subtle.digest('SHA-256', buffer as unknown as ArrayBuffer)
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, '0')).join('')
 }

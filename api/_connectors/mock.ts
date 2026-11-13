@@ -24,6 +24,7 @@ const roleFor = (username: string): Role => {
 
 const ok = <T>(v: T) => Promise.resolve(v)
 const taMock = new Map([...demo.antrianJudul, demo.taBimbinganContoh, ...demo.angkatanContoh].map((t) => [t.id, t]))
+const kirimanMock = new Map<string, import('../../src/lib/akademik/ujian-daring.js').KirimanJawaban[]>()
 const kuotaMock = new Map<string, { kuota: number; tutup: boolean }>()
 const lbMock = new Map([[demo.logbookContoh.tugasAkhirId, demo.logbookContoh]])
 const pdMock = new Map<string, PendaftaranUjianAkhir>(demo.pendaftaranContoh.map((p) => [p.id, p]))
@@ -53,6 +54,9 @@ export const mock: Connectors = {
     getProfilKelayakan: () => ok(demo.profilKelayakan),
     getPengajuanUjian: () => ok(demo.pengajuanUjian),
     // Mock: tidak menyimpan; mengembalikan bentuk respons yang sama dengan sistem asli.
+    getUjianDaring: () => ok(demo.ujianDaringContoh()),
+    getKirimanDaring: (sub, sesiId) => ok(kirimanMock.get(`${sub}:${sesiId}`) ?? []),
+    simpanKirimanDaring: (sub, sesiId, d) => (kirimanMock.set(`${sub}:${sesiId}`, d), ok(undefined)),
     ajukanUjian: (_sub, input) => ok({ ...input, id: `pj-${Date.now().toString(36)}`, status: 'DIAJUKAN' as const, diajukan: new Date().toISOString() }),
     // Tugas akhir: disimpan di memori instance function saja (data contoh, hilang saat instance berganti).
     getRingkasanTA: (sub) => ok({ tugasAkhir: [...taMock.values()].find((t) => taPemilik.get(t.id) === sub) ?? null, dosen: demo.dosenPembimbing.map((d) => ({ ...d, ...kuotaMock.get(d.id) })), judulTerdaftar: demo.judulTerdaftar }),

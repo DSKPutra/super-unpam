@@ -40,6 +40,8 @@ export interface KrsClass {
   class: string
   quota: number
   filled: number
+  day?: string
+  time?: string
 }
 
 export interface OnlineClass {

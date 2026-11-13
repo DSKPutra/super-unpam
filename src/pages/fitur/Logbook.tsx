@@ -6,6 +6,7 @@ import { buatIcsTenggat } from '../../lib/akademik/ics-ujian'
 import { cekJedaBimbingan, mulaiBimbingan, sha256Hex, targetBimbingan, validasiBerkasDraf, validasiEntri } from '../../lib/akademik/logbook'
 import type { Bimbingan, Dosen, Logbook, TugasAkhir } from '../../lib/akademik/types'
 import { cetak } from '../../lib/cetak'
+import { bacaBerkas } from '../../lib/berkas'
 import { sumber } from '../../lib/sumber'
 import { useResource } from '../../lib/useResource'
 import type { User } from '../../lib/types'
@@ -28,16 +29,6 @@ const STATUS: Record<Bimbingan['status'], { teks: string; tone: 'blue' | 'green'
   DITOLAK: { teks: 'Ditolak', tone: 'red', Icon: XCircle },
 }
 
-/** Isi berkas sebagai ArrayBuffer; FileReader sebagai cadangan untuk WebView lama tanpa Blob.arrayBuffer. */
-function bacaBerkas(f: File): Promise<ArrayBuffer> {
-  if (typeof f.arrayBuffer === 'function') return f.arrayBuffer()
-  return new Promise((resolve, reject) => {
-    const r = new FileReader()
-    r.onload = () => resolve(r.result as ArrayBuffer)
-    r.onerror = () => reject(new Error('Berkas tidak dapat dibaca.'))
-    r.readAsArrayBuffer(f)
-  })
-}
 
 function unduh(isi: BlobPart, nama: string, tipe: string) {
   const url = URL.createObjectURL(new Blob([isi], { type: tipe }))
