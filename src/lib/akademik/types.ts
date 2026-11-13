@@ -166,12 +166,50 @@ export interface Logbook {
   versi: VersiDraf[]
 }
 
+export type JenisUjianAkhir = (typeof JENIS_UJIAN_AKHIR)[number]
+export type StatusPendaftaran = 'DRAF' | 'MENUNGGU_PEMBIMBING' | 'DIVERIFIKASI_PRODI' | 'TERJADWAL' | 'DIBATALKAN'
+
+export interface BerkasUjian {
+  /** Id aturan berkas (AturanBerkas.id). */
+  id: string
+  nama: string
+  ukuran: number
+  tipe: string
+  sha256: string
+  diunggah: string
+  status: 'DIUNGGAH' | 'DIVERIFIKASI' | 'DITOLAK'
+  alasan?: string
+}
+
+export interface RiwayatPendaftaran {
+  dari: StatusPendaftaran
+  ke: StatusPendaftaran
+  aksi: string
+  pelaku: PeranAlur
+  waktu: string
+  catatan?: string
+}
+
 export interface PendaftaranUjianAkhir {
   id: string
   tugasAkhirId: string
-  jenis: (typeof JENIS_UJIAN_AKHIR)[number]
-  status: 'DRAF' | 'MENUNGGU_PEMBIMBING' | 'DIVERIFIKASI_PRODI' | 'TERJADWAL' | 'DIBATALKAN'
+  jenis: JenisUjianAkhir
+  status: StatusPendaftaran
+  berkas: BerkasUjian[]
   sesi?: SesiUjian
+  riwayat: RiwayatPendaftaran[]
+}
+
+/** Slot ujian akhir yang ditawarkan prodi. */
+export interface SlotUjian {
+  id: string
+  jenis: JenisUjianAkhir
+  mulai: string
+  selesai: string
+  ruang: string
+  kapasitas: number
+  terisi: number
+  penguji: string[]
 }
 
 export interface SkorKriteria {

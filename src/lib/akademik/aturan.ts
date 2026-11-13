@@ -1,5 +1,5 @@
-import { ATURAN_PRODI, type AturanProdi, type AturanUjian, type Rubrik } from '../../data/aturan-akademik'
-import type { JenisUjian } from './types'
+import { ATURAN_PRODI, type AturanProdi, type AturanUjian, type Rubrik } from '../../data/aturan-akademik.js'
+import type { JenisUjian } from './types.js'
 
 // Pembaca konfigurasi aturan akademik dengan validasi. Konfigurasi tidak lengkap ditolak dengan pesan
 // yang menyebut lokasi masalahnya, supaya kesalahan isi dari BAAK ketahuan saat build/tes, bukan di layar.
@@ -34,6 +34,8 @@ export function validasiAturan(daftar: AturanProdi[]): string[] {
         if ((s.id === 'sks' || s.id === 'bimbingan') && !(Number.isInteger(s.minimal) && s.minimal >= 0)) m.push(`${at}, ujian ${u.jenis}: minimal ${s.id} harus bilangan bulat ≥ 0.`)
         if (s.id === 'ipk' && !(s.minimal >= 0 && s.minimal <= 4)) m.push(`${at}, ujian ${u.jenis}: minimal IPK harus 0–4.`)
         if (s.id === 'berkas' && s.wajib.length === 0) m.push(`${at}, ujian ${u.jenis}: syarat berkas tanpa daftar berkas.`)
+        if (s.id === 'berkas' && u.berkas)
+          for (const w of s.wajib) if (!u.berkas.some((b) => b.id === w.id && b.wajib)) m.push(`${at}, ujian ${u.jenis}: berkas wajib "${w.id}" tidak ada di checklist berkas.`)
       }
     }
     for (const r of a.rubrik) m.push(...validasiRubrik(r).map((x) => `${at}, rubrik ${r.jenis}: ${x}`))

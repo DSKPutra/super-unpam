@@ -1,4 +1,4 @@
-import type { SesiUjian } from './types'
+import type { SesiUjian } from './types.js'
 
 // Deteksi bentrok jadwal untuk mahasiswa (semua sesinya) dan dosen (sesi yang ia awasi/uji).
 // Semua waktu WIB; tidak ada perbedaan zona waktu. Sesi yang bersinggungan tepat di batas

@@ -1,7 +1,7 @@
-import type { AturanUjian } from '../../data/aturan-akademik'
-import { deteksiBentrok, deteksiBeruntun, type Bentrok, type Beruntun } from './bentrok'
-import { evaluasiKelayakan } from './kelayakan'
-import type { HasilKelayakan, JadwalUjianSemester, ProfilKelayakan, SesiUjian } from './types'
+import type { AturanUjian } from '../../data/aturan-akademik.js'
+import { deteksiBentrok, deteksiBeruntun, type Bentrok, type Beruntun } from './bentrok.js'
+import { evaluasiKelayakan } from './kelayakan.js'
+import type { HasilKelayakan, JadwalUjianSemester, ProfilKelayakan, SesiUjian } from './types.js'
 
 // Model tampilan Exam Center (T02): fungsi murni dari jadwal + data kelayakan + aturan.
 // Komponen hanya merender hasil ini, sehingga keadaan layak/tidak layak/bentrok/kosong bisa diuji.

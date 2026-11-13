@@ -16,7 +16,7 @@ import type {
   Task,
   User,
 } from '../../src/lib/types.js'
-import type { JadwalUjianSemester, JenisUjianSemester, Logbook, PengajuanUjian, ProfilKelayakan, RingkasanTA, TugasAkhir } from '../../src/lib/akademik/types.js'
+import type { JadwalUjianSemester, JenisUjianSemester, Logbook, PendaftaranUjianAkhir, PengajuanUjian, ProfilKelayakan, RingkasanTA, SesiUjian, SlotUjian, TugasAkhir } from '../../src/lib/akademik/types.js'
 
 // Satu antarmuka per sistem sumber kampus (kolom `source` di src/data/features.ts).
 // Setiap sistem punya implementasi `mock` (data contoh) dan `http` (sistem asli), dengan bentuk yang sama.
@@ -50,6 +50,13 @@ export interface MyUnpamConnector {
   simpanLogbook(lb: Logbook): Promise<Logbook>
   /** Tugas akhir bimbingan dosen pemegang sesi. */
   getTABimbingan(sub: string): Promise<TugasAkhir[]>
+  getPendaftaranUjian(taId: string): Promise<PendaftaranUjianAkhir[]>
+  getPendaftaranById(id: string): Promise<PendaftaranUjianAkhir | null>
+  simpanPendaftaranUjian(p: PendaftaranUjianAkhir, ubahTerisi?: Record<string, number>): Promise<PendaftaranUjianAkhir>
+  /** Pendaftaran yang menunggu persetujuan pembimbing (dosen pemegang sesi). */
+  getAntrianUjianAkhir(sub: string): Promise<PendaftaranUjianAkhir[]>
+  getSlotUjian(): Promise<SlotUjian[]>
+  getJadwalPenguji(): Promise<SesiUjian[]>
 }
 
 /** MENTARI: kelas online & tugas. */
