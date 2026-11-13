@@ -42,6 +42,7 @@ const DompetSertifikat = page(() => import('./pages/fitur/DompetSertifikat'), 'D
 const Islami = page(() => import('./pages/fitur/Islami'), 'Islami')
 const Alumni = page(() => import('./pages/fitur/Alumni'), 'Alumni')
 const Karier = page(() => import('./pages/fitur/Karier'), 'Karier')
+const Perpustakaan = page(() => import('./pages/fitur/Perpustakaan'), 'Perpustakaan')
 const Pemira = page(() => import('./pages/fitur/Pemira'), 'Pemira')
 const AturBeranda = page(() => import('./pages/AturBeranda'), 'AturBeranda')
 const KenaliKampus = page(() => import('./pages/KenaliKampus'), 'KenaliKampus')
@@ -221,6 +222,8 @@ export default function App() {
         return <DompetSertifikat back={back} />
       case 'islami':
         return <Islami back={back} />
+      case 'perpustakaan':
+        return <Perpustakaan user={user} back={back} />
       case 'karier':
         return <Karier user={user} back={back} />
       case 'alumni':
