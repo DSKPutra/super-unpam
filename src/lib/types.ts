@@ -206,7 +206,7 @@ export interface CampusArea {
   radius: number
 }
 
-export type QrKind = 'KTM' | 'PRESENSI'
+export type QrKind = 'KTM' | 'PRESENSI' | 'GERBANG'
 
 export interface QrToken {
   kind: QrKind

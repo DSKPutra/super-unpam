@@ -19,6 +19,7 @@ const Akademik = page(() => import('./pages/Akademik'), 'Akademik')
 const Kuliah = page(() => import('./pages/Kuliah'), 'Kuliah')
 const Keuangan = page(() => import('./pages/Keuangan'), 'Keuangan')
 const KtmPage = page(() => import('./pages/Ktm'), 'KtmPage')
+const GerbangPage = page(() => import('./pages/Gerbang'), 'GerbangPage')
 const Presensi = page(() => import('./pages/Presensi'), 'Presensi')
 const Event = page(() => import('./pages/Layanan'), 'Event')
 const Kerjasama = page(() => import('./pages/Layanan'), 'Kerjasama')
@@ -75,7 +76,7 @@ export default function App() {
   const [lang, setLang] = usePref<Lang>('lang', 'id')
   const [theme, setTheme] = usePref<Theme>('theme', 'dark')
   const [lite, setLite] = usePref<boolean>('lite', isLowEndDevice())
-  const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'presensi'])
+  const [favorites, setFavorites] = usePref<string[]>('favorites', ['ktm', 'gerbang', 'presensi'])
   // Bentuk dirapikan saat dibaca (normalizeLayout), jadi nilai rusak/usang di penyimpanan aman.
   const [homeLayout, setHomeLayout] = usePref<unknown>('home.widgets', DEFAULT_LAYOUT)
   // Id notifikasi yang ditandai dibaca di perangkat ini. TODO(BFF): simpan status baca di server.
@@ -182,6 +183,8 @@ export default function App() {
         return <Keuangan />
       case 'ktm':
         return <KtmPage user={user} back={back} />
+      case 'gerbang':
+        return <GerbangPage user={user} back={back} />
       case 'presensi':
         return <Presensi user={user} back={back} />
       case 'event':

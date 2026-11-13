@@ -26,6 +26,7 @@ import {
   Mic2,
   Trophy,
   type LucideIcon,
+  DoorOpen,
 } from 'lucide-react'
 import type { Role } from '../lib/types'
 
@@ -47,6 +48,7 @@ const ALL: Role[] = ['MAHASISWA', 'DOSEN', 'TENDIK', 'ALUMNI']
 
 export const FEATURES: Feature[] = [
   { id: 'ktm', name: 'KTM Digital', icon: IdCard, from: '#4D86FF', to: '#1B3FD1', route: 'ktm', roles: ALL, keywords: ['kartu', 'qr', 'identitas', 'ktm'], source: 'SSO' },
+  { id: 'gerbang', name: 'QR Gerbang', icon: DoorOpen, from: '#2EC4B6', to: '#0B7A75', route: 'gerbang', roles: ALL, keywords: ['gerbang', 'gate', 'parkir', 'keluar', 'palang', 'qr', 'motor', 'mobil'], source: 'SSO' },
   { id: 'presensi', name: 'Presensi', icon: MapPin, from: '#FF7A93', to: '#E0245E', route: 'presensi', roles: ['MAHASISWA', 'DOSEN', 'TENDIK'], keywords: ['absen', 'qr', 'kehadiran'], source: 'MY UNPAM' },
   { id: 'jadwal', name: 'Jadwal', icon: CalendarDays, from: '#3EE0FF', to: '#0090D4', route: 'akademik/jadwal', roles: ['MAHASISWA', 'DOSEN'], keywords: ['kuliah', 'kelas', 'ruang'], source: 'MY UNPAM' },
   { id: 'krs', name: 'KRS', icon: ClipboardList, from: '#6E9BFF', to: '#2D4FE0', route: 'akademik/krs', roles: ['MAHASISWA'], keywords: ['rencana studi', 'mata kuliah', 'registrasi'], source: 'MY UNPAM' },

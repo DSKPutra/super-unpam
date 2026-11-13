@@ -61,10 +61,10 @@ Ekspor: `HttpError`, `ServiceUnavailableError`, `json`, `lastSegment`, `cookies`
 ### [api/_lib/qr.ts](../api/_lib/qr.ts)
 Kode QR dinamis ditandatangani server: code = HMAC(QR_SECRET, kind|subject|slot), slot = 30 detik. Format payload QR tetap: SUPERUNPAM:<KIND>:<subject>:<slot>:<code>. Hanya server yang bisa membuat kode yang valid, dan kode hanya diterima pada slot berjalan atau satu slot sebelumnya (±30–60 dtk).
 
-Ekspor: `QR_PERIOD`, `qrCode`, `issueQr`, `verifyCode`, `parseQrPayload`
+Ekspor: `QR_PERIOD`, `qrCode`, `issueQr`, `verifyCode`, `parseQrPayload`, `pakaiSekali`, `samarkan`
 
 ### [api/_lib/ratelimit.ts](../api/_lib/ratelimit.ts)
-Pembatas laju dasar (fixed window) di memori instance function. TODO(BFF): pindahkan ke penyimpanan bersama (mis. Redis/KV) — di serverless tiap instance punya hitungannya sendiri, jadi ini hanya menahan serangan beruntun dari satu instance.
+Pembatas laju dasar (fixed window bucket) di memori instance function. Dilengkapi pembersihan kadaluwarsa bertahap dan batas aman ukuran map (LRU eviction) untuk mencegah serangan exhaust memory dan CPU event loop freeze.
 
 Ekspor: `rateLimit`
 
@@ -109,7 +109,7 @@ GET  /api/presensi/campuses → nama & radius area presensi (tanpa koordinat) PO
 Ekspor: `GET`, `POST`
 
 ### [api/qr/[action].ts](../api/qr/[action].ts)
-GET  /api/qr/issue?kind=KTM                       → QR KTM milik pemegang sesi GET  /api/qr/issue?kind=PRESENSI&subject=SESI-<MK> → QR sesi kelas (hanya dosen pengampu) POST /api/qr/verify { payload }                    → validasi QR KTM oleh petugas (dosen/tendik)
+GET  /api/qr/issue?kind=KTM                       → QR KTM milik pemegang sesi GET  /api/qr/issue?kind=GERBANG                   → QR gerbang keluar milik pemegang sesi POST /api/qr/gerbang { payload, jalur }           → validator gerbang (header x-gerbang-key); QR sekali pakai
 
 Ekspor: `GET`, `POST`
 
@@ -205,6 +205,11 @@ Tipe domain ujian dan skripsi/tugas akhir (T01). Murni TypeScript, tanpa React/D
 
 Ekspor: `JenisUjian`, `JENIS_UJIAN_SEMESTER`, `JENIS_UJIAN_AKHIR`, `SesiUjian`, `Ujian`, `ProfilKelayakan`, `HasilSyarat`, `HasilKelayakan`, `StatusTugasAkhir`, `PeranAlur`, `RiwayatAlur`, `PermintaanPerubahan`, …
 
+### [src/lib/akademik/ujian-daring.ts](../src/lib/akademik/ujian-daring.ts)
+Ujian daring bentuk paling sederhana (T09): soal dirilis saat jam mulai, unggahan jawaban ditutup pada jam selesai (+ perpanjangan akomodasi + toleransi sambungan). Waktu resmi SELALU dari server; hitung mundur di klien hanya tampilan. Pengiriman idempoten lewat kunci dari klien.
+
+Ekspor: `SesiDaring`, `KirimanJawaban`, `Fase`, `selesaiEfektif`, `fase`, `offsetServer`, `BerkasJawaban`, `HasilKirim`, `terimaKiriman`, `sesiUntukKlien`
+
 ## Lapisan sumber data klien (demo localStorage atau BFF)
 
 ### [src/lib/sumber/index.ts](../src/lib/sumber/index.ts)
@@ -237,12 +242,17 @@ Ekspor: `SumberUjian`, `DataDaring`, `DARING_DEMO_KEY`, `ujianDemo`, `ujianHttp`
 ### [src/lib/academic.ts](../src/lib/academic.ts)
 Hitungan akademik klien: IPK (2 desimal) dan IPS per semester untuk sparkline.
 
-Ekspor: `IpkSummary`, `summarizeIpk`
+Ekspor: `IpkSummary`, `GRADE_POINTS`, `summarizeIpk`, `PlannedCourse`, `calculateProjectedIpk`, `TargetIpsResult`, `calculateRequiredIps`, `parseTimeRange`, `Schedulable`, `ConflictResult`, `findScheduleConflicts`
 
 ### [src/lib/api.ts](../src/lib/api.ts)
 Adapter data Super UNPAM: SATU-SATUNYA pintu halaman ke data. - VITE_USE_DEMO tidak di-set / 'true' → data contoh (src/data/demo.ts, dimuat sebagai chunk terpisah). - VITE_USE_DEMO='false' → memanggil BFF di /api/... (Vercel Functions, sesi cookie HttpOnly).
 
 Ekspor: `USE_DEMO`, `ApiError`, `UNAUTHORIZED_EVENT`, `request`, `getSchedule`, `getGrades`, `getKrsOffer`, `getAttendanceRecap`, `getClasses`, `getTasks`, `getBills`, `getEvents`, …
+
+### [src/lib/berkas.ts](../src/lib/berkas.ts)
+Membaca berkas pilihan pengguna di peramban (untuk hash SHA-256 sebelum dikirim).
+
+Ekspor: `bacaBerkas`
 
 ### [src/lib/cetak.ts](../src/lib/cetak.ts)
 Mencetak satu dokumen .print-doc tertentu. Beberapa dokumen cetak bisa terpasang sekaligus (kartu bimbingan, lembar pengesahan, berita acara); tanpa ini semuanya ikut tercetak. CSS: html[data-cetak] .print-doc:not([data-aktif]) disembunyikan (src/index.css).
@@ -262,7 +272,7 @@ Ekspor: `rupiah`
 ### [src/lib/geo.ts](../src/lib/geo.ts)
 Jarak haversine (meter) untuk geofence presensi; dipakai demo dan BFF.
 
-Ekspor: `LatLng`, `distanceMeters`
+Ekspor: `LatLng`, `GpsLocation`, `isWithinBoundingBox`, `distanceMeters`, `detectGpsAnomaly`
 
 ### [src/lib/i18n.ts](../src/lib/i18n.ts)
 Kamus teks antarmuka (Indonesia/Inggris) dan getDict untuk memilih bahasa.
@@ -293,6 +303,11 @@ Ekspor: `CAMPUS_LOCATION`, `PrayerTimes`, `prayerTimes`, `qibla`
 Hanya preferensi UI (tema, bahasa, favorit). Token/kredensial TIDAK disimpan di sini.
 
 Ekspor: `usePref`
+
+### [src/lib/security.ts](../src/lib/security.ts)
+Utilitas sanitasi dan validasi keamanan masukan pengguna. Melindungi dari XSS, penanaman karakter kontrol tersembunyi, dan injeksi payload.
+
+Ekspor: `sanitizeInput`, `isValidNimNidn`
 
 ### [src/lib/types.ts](../src/lib/types.ts)
 Tipe domain bersama klien dan BFF, supaya bentuk respons selalu sama.
@@ -434,6 +449,11 @@ Ekspor: `Ujian`
 T05 Pendaftaran ujian akhir: kelayakan, checklist berkas, persetujuan pembimbing, pilih slot prodi, pembatalan/jadwal ulang, dan halaman persiapan. Kelayakan resmi dihitung server (jalankanAksi).
 
 Ekspor: `UjianAkhirMahasiswa`, `AntrianUjianDosen`
+
+### [src/pages/fitur/UjianDaring.tsx](../src/pages/fitur/UjianDaring.tsx)
+T09 Ujian daring bentuk unggah jawaban. Jam resmi dari server (offset dihitung saat memuat); hitung mundur hanya tampilan. Kirim ulang memakai kunci yang sama sehingga tidak menggandakan kiriman. Tidak ada akses kamera/layar/mikrofon.
+
+Ekspor: `UjianDaring`
 
 ### [src/pages/fitur/label-ta.ts](../src/pages/fitur/label-ta.ts)
 Label tampilan status tugas akhir, dipakai halaman mahasiswa, dosen, dan prodi.
