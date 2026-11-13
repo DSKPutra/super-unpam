@@ -8,7 +8,7 @@ import type {
   CampusEvent,
   Certification,
   KrsClass,
-  NewsItem,
+  NewsFeed,
   OnlineClass,
   Ranking,
   ScheduleItem,
@@ -127,11 +127,16 @@ export const ranking: Ranking = {
   ],
 }
 
-export const news: NewsItem[] = [
-  { id: 'n1', tag: 'Akademik', title: 'Jadwal UTS Ganjil 2026/2027 telah terbit', date: '24 Okt 2026' },
-  { id: 'n2', tag: 'Beasiswa', title: 'Pendaftaran Beasiswa Prestasi UNPAM dibuka hingga 15 November', date: '22 Okt 2026' },
-  { id: 'n3', tag: 'Kampus', title: 'Perpustakaan buka hingga pukul 21.00 selama masa UTS', date: '20 Okt 2026' },
-]
+// Berita CONTOH untuk mode demo saja; selalu ditampilkan dengan label "Contoh" (lihat BeritaSection).
+export const news: NewsFeed = {
+  source: 'contoh',
+  fetchedAt: '2026-10-24T08:00:00.000Z',
+  items: [
+    { id: 'n1', tag: 'Akademik', title: 'Jadwal UTS Ganjil 2026/2027 telah terbit', summary: '', date: '2026-10-24T02:00:00.000Z', url: 'https://unpam.ac.id/' },
+    { id: 'n2', tag: 'Beasiswa', title: 'Pendaftaran Beasiswa Prestasi UNPAM dibuka hingga 15 November', summary: '', date: '2026-10-22T02:00:00.000Z', url: 'https://unpam.ac.id/' },
+    { id: 'n3', tag: 'Kampus', title: 'Perpustakaan buka hingga pukul 21.00 selama masa UTS', summary: '', date: '2026-10-20T02:00:00.000Z', url: 'https://unpam.ac.id/' },
+  ],
+}
 
 export const notifications: AppNotification[] = [
   { id: 1, src: 'Keuangan', text: 'Cicilan 2 UKT jatuh tempo 10 November 2026.', time: '1 jam lalu', read: false },

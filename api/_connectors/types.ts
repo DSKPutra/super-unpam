@@ -5,7 +5,6 @@ import type {
   CampusEvent,
   Certification,
   KrsClass,
-  NewsItem,
   OnlineClass,
   Ranking,
   ScheduleItem,
@@ -66,9 +65,8 @@ export interface SispemaConnector {
   getRanking(sub: string): Promise<Ranking>
 }
 
-/** Pengumuman & notifikasi kampus. TODO(LPTI): sistem sumber belum ditentukan. */
+/** Notifikasi kampus (berita kampus diambil api/berita.ts dari situs resmi). TODO(LPTI): sistem sumber belum ditentukan. */
 export interface PortalConnector {
-  getNews(): Promise<NewsItem[]>
   getNotifications(sub: string): Promise<AppNotification[]>
 }
 
