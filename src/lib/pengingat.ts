@@ -4,8 +4,8 @@
 
 import type { AppNotification } from './types'
 
-export type JenisPengingat = 'tugas' | 'tagihan' | 'event' | 'nilai' | 'kuesioner'
-export const JENIS_PENGINGAT: JenisPengingat[] = ['tugas', 'tagihan', 'event', 'nilai', 'kuesioner']
+export type JenisPengingat = 'tugas' | 'tagihan' | 'event' | 'nilai' | 'kuesioner' | 'ujian'
+export const JENIS_PENGINGAT: JenisPengingat[] = ['tugas', 'tagihan', 'event', 'nilai', 'kuesioner', 'ujian']
 
 export interface Tenggat {
   id: string
@@ -27,7 +27,7 @@ export interface PreferensiPengingat {
 }
 
 export const PREFERENSI_BAWAAN: PreferensiPengingat = {
-  jenis: { tugas: true, tagihan: true, event: true, nilai: true, kuesioner: true },
+  jenis: { tugas: true, tagihan: true, event: true, nilai: true, kuesioner: true, ujian: true },
   jamTenang: { mulai: '22:00', selesai: '06:00' },
   sebelumMenit: [24 * 60, 60],
   maksPerHari: 5,

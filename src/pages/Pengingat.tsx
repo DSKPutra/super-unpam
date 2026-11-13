@@ -8,13 +8,15 @@ import { PageHeader, Section } from '../components/ui'
 // Pengiriman Web Push butuh server (kunci VAPID, penyimpanan langganan, cron) yang belum tersedia;
 // halaman ini jujur menyatakannya. Penjadwal yang akan dipakai server: src/lib/pengingat.ts.
 
-const NAMA: Record<JenisPengingat, string> = { tugas: 'Tugas', tagihan: 'Tagihan', event: 'Event', nilai: 'Nilai terbit', kuesioner: 'Kuesioner' }
+const NAMA: Record<JenisPengingat, string> = { tugas: 'Tugas', tagihan: 'Tagihan', event: 'Event', nilai: 'Nilai terbit', kuesioner: 'Kuesioner', ujian: 'Ujian' }
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 
 export function Pengingat({ back }: { back: () => void }) {
-  const [pref, setPref] = usePref<PreferensiPengingat>('pengingat.pref', PREFERENSI_BAWAAN)
+  const [tersimpan, setPref] = usePref<PreferensiPengingat>('pengingat.pref', PREFERENSI_BAWAAN)
+  // Jenis baru (mis. 'ujian') yang belum ada di preferensi tersimpan mengikuti bawaan.
+  const pref: PreferensiPengingat = { ...PREFERENSI_BAWAAN, ...tersimpan, jenis: { ...PREFERENSI_BAWAAN.jenis, ...tersimpan.jenis } }
   const didukung = typeof Notification !== 'undefined' && 'serviceWorker' in navigator
   const [izin, setIzin] = useState<NotificationPermission | 'tidak-didukung'>(didukung ? Notification.permission : 'tidak-didukung')
   const iosPerluPasang = isIos() && !isStandalone()
