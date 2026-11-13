@@ -7,6 +7,8 @@ export interface User {
   prodi: string
   fakultas: string
   angkatan: string
+  /** Foto profil: path aset milik aplikasi (CSP img-src 'self'), mis. '/foto/dea.webp'. Kosong = inisial. */
+  foto?: string
 }
 
 // Tipe domain dipakai bersama oleh klien (src/lib/api.ts) dan BFF (/api) agar bentuk respons selalu sama.

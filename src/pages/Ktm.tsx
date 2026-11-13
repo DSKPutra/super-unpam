@@ -7,6 +7,7 @@ import { useResource } from '../lib/useResource'
 import { BookOpen, Car, Cpu, DoorOpen, Download, FileCheck2, Library, LogIn, LogOut, MapPin, NotebookPen, RefreshCw, Share2, ShieldAlert, ShieldCheck, Snowflake, WifiOff } from 'lucide-react'
 import { Icon3D } from '../components/Icon3D'
 import { Async, Badge, PageHeader, Section, Skeleton } from '../components/ui'
+import { Avatar } from '../components/Avatar'
 
 // QR berganti tiap 30 detik agar tidak bisa di-screenshot & dipakai ulang. Di mode BFF kode
 // ditandatangani server (HMAC) dan divalidasi server; klien hanya menampilkan.
@@ -104,9 +105,7 @@ export function KtmPage({ user, back, go }: { user: User; back: () => void; go: 
               <Cpu className="ml-auto h-8 w-8 text-[#FFD65C]/80" strokeWidth={1.5} />
             </div>
             <div className="relative mt-4 flex items-end gap-4">
-              <div className="flex h-20 w-16 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 font-display text-2xl font-bold">
-                {user.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
-              </div>
+              <Avatar user={user} className="h-20 w-16 rounded-xl border border-white/25 bg-white/15 font-display text-2xl" />
               <div className="min-w-0">
                 <div className="truncate font-display text-base font-bold">{user.name}</div>
                 <div className="font-mono text-sm tracking-wider">{user.nim}</div>
