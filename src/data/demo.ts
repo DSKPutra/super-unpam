@@ -28,6 +28,7 @@ export const DEMO_USER: User = {
   prodi: 'Teknik Informatika',
   fakultas: 'Fakultas Ilmu Komputer',
   angkatan: '2023',
+  foto: '/foto/dea.webp',
 }
 
 export const schedule: ScheduleItem[] = [

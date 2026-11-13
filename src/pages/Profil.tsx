@@ -6,6 +6,7 @@ import { FEATURES } from '../data/features'
 import type { Dict, Lang } from '../lib/i18n'
 import type { AppNotification, Role, User } from '../lib/types'
 import { Async, PageHeader, Section } from '../components/ui'
+import { Avatar } from '../components/Avatar'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -67,9 +68,7 @@ export function Profil({
     <div className="mx-auto max-w-2xl">
       <PageHeader title={t.profile} />
       <button onClick={() => go('ktm')} className="flex w-full items-center gap-4 holo relative overflow-hidden rounded-3xl p-5 text-left text-white shadow-[var(--glow)]" style={{ background: 'linear-gradient(135deg,#1B3FD1 0%,#2D6BFF 45%,#00B8E6 100%)' }}>
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-2xl font-bold">
-          {user.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
-        </div>
+        <Avatar user={user} className="h-16 w-16 rounded-2xl bg-white/20 text-2xl ring-2 ring-white/40" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-lg font-bold">{user.name}</div>
           <div className="font-mono text-sm opacity-90">{user.nim}</div>
