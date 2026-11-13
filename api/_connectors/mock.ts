@@ -44,8 +44,16 @@ export const mock: Connectors = {
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },
   ems: { getEvents: () => ok(demo.events) },
-  myLsp: { getCertifications: () => ok(demo.certifications) },
-  myLb: { getToefl: () => ok(demo.toefl) },
+  myLsp: {
+    getRingkasan: () => ok(demo.sertifikasi),
+    // Mock: tidak menyimpan apa pun; hanya mengembalikan bentuk respons yang sama dengan sistem asli.
+    daftarSkema: (_sub, skemaId) => ok({ id: `uk-${skemaId}`, skemaId, status: 'terdaftar' as const }),
+  },
+  myLb: {
+    getJadwal: () => ok(demo.jadwalTes),
+    getRingkasan: () => ok(demo.toefl),
+    daftarTes: (_sub, jadwalId) => ok({ id: `pt-${jadwalId}`, jadwalId, status: 'menunggu-bayar' as const }),
+  },
   sispema: { getRanking: () => ok(demo.ranking) },
   portal: { getNotifications: () => ok(demo.notifications) },
 }
