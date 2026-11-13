@@ -34,6 +34,7 @@ const Edom = page(() => import('./pages/fitur/Edom'), 'Edom')
 const Ujian = page(() => import('./pages/fitur/Ujian'), 'Ujian')
 const Herreg = page(() => import('./pages/fitur/Herreg'), 'Herreg')
 const Booking = page(() => import('./pages/fitur/Booking'), 'Booking')
+const TugasAkhir = page(() => import('./pages/fitur/TugasAkhir'), 'TugasAkhir')
 const Aspirasi = page(() => import('./pages/fitur/Aspirasi'), 'Aspirasi')
 const DompetSertifikat = page(() => import('./pages/fitur/DompetSertifikat'), 'DompetSertifikat')
 const Islami = page(() => import('./pages/fitur/Islami'), 'Islami')
@@ -206,7 +207,7 @@ export default function App() {
       case 'herreg':
         return <Herreg back={back} go={go} />
       case 'booking':
-        return <Booking back={back} />
+        return <Booking back={back} tab={sub} />
       case 'aspirasi':
         return <Aspirasi back={back} />
       case 'sertifikat':
@@ -221,6 +222,8 @@ export default function App() {
         return <KenaliKampus t={t} back={back} replayIntro={() => setOnboarded(false)} />
       case 'pengingat':
         return <Pengingat back={back} />
+      case 'ta':
+        return <TugasAkhir user={user} back={back} go={go} />
       case 'atur-beranda':
         return <AturBeranda t={t} user={user} back={back} layout={homeLayout} setLayout={setHomeLayout} />
       case 'notifikasi':

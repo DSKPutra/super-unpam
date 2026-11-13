@@ -1,4 +1,5 @@
 import {
+  BookMarked,
   BadgeCheck,
   CalendarCheck,
   ClipboardCheck,
@@ -63,6 +64,7 @@ export const FEATURES: Feature[] = [
   { id: 'surat', name: 'Surat & Admin', icon: FileText, from: '#7FB0FF', to: '#2D58E0', route: 'surat', roles: ['MAHASISWA', 'ALUMNI'], keywords: ['surat aktif', 'legalisir', 'transkrip', 'izin', 'administrasi'], source: 'BAAK' },
   { id: 'ujian', name: 'Exam Center', icon: NotebookPen, from: '#FF8FA3', to: '#C2185B', route: 'ujian', roles: ['MAHASISWA'], keywords: ['uts', 'uas', 'kartu ujian', 'kursi'], source: 'MY UNPAM' },
   { id: 'edom', name: 'EDOM & Survei', icon: ClipboardCheck, from: '#8CF5D0', to: '#0E9F80', route: 'edom', roles: ['MAHASISWA'], keywords: ['evaluasi dosen', 'kuesioner', 'survei'], source: 'MY UNPAM' },
+  { id: 'ta', name: 'Skripsi / TA', icon: BookMarked, from: '#9BE7FF', to: '#1E6FD9', route: 'ta', roles: ['MAHASISWA', 'DOSEN'], keywords: ['skripsi', 'tugas akhir', 'judul', 'pembimbing', 'bimbingan', 'sidang', 'proposal'], source: 'MY UNPAM' },
   { id: 'herreg', name: 'Registrasi & Cuti', icon: RefreshCcw, from: '#9DB8FF', to: '#3949D6', route: 'herreg', roles: ['MAHASISWA'], keywords: ['her-registrasi', 'daftar ulang', 'cuti', 'aktif kembali'], source: 'MY UNPAM' },
   { id: 'booking', name: 'Booking Ruang', icon: CalendarCheck, from: '#6FE7FF', to: '#0A84C6', route: 'booking', roles: ALL, keywords: ['ruang diskusi', 'lab', 'lapangan', 'bimbingan', 'fasilitas'], source: 'Sarpras' },
   { id: 'aspirasi', name: 'Aspirasi', icon: Megaphone, from: '#FFC56B', to: '#E06A00', route: 'aspirasi', roles: ALL, keywords: ['pengaduan', 'lapor', 'whistleblowing', 'keluhan'], source: 'Layanan' },

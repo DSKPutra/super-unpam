@@ -18,7 +18,7 @@ import type {
   Task,
   User,
 } from '../lib/types.js'
-import type { JadwalUjianSemester, PengajuanUjian, ProfilKelayakan, SesiUjian } from '../lib/akademik/types.js'
+import type { Dosen, JadwalUjianSemester, PengajuanUjian, ProfilKelayakan, SesiUjian, TugasAkhir } from '../lib/akademik/types.js'
 
 export const DEMO_USER: User = {
   name: 'DEA SAKA KURNIA PUTRA',
@@ -225,7 +225,7 @@ export const profilKelayakan: ProfilKelayakan = {
   prodi: 'Teknik Informatika',
   kehadiran: { TIF301: 92, TIF303: 81, TIF305: 68, TIF307: 88, TIF309: 79 },
   keuanganLunas: true,
-  sks: 84,
+  sks: 112,
   ipk: 3.67,
   bimbinganDisetujui: 0,
   persetujuanPembimbing: false,
@@ -243,5 +243,38 @@ export const pengajuanUjian: PengajuanUjian[] = [
     lampiran: [{ nama: 'surat-keterangan.pdf', ukuran: 182_000, tipe: 'application/pdf' }],
     status: 'DISETUJUI',
     diajukan: '2026-04-20T02:00:00.000Z',
+  },
+]
+
+// — Skripsi/Tugas Akhir (contoh). Nama dosen sama dengan data jadwal contoh; bukan orang sungguhan.
+export const dosenPembimbing: Dosen[] = [
+  { id: 'dsn-andi', nama: 'Dr. Andi Wijaya, M.Kom', bidang: ['Rekayasa Perangkat Lunak', 'Sistem Informasi'], terisi: 7, kontak: 'via MY UNPAM (contoh)' },
+  { id: 'dsn-rina', nama: 'Rina Kartika, M.T.', bidang: ['Kecerdasan Buatan & Data'], terisi: 4, kontak: 'via MY UNPAM (contoh)' },
+  { id: 'dsn-budi', nama: 'Budi Santoso, M.Kom', bidang: ['Sistem Informasi', 'Rekayasa Perangkat Lunak'], terisi: 10, kontak: 'via MY UNPAM (contoh)' },
+  { id: 'dsn-siti', nama: 'Siti Rahma, M.Cs', bidang: ['Rekayasa Perangkat Lunak', 'Multimedia & Gim'], terisi: 2, kontak: 'via MY UNPAM (contoh)' },
+  { id: 'dsn-hadi', nama: 'Hadi Pratama, M.Kom', bidang: ['Jaringan & Keamanan'], kuota: 8, terisi: 5, kontak: 'via MY UNPAM (contoh)' },
+]
+
+export const judulTerdaftar: string[] = [
+  'Sistem Rekomendasi Buku Perpustakaan Berbasis Collaborative Filtering',
+  'Deteksi Intrusi Jaringan Menggunakan Random Forest',
+  'Aplikasi Presensi Mahasiswa Berbasis QR Code Dinamis',
+  'Prediksi Kelulusan Mahasiswa dengan Regresi Logistik',
+  'Gamifikasi Pembelajaran Algoritma untuk Mahasiswa Baru',
+]
+
+/** Antrean pengajuan judul untuk tampilan dosen (contoh). */
+export const antrianJudul: TugasAkhir[] = [
+  {
+    id: 'ta-contoh-1',
+    judul: 'Klasifikasi Sentimen Ulasan Aplikasi Kampus dengan IndoBERT',
+    abstrak: 'Penelitian ini mengklasifikasikan sentimen ulasan pengguna aplikasi kampus memakai model bahasa IndoBERT (contoh).',
+    bidang: 'Kecerdasan Buatan & Data',
+    metode: 'Pengumpulan data ulasan, anotasi, fine-tuning, evaluasi F1 (contoh).',
+    pilihanPembimbing: ['dsn-rina', 'dsn-andi', 'dsn-siti'],
+    pembimbing: [],
+    status: 'DIAJUKAN',
+    riwayat: [{ dari: 'DRAF_JUDUL', ke: 'DIAJUKAN', peristiwa: 'AJUKAN_JUDUL', pelaku: 'MAHASISWA', waktu: '2026-10-21T03:00:00.000Z' }],
+    perubahan: [],
   },
 ]
