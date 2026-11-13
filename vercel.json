@@ -3,7 +3,10 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!api/|assets/|icons/|.*\\..*).*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/api/berita", "destination": "/api/campus/berita" },
+    { "source": "/((?!api/|assets/|icons/|.*\\..*).*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

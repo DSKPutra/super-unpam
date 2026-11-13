@@ -4,12 +4,13 @@ import { sertifikasiDemo, sertifikasiHttp, type SumberSertifikasi } from './sert
 import { toeflDemo, toeflHttp, type SumberToefl } from './toefl'
 import { taDemo, taHttp, type SumberTA } from './ta'
 import { ujianDemo, ujianHttp, type SumberUjian } from './ujian'
+import { karierDemo, karierHttp, type SumberKarier } from './karier'
 
 // Satu tempat memilih implementasi sumber data. Saat API resmi tersedia, BFF yang berganti
 // (CONNECTOR_MY_LB=http); klien tetap memakai implementasi http yang sama.
-export const sumber: { toefl: SumberToefl; sertifikasi: SumberSertifikasi; ujian: SumberUjian; ta: SumberTA } = USE_DEMO
-  ? { toefl: toeflDemo, sertifikasi: sertifikasiDemo, ujian: ujianDemo, ta: taDemo }
-  : { toefl: toeflHttp, sertifikasi: sertifikasiHttp, ujian: ujianHttp, ta: taHttp }
+export const sumber: { toefl: SumberToefl; sertifikasi: SumberSertifikasi; ujian: SumberUjian; ta: SumberTA; karier: SumberKarier } = USE_DEMO
+  ? { toefl: toeflDemo, sertifikasi: sertifikasiDemo, ujian: ujianDemo, ta: taDemo, karier: karierDemo }
+  : { toefl: toeflHttp, sertifikasi: sertifikasiHttp, ujian: ujianHttp, ta: taHttp, karier: karierHttp }
 
 export type StatusSumber = { tone: 'green' | 'slate' | 'red' | 'blue'; teks: string }
 

@@ -60,6 +60,7 @@ BFF ada di folder `api/`:
 - `auth/[action].ts`: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` (validasi zod, rate limit dasar)
 - `academic`, `kuliah`, `finance`, `campus`: data baca per domain; setiap endpoint memverifikasi sesi dan peran
 - `qr/[action].ts`: QR KTM/presensi ditandatangani server (HMAC, berganti tiap 30 detik), plus `POST /api/qr/verify` untuk petugas
+- `karier/[action].ts`: lowongan, profil kerja, lamaran, laporan, moderasi (`/api/karier/*`). `/api/berita` dilayani `campus/[resource].ts` lewat rewrite: paket Vercel Hobby membatasi 12 fungsi, jadi endpoint baru sebaiknya digabung ke fungsi yang ada.
 - `presensi/[action].ts`: validasi QR/kode/geofence di server; koordinat kampus hanya di konfigurasi server
 - `_connectors/`: satu antarmuka per sistem sumber (SSO, MY UNPAM, MENTARI, SISKEMU, EMS, MY LSP, MY LB, SISPEMA, portal), masing-masing dengan implementasi `mock` dan `http`
 
