@@ -40,6 +40,11 @@ export const mock: Connectors = {
     getKrsOffer: () => ok(demo.krsOffer),
     getAttendanceRecap: () => ok(demo.attendanceRecap),
     recordAttendance: () => ok(undefined),
+    getUjian: (_sub, jenis) => ok(demo.ujianSemester[jenis]),
+    getProfilKelayakan: () => ok(demo.profilKelayakan),
+    getPengajuanUjian: () => ok(demo.pengajuanUjian),
+    // Mock: tidak menyimpan; mengembalikan bentuk respons yang sama dengan sistem asli.
+    ajukanUjian: (_sub, input) => ok({ ...input, id: `pj-${Date.now().toString(36)}`, status: 'DIAJUKAN' as const, diajukan: new Date().toISOString() }),
   },
   mentari: { getClasses: () => ok(demo.classes), getTasks: () => ok(demo.tasks) },
   siskemu: { getBills: () => ok(demo.bills) },

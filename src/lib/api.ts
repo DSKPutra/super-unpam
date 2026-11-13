@@ -18,7 +18,7 @@ import type {
   User,
 } from './types'
 import { distanceMeters } from './geo'
-import { hapusSemuaDraf } from './kuesioner'
+import { hapusSemuaDraf } from './draf'
 
 /**
  * Adapter data Super UNPAM: SATU-SATUNYA pintu halaman ke data.

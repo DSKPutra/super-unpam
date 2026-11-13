@@ -154,7 +154,7 @@ export interface RingkasanSertifikasi {
 export interface DariSumber<T> {
   data: T
   /** 'contoh' = konektor mock; selain itu nama sistem asli yang benar-benar menjawab. */
-  asal: 'contoh' | 'MyLB' | 'MyLSP'
+  asal: 'contoh' | 'MyLB' | 'MyLSP' | 'MY UNPAM'
 }
 
 export interface Ranking {

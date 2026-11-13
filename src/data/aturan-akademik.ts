@@ -34,6 +34,8 @@ export interface AturanUjian extends Sumber {
   tataTertib: string[]
   /** Batas pengajuan (hari setelah ujian) untuk susulan/remedial. */
   batasPengajuanHari?: number
+  /** Lampiran bukti pengajuan (susulan/remedial): ukuran maksimal dan tipe yang diterima. */
+  lampiran?: { maksMB: number; tipe: string[] }
 }
 
 export interface KriteriaRubrik {
@@ -76,6 +78,7 @@ export interface AturanProdi extends Sumber {
 
 const TODO: Sumber = { sumber: null, dicek: null } // TODO(BAAK): isi dari dokumen resmi
 
+const LAMPIRAN_CONTOH = { maksMB: 5, tipe: ['application/pdf', 'image/jpeg', 'image/png'] }
 const TATA_TERTIB_CONTOH = ['Hadir 15 menit sebelum ujian dimulai.', 'Tunjukkan kartu ujian (QR) kepada pengawas.', 'HP dimatikan dan disimpan di tas.', 'Wajib berpakaian rapi dan bersepatu.']
 
 /** Aturan bawaan (semua prodi). SEMUA NILAI CONTOH — TODO(BAAK). */
@@ -100,8 +103,8 @@ export const ATURAN_BAWAAN: AturanProdi = {
   ujian: [
     { jenis: 'UTS', nama: 'UTS', ...TODO, jedaMinimalMenit: 30, tataTertib: TATA_TERTIB_CONTOH, syarat: [{ id: 'kehadiran', minPersen: 75 }, { id: 'keuangan' }] },
     { jenis: 'UAS', nama: 'UAS', ...TODO, jedaMinimalMenit: 30, tataTertib: TATA_TERTIB_CONTOH, syarat: [{ id: 'kehadiran', minPersen: 75 }, { id: 'keuangan' }] },
-    { jenis: 'SUSULAN', nama: 'Ujian Susulan', ...TODO, jedaMinimalMenit: 30, tataTertib: TATA_TERTIB_CONTOH, batasPengajuanHari: 7, syarat: [{ id: 'keuangan' }] },
-    { jenis: 'REMEDIAL', nama: 'Remedial', ...TODO, jedaMinimalMenit: 30, tataTertib: TATA_TERTIB_CONTOH, batasPengajuanHari: 7, syarat: [{ id: 'keuangan' }] },
+    { jenis: 'SUSULAN', nama: 'Ujian Susulan', ...TODO, jedaMinimalMenit: 30, tataTertib: TATA_TERTIB_CONTOH, batasPengajuanHari: 7, lampiran: LAMPIRAN_CONTOH, syarat: [{ id: 'keuangan' }] },
+    { jenis: 'REMEDIAL', nama: 'Remedial', ...TODO, jedaMinimalMenit: 30, tataTertib: TATA_TERTIB_CONTOH, batasPengajuanHari: 7, lampiran: LAMPIRAN_CONTOH, syarat: [{ id: 'keuangan' }] },
     {
       jenis: 'PROPOSAL', nama: 'Seminar Proposal', ...TODO, jedaMinimalMenit: 60, tataTertib: [],
       syarat: [{ id: 'bimbingan', minimal: 4 }, { id: 'persetujuan-pembimbing' }, { id: 'keuangan' }, { id: 'berkas', wajib: [{ id: 'naskah-proposal', label: 'Naskah proposal (PDF)' }] }],

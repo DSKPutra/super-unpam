@@ -16,6 +16,7 @@ import type {
   Task,
   User,
 } from '../../src/lib/types.js'
+import type { JadwalUjianSemester, JenisUjianSemester, PengajuanUjian, ProfilKelayakan } from '../../src/lib/akademik/types.js'
 
 // Satu antarmuka per sistem sumber kampus (kolom `source` di src/data/features.ts).
 // Setiap sistem punya implementasi `mock` (data contoh) dan `http` (sistem asli), dengan bentuk yang sama.
@@ -35,6 +36,10 @@ export interface MyUnpamConnector {
   getKrsOffer(sub: string): Promise<KrsClass[]>
   getAttendanceRecap(sub: string): Promise<AttendanceRecap[]>
   recordAttendance(sub: string, course: string, method: 'qr' | 'kode' | 'gps'): Promise<void>
+  getUjian(sub: string, jenis: JenisUjianSemester): Promise<JadwalUjianSemester>
+  getProfilKelayakan(sub: string): Promise<ProfilKelayakan>
+  getPengajuanUjian(sub: string): Promise<PengajuanUjian[]>
+  ajukanUjian(sub: string, input: Omit<PengajuanUjian, 'id' | 'status' | 'diajukan'>): Promise<PengajuanUjian>
 }
 
 /** MENTARI: kelas online & tugas. */
